@@ -68,9 +68,8 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("neighborhood");
 
-                    b.Property<string>("Number")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
                         .HasColumnName("number");
 
                     b.Property<string>("Street")

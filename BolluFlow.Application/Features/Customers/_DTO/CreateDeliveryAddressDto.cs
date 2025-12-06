@@ -2,5 +2,5 @@
 
 public record CreateDeliveryAddressDto(
     string Street,
-    string Number,
+    int Number,
     string Neighborhood);
