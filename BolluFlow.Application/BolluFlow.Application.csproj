@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+    </PropertyGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="MediatR" Version="13.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\BolluFlow.Domain\BolluFlow.Domain.csproj" />
+        <ProjectReference Include="..\BolluFlow.Infrastructure\BolluFlow.Infrastructure.csproj" />
+    </ItemGroup>
+</Project>
