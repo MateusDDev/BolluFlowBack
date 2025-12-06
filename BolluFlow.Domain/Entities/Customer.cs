@@ -10,5 +10,7 @@ public class Customer
     
     public string? Preferences { get; set; }
     
+    public DateTime? Birthday { get; set; }
+    
     public DeliveryAddress DeliveryAddress { get; set; }
 }
