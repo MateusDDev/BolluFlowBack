@@ -36,6 +36,7 @@ public class Result
     }
 
     public static Result Success() => new(true, null, 200);
+    public static Result NoContent() => new(true, null, 204);
     public static Result NotFound(string message) => new(false, message, 404);
     public static Result BadRequest(string message) => new(false, message, 400);
 }

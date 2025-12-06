@@ -1,6 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Domain.Entities;
+using BolluFlow.Application.Models;
 
 namespace BolluFlow.Application.Features.Customers.List;
 
-public record ListCustomersQuery : IQuery<ResultOf<List<Customer>>>;
+public record ListCustomersQuery : IQuery<ResultOf<List<CustomerModel>>>;

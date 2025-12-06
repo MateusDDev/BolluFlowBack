@@ -1,6 +1,5 @@
 ﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Application.Features.Customers._DTO;
-using BolluFlow.Domain.Entities;
+using BolluFlow.Application.Models;
 
 namespace BolluFlow.Application.Features.Customers.Create;
 
@@ -8,4 +7,5 @@ public record CreateCustomerCommand(
     string Name,
     string Whatsapp,
     string? Preferences,
-    CreateDeliveryAddressDto DeliveryAddress) : ICommand<ResultOf<Customer>>;
+    DateTime? Birthday,
+    DeliveryAddressModel DeliveryAddress) : ICommand<ResultOf<CustomerModel>>;
