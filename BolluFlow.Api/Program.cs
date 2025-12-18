@@ -67,10 +67,6 @@ else
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.ListenAnyIP(80);
-        options.ListenAnyIP(443, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        });
     });
 }
 
@@ -84,9 +80,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-
-if (!app.Environment.IsDevelopment())
-    app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
