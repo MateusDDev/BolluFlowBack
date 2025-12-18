@@ -5,17 +5,21 @@ using BolluFlow.Application.Features.Customers.List;
 using BolluFlow.Application.Features.Customers.Update;
 using BolluFlow.Application.Models;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolluFlow.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("[controller]")]
 public class CustomersController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ResultOf<List<CustomerModel>>> ListCustomers([FromQuery] ListCustomersQuery query, CancellationToken ct)
+    public async Task<ResultOf<List<CustomerModel>>> ListCustomers(CancellationToken ct)
     { 
+        var query = new ListCustomersQuery();
+        
         return await mediator.Send(query, ct);
     }
 
@@ -25,22 +29,20 @@ public class CustomersController(IMediator mediator) : ControllerBase
         return await mediator.Send(command, ct);
     }
 
-    [HttpPut("/{id:long}")]
+    [HttpPut("{id:long}")]
     public async Task<ResultOf<CustomerModel>> UpdateCustomer(
         [FromRoute] long id,
         [FromBody] UpdateCustomerCommandBody body,
         CancellationToken ct)
     {
         var command = new UpdateCustomerCommand(id, body);
-        
         return await mediator.Send(command, ct);
     }
 
-    [HttpDelete("/{id:long}")]
+    [HttpDelete("{id:long}")]
     public async Task<Result> DeleteCustomer([FromRoute] long id, CancellationToken ct)
     {
         var command = new DeleteCustomerCommand(id);
-        
         return await mediator.Send(command, ct);
     }
 }
