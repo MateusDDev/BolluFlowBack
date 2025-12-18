@@ -12,7 +12,5 @@ public class CustomerProfile : IRegister
         config.NewConfig<Customer, CustomerModel>();
         
         config.NewConfig<CreateCustomerCommand, Customer>();
-        
-        config.NewConfig<DeliveryAddress, DeliveryAddressModel>();
     }
 }

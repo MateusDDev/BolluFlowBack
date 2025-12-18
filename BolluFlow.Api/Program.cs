@@ -1,8 +1,15 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using BolluFlow.Application.Features.Customers.List;
+using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<JwtHelper>();
 
 builder.Services.AddCors(options =>
 {
@@ -14,6 +21,26 @@ builder.Services.AddCors(options =>
             .AllowCredentials()
     );
 });
+
+builder.Services.AddAuthentication(options => 
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value ?? throw new ArgumentNullException(),
+            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value ?? throw new ArgumentNullException(),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
+                builder.Configuration.GetSection("Jwt:Key").Value ?? throw new ArgumentNullException()))
+        };
+    });
 
 builder.Services.AddDbContext<ApplicationDbContext>();
 
@@ -40,6 +67,10 @@ else
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.ListenAnyIP(80);
+        options.ListenAnyIP(443, listenOptions =>
+        {
+            listenOptions.UseHttps();
+        });
     });
 }
 
@@ -53,6 +84,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+
+if (!app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

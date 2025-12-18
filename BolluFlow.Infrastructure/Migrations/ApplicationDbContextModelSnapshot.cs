@@ -92,6 +92,40 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.ToTable("tb_delivery_address", (string)null);
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.User", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("email");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_user");
+
+                    b.ToTable("tb_user", (string)null);
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.DeliveryAddress", b =>
                 {
                     b.HasOne("BolluFlow.Domain.Entities.Customer", "Customer")
