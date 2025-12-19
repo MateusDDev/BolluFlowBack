@@ -58,12 +58,12 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-if (builder.Environment.IsDevelopment())
-{
+if (builder.Environment.IsDevelopment()) 
+{ 
     builder.WebHost.UseUrls("http://localhost:5143");
 }
 else
-{
+{ 
     builder.WebHost.ConfigureKestrel(options =>
     {
         options.ListenAnyIP(80);

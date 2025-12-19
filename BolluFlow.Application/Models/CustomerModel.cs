@@ -2,6 +2,7 @@
 
 public record CustomerModel(
     long Id,
+    long UserId,
     string Name,
     string Whatsapp,
     string? Preferences,

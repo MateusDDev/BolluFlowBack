@@ -44,6 +44,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("preferences");
 
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
                     b.Property<string>("Whatsapp")
                         .IsRequired()
                         .HasColumnType("text")

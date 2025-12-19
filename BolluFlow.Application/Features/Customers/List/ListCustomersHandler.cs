@@ -14,6 +14,7 @@ public class ListCustomersHandler(ApplicationDbContext db) :
     {
         var customers = await db.Customers
             .Include(x => x.DeliveryAddress)
+            .Where(x => x.UserId == request.UserId)
             .ToListAsync(cancellationToken);
 
         var response = customers.Adapt<List<CustomerModel>>();
