@@ -15,11 +15,10 @@ namespace BolluFlow.Controllers;
 [Route("[controller]")]
 public class CustomersController(IMediator mediator) : ControllerBase
 {
-    [HttpGet]
-    public async Task<ResultOf<List<CustomerModel>>> ListCustomers(CancellationToken ct)
+    [HttpGet("{userId:long}")]
+    public async Task<ResultOf<List<CustomerModel>>> ListCustomers([FromRoute] long userId, CancellationToken ct)
     { 
-        var query = new ListCustomersQuery();
-        
+        var query = new ListCustomersQuery(userId);
         return await mediator.Send(query, ct);
     }
 
@@ -29,13 +28,13 @@ public class CustomersController(IMediator mediator) : ControllerBase
         return await mediator.Send(command, ct);
     }
 
-    [HttpPut("{id:long}")]
+    [HttpPut("{userId:long}")]
     public async Task<ResultOf<CustomerModel>> UpdateCustomer(
-        [FromRoute] long id,
+        [FromRoute] long userId,
         [FromBody] UpdateCustomerCommandBody body,
         CancellationToken ct)
     {
-        var command = new UpdateCustomerCommand(id, body);
+        var command = new UpdateCustomerCommand(userId, body);
         return await mediator.Send(command, ct);
     }
 

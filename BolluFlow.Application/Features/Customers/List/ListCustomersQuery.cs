@@ -3,4 +3,4 @@ using BolluFlow.Application.Models;
 
 namespace BolluFlow.Application.Features.Customers.List;
 
-public record ListCustomersQuery : IQuery<ResultOf<List<CustomerModel>>>;
+public record ListCustomersQuery(long UserId) : IQuery<ResultOf<List<CustomerModel>>>;
