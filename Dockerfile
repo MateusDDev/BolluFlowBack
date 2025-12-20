@@ -2,7 +2,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Copia solução e projetos
+# Copia solução e todos os projetos
 COPY BolluFlow.sln . 
 COPY BolluFlow.Domain/*.csproj ./BolluFlow.Domain/
 COPY BolluFlow.Application/*.csproj ./BolluFlow.Application/
@@ -15,16 +15,8 @@ RUN dotnet restore
 # Copia todo o código
 COPY . .
 
-# Vai para o projeto da API
-WORKDIR /src/BolluFlow.Api
-
-# Restaura tools
-RUN dotnet tool restore
-
-# Roda migrations
-RUN dotnet ef database update -s BolluFlow.Api -p BolluFlow.Infrastructure
-
 # Publica a API
+WORKDIR /src/BolluFlow.Api
 RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
 # === Runtime Stage ===
@@ -35,7 +27,6 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 EXPOSE 80
-
 ENTRYPOINT ["dotnet", "BolluFlow.Api.dll"]
 
 # Healthcheck
