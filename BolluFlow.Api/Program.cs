@@ -58,7 +58,9 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.WebHost.UseUrls("http://localhost:5143");
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5143";
+
+builder.WebHost.UseUrls($"http://*:{port}");
 
 var app = builder.Build();
 
