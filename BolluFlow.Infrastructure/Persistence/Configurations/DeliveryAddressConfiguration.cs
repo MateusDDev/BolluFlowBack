@@ -11,5 +11,10 @@ public class DeliveryAddressConfiguration : IEntityTypeConfiguration<DeliveryAdd
         builder.ToTable("tb_delivery_address");
         
         builder.HasKey(x => x.Id);
+        
+        builder
+            .HasOne<Customer>(x => x.Customer)
+            .WithOne(x => x.DeliveryAddress)
+            .HasForeignKey<DeliveryAddress>(x => x.CustomerId);
     }
 }

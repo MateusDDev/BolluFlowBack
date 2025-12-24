@@ -1,6 +1,8 @@
 ﻿using System.Security.Claims;
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Persistence;
 using Mapster;
 using MediatR;
@@ -20,17 +22,17 @@ public class MeHandler(
             .FindFirst(ClaimTypes.NameIdentifier);
 
         if (userIdClaim is null)
-            return ResultOf<UserModel>.Unauthorized("Usuário não autenticado");
+            return ResultOf<UserModel>.Unauthorized(new DomainError("USER_NOT_AUTHENTICATED", "Usuário não autenticado"));
 
         if (!long.TryParse(userIdClaim.Value, out var userId))
-            return ResultOf<UserModel>.Unauthorized("Token inválido");
+            return ResultOf<UserModel>.Unauthorized(new DomainError("INVALID_TOKEN", "Token inválidO"));
 
         var user = await db.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == userId, cancellationToken);
 
         if (user is null)
-            return ResultOf<UserModel>.Unauthorized("Usuário não encontrado");
+            return ResultOf<UserModel>.Unauthorized(CommonErrors.UserNotFound);
 
         var result = user.Adapt<UserModel>();
         

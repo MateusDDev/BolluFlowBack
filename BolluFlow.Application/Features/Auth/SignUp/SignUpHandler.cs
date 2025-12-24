@@ -1,5 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
@@ -16,15 +17,13 @@ public class SignUpHandler(ApplicationDbContext db, JwtHelper jwtHelper) : IRequ
         var existingUser = await db.Users.FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
 
         if (existingUser is not null)
-            return ResultOf<UserModel>.BadRequest("Email já cadastrado");
+            return ResultOf<UserModel>.BadRequest(new DomainError("EMAIL_ALREADY_EXISTS", "Email já cadastrado"));
         
-        var user = new User
-        {
-            Name = request.Name,
-            Email = request.Email,
-            Password = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            CreatedAt = DateTime.UtcNow
-        };
+        var user = User.Create(
+            request.Name, 
+            request.Email, 
+            BCrypt.Net.BCrypt.HashPassword(request.Password), 
+            request.ProfileImageUrl);
         
         db.Users.Add(user);
         
