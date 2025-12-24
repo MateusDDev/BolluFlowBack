@@ -1,42 +1,52 @@
-﻿namespace BolluFlow.Application.Abstractions;
+﻿using BolluFlow.Domain.Abstractions;
+
+namespace BolluFlow.Application.Abstractions;
 
 public class ResultOf<T>
 {
     public bool IsSuccessful { get; }
     public T? Value { get; }
+    public string? ErrorCode { get; }
     public string? ErrorMessage { get; }
     public int StatusCode { get; }
 
-    private ResultOf(bool isSuccessful, T? value = default, string? errorMessage = null, int statusCode = 200)
+    private ResultOf(bool isSuccessful, T? value = default, DomainError? error = null, int statusCode = 200)
     {
         IsSuccessful = isSuccessful;
         Value = value;
-        ErrorMessage = errorMessage;
+        ErrorCode = error?.Code;
+        ErrorMessage = error?.Message;
         StatusCode = statusCode;
     }
 
-    public static ResultOf<T> Success(T value) => new(true, value, null, 200);
-    public static ResultOf<T> NotFound(string message) => new(false, default, message, 404);
-    public static ResultOf<T> BadRequest(string message) => new(false, default, message, 400);
-    public static ResultOf<T> Unauthorized(string message) => new(false, default, message, 401);
-    public static ResultOf<T> InternalError(string message) => new(false, default, message, 500);
+    public static ResultOf<T> Success(T value) => new(true, value);
+
+    public static ResultOf<T> BadRequest(DomainError error) => new(false, default, error, 400);
+
+    public static ResultOf<T> NotFound(DomainError error) => new(false, default, error, 404);
+
+    public static ResultOf<T> Unauthorized(DomainError error) => new(false, default, error, 401);
+
+    public static ResultOf<T> InternalError(DomainError error) => new(false, default, error, 500);
 }
 
 public class Result
 {
     public bool IsSuccessful { get; }
+    public string? ErrorCode { get; }
     public string? ErrorMessage { get; }
     public int StatusCode { get; }
 
-    private Result(bool isSuccessful, string? errorMessage = null, int statusCode = 200)
+    private Result(bool isSuccessful, DomainError? error, int statusCode = 200)
     {
         IsSuccessful = isSuccessful;
-        ErrorMessage = errorMessage;
+        ErrorCode = error?.Code;
+        ErrorMessage = error?.Message;
         StatusCode = statusCode;
     }
 
-    public static Result Success() => new(true, null, 200);
+    public static Result Success() => new(true, null);
     public static Result NoContent() => new(true, null, 204);
-    public static Result NotFound(string message) => new(false, message, 404);
-    public static Result BadRequest(string message) => new(false, message, 400);
+    public static Result NotFound(DomainError error) => new(false, error, 404);
+    public static Result BadRequest(DomainError error) => new(false, error, 400);
 }

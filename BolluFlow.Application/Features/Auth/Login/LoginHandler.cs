@@ -1,4 +1,5 @@
 ﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
@@ -15,7 +16,7 @@ public class LoginHandler(ApplicationDbContext db, JwtHelper jwtHelper) : IReque
         var user = await db.Users.FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
-            return ResultOf<UserModel>.Unauthorized("Usuário não encontrado");
+            return ResultOf<UserModel>.Unauthorized(CommonErrors.UserNotFound);
 
         var token = jwtHelper.GenerateToken(user);
         

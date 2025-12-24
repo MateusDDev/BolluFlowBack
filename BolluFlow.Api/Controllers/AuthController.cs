@@ -3,6 +3,7 @@ using BolluFlow.Application.Features.Auth.Login;
 using BolluFlow.Application.Features.Auth.Me;
 using BolluFlow.Application.Features.Auth.SignUp;
 using BolluFlow.Application.Models;
+using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,20 +14,23 @@ namespace BolluFlow.Controllers;
 public class AuthController(IMediator mediator)
 {
     [HttpPost("login")]
-    public async Task<ResultOf<UserModel>> Login([FromBody] LoginCommand command, CancellationToken ct)
+    public async Task<IActionResult> Login([FromBody] LoginCommand command, CancellationToken ct)
     {
-        return await mediator.Send(command, ct);
+        var result = await mediator.Send(command, ct);
+        return result.ToActionResult();
     }
 
     [HttpPost("sign-up")]
-    public async Task<ResultOf<UserModel>> SignUp([FromBody] SignUpCommand command, CancellationToken ct)
+    public async Task<IActionResult> SignUp([FromBody] SignUpCommand command, CancellationToken ct)
     {
-        return await mediator.Send(command, ct);
+        var result = await mediator.Send(command, ct);
+        return result.ToActionResult();
     }
 
     [HttpGet("me")]
-    public async Task<ResultOf<UserModel>> Me([FromRoute] MeQuery query, CancellationToken ct)
+    public async Task<IActionResult> Me([FromRoute] MeQuery query, CancellationToken ct)
     {
-        return await mediator.Send(query, ct);
+        var result = await mediator.Send(query, ct);
+        return result.ToActionResult();
     }
 }

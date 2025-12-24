@@ -2,9 +2,11 @@
 
 public class Customer
 {
-    public long Id { get; set; }
+    protected Customer() { }
     
-    public long UserId { get; set; }
+    public long Id { get; private set; }
+    
+    public long UserId { get; private set; }
     
     public string Name { get; set; }
     
@@ -15,4 +17,23 @@ public class Customer
     public DateTime? Birthday { get; set; }
     
     public DeliveryAddress DeliveryAddress { get; set; }
+
+    public static Customer Create(
+        long userId,
+        string name,
+        string whatsapp,
+        DeliveryAddress deliveryAddress,
+        string? preferences = null,
+        DateTime? birthday = null)
+    {
+        return new Customer
+        {
+            UserId = userId,
+            Name = name,
+            Whatsapp = whatsapp,
+            DeliveryAddress = deliveryAddress,
+            Preferences = preferences,
+            Birthday = birthday
+        };
+    }
 }

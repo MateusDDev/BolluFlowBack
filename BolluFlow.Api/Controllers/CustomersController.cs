@@ -1,9 +1,9 @@
 ﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Application.Features.Customers.Create;
-using BolluFlow.Application.Features.Customers.Delete;
-using BolluFlow.Application.Features.Customers.List;
-using BolluFlow.Application.Features.Customers.Update;
-using BolluFlow.Application.Models;
+using BolluFlow.Application.Features.Customers.CreateCustomer;
+using BolluFlow.Application.Features.Customers.DeleteCustomer;
+using BolluFlow.Application.Features.Customers.ListCustomers;
+using BolluFlow.Application.Features.Customers.UpdateCustomer;
+using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,32 +16,42 @@ namespace BolluFlow.Controllers;
 public class CustomersController(IMediator mediator) : ControllerBase
 {
     [HttpGet("{userId:long}")]
-    public async Task<ResultOf<List<CustomerModel>>> ListCustomers([FromRoute] long userId, CancellationToken ct)
+    public async Task<IActionResult> ListCustomers([FromRoute] long userId, CancellationToken ct)
     { 
         var query = new ListCustomersQuery(userId);
-        return await mediator.Send(query, ct);
+        
+        var result = await mediator.Send(query, ct);
+        
+        return result.ToActionResult();
     }
 
     [HttpPost]
-    public async Task<ResultOf<CustomerModel>> CreateCustomer([FromBody] CreateCustomerCommand command, CancellationToken ct)
+    public async Task<IActionResult> CreateCustomer([FromBody] CreateCustomerCommand command, CancellationToken ct)
     {
-        return await mediator.Send(command, ct);
+        var result = await mediator.Send(command, ct);
+        return result.ToActionResult();
     }
 
-    [HttpPut("{userId:long}")]
-    public async Task<ResultOf<CustomerModel>> UpdateCustomer(
-        [FromRoute] long userId,
+    [HttpPut("{customerId:long}")]
+    public async Task<IActionResult> UpdateCustomer(
+        [FromRoute] long customerId,
         [FromBody] UpdateCustomerCommandBody body,
         CancellationToken ct)
     {
-        var command = new UpdateCustomerCommand(userId, body);
-        return await mediator.Send(command, ct);
+        var command = new UpdateCustomerCommand(customerId, body);
+        
+        var result = await mediator.Send(command, ct);
+        
+        return result.ToActionResult();
     }
 
     [HttpDelete("{id:long}")]
-    public async Task<Result> DeleteCustomer([FromRoute] long id, CancellationToken ct)
+    public async Task<IActionResult> DeleteCustomer([FromRoute] long id, CancellationToken ct)
     {
         var command = new DeleteCustomerCommand(id);
-        return await mediator.Send(command, ct);
+        
+        var result = await mediator.Send(command, ct);
+        
+        return result.ToActionResult();
     }
 }
