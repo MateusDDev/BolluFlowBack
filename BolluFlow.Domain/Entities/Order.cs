@@ -25,6 +25,13 @@ public class Order
     private readonly List<OrderItem> _items = [];
     public IReadOnlyCollection<OrderItem> Items => _items;
 
+    private OrderItem GetItem(long orderItemId)
+    {
+        var item = _items.FirstOrDefault(i => i.Id == orderItemId);
+
+        return item ?? throw new DomainException(OrderErrors.ItemNotFound);
+    }
+
     public static Order Create(long customerId, string? note = null, DateTime? deliveryDate = null)
     {
         return new Order
@@ -42,24 +49,33 @@ public class Order
         Note = note;
     }
 
-    public void AddItem(Recipe recipe, int quantity)
+    public void AddItem(long recipeId, int quantity, decimal unitPrice, decimal unitCost)
     {
-        if (!recipe.IsActive)
-            throw new DomainException(OrderErrors.RecipeInactive);
+        if (Status != OrderStatus.Pending)
+            throw new DomainException(OrderErrors.OrderIsNotOpen);
+        
+        _items.Add(OrderItem.Create(recipeId, quantity, unitPrice, unitCost));
+    }
+    
+    public void RemoveItem(long orderItemId)
+    {
+        if (Status != OrderStatus.Pending)
+            throw new DomainException(OrderErrors.OrderIsNotOpen);
 
-        var unitCost = recipe.CalculateUnitCost();
+        var item = GetItem(orderItemId);
 
-        foreach (var ingredient in recipe.RecipeIngredients)
-        {
-            ingredient.Ingredient.ConsumeStock(ingredient.QuantityUsed * quantity);
-        }
+        _items.Remove(item);
+    }
 
-        _items.Add(new OrderItem
-        {
-            RecipeId = recipe.Id,
-            Quantity = quantity,
-            UnitCost = unitCost,
-            UnitPrice = recipe.FinalPrice
-        });
+    public OrderItem UpdateItem(long orderItemId, int quantity, decimal unitPrice, decimal unitCost)
+    {
+        if (Status != OrderStatus.Pending)
+            throw new DomainException(OrderErrors.OrderIsNotOpen);
+        
+        var item = GetItem(orderItemId);
+        
+        item.Update(quantity, unitPrice, unitCost);
+
+        return item;
     }
 }

@@ -196,9 +196,10 @@ namespace BolluFlow.Infrastructure.Migrations
                 column: "customer_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_tb_order_item_order_id",
+                name: "ix_tb_order_item_order_id_recipe_id",
                 table: "tb_order_item",
-                column: "order_id");
+                columns: new[] { "order_id", "recipe_id" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_tb_order_item_recipe_id",

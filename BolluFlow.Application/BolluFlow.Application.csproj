@@ -22,10 +22,5 @@
       <Folder Include="Features\Dashboard\GetSales\" />
       <Folder Include="Features\Dashboard\GetSummary\" />
       <Folder Include="Features\Dashboard\GetTopRecipes\" />
-      <Folder Include="Features\OrderItems\CreateOrderItem\" />
-      <Folder Include="Features\OrderItems\DeleteOrderItem\" />
-      <Folder Include="Features\OrderItems\GetOrderItemDetails\" />
-      <Folder Include="Features\OrderItems\ListOrderItems\" />
-      <Folder Include="Features\OrderItems\UpdateOrderItem\" />
     </ItemGroup>
 </Project>

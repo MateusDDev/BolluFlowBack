@@ -1,4 +1,5 @@
 ﻿using BolluFlow.Application.Features.Ingredients.CreateIngredient;
+using BolluFlow.Application.Features.Ingredients.DeleteIngredient;
 using BolluFlow.Application.Features.Ingredients.GetIngredientDetails;
 using BolluFlow.Application.Features.Ingredients.ListIngredients;
 using BolluFlow.Application.Features.Ingredients.UpdateIngredient;
@@ -48,6 +49,16 @@ public class IngredientsController(IMediator mediator) : ControllerBase
         CancellationToken ct)
     {
         var command = new UpdateIngredientCommand(ingredientId, body);
+        
+        var result = await mediator.Send(command, ct);
+        
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("{ingredientId:long}")]
+    public async Task<IActionResult> DeleteIngredient([FromRoute] long ingredientId, CancellationToken ct)
+    {
+        var command = new DeleteIngredientCommand(ingredientId);
         
         var result = await mediator.Send(command, ct);
         

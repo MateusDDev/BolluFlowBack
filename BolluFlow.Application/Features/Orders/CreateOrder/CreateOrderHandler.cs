@@ -3,6 +3,7 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
+using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
 using Mapster;
 using MediatR;
@@ -43,8 +44,13 @@ public class CreateOrderHandler(ApplicationDbContext db) : IRequestHandler<Creat
             {
                 if (!recipesById.TryGetValue(item.RecipeId, out var recipe))
                     return ResultOf<OrderModel>.NotFound(CommonErrors.RecipeNotFound);
+
+                if (!recipe.IsActive)
+                    return ResultOf<OrderModel>.BadRequest(OrderErrors.RecipeInactive);
+
+                var unitCost = recipe.CalculateUnitCost();
                 
-                order.AddItem(recipe, item.Quantity);
+                order.AddItem(recipe.Id, item.Quantity, recipe.FinalPrice, unitCost);
             }
             
             db.Orders.Add(order);

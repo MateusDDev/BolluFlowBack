@@ -9,8 +9,12 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
     public void Configure(EntityTypeBuilder<OrderItem> builder)
     {
         builder.ToTable("tb_order_item");
-
+        
         builder.HasKey(x => x.Id);
+
+        builder
+            .HasIndex(x => new { x.OrderId, x.RecipeId })
+            .IsUnique();
         
         builder
             .HasOne(x => x.Order)

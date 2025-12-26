@@ -208,11 +208,12 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_tb_order_item");
 
-                    b.HasIndex("OrderId")
-                        .HasDatabaseName("ix_tb_order_item_order_id");
-
                     b.HasIndex("RecipeId")
                         .HasDatabaseName("ix_tb_order_item_recipe_id");
+
+                    b.HasIndex("OrderId", "RecipeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tb_order_item_order_id_recipe_id");
 
                     b.ToTable("tb_order_item", (string)null);
                 });

@@ -3,4 +3,4 @@ using BolluFlow.Application.Models;
 
 namespace BolluFlow.Application.Features.Orders.GetOrderDetails;
 
-public record GetOrderDetailsQuery(long OrderId) : IQuery<ResultOf<GetOrderDetailsResult>>;
+public record GetOrderDetailsQuery(long OrderId) : IQuery<ResultOf<OrderModel>>;

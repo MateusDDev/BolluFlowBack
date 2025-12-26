@@ -55,7 +55,11 @@ builder.Services.AddMediatR(config =>
 
 builder.Services
     .AddControllers()
-    .AddJsonOptions(opts => opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -87,9 +91,6 @@ builder.Services.AddSwaggerGen(options =>
             ] = []
         });
 });
-
-
-
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5143";
 
