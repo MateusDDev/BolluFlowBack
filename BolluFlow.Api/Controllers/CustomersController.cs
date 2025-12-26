@@ -15,10 +15,10 @@ namespace BolluFlow.Controllers;
 [Route("[controller]")]
 public class CustomersController(IMediator mediator) : ControllerBase
 {
-    [HttpGet("{userId:long}")]
-    public async Task<IActionResult> ListCustomers([FromRoute] long userId, CancellationToken ct)
+    [HttpGet]
+    public async Task<IActionResult> ListCustomers(CancellationToken ct)
     { 
-        var query = new ListCustomersQuery(userId);
+        var query = new ListCustomersQuery();
         
         var result = await mediator.Send(query, ct);
         
