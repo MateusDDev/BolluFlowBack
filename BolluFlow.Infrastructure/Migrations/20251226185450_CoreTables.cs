@@ -113,6 +113,7 @@ namespace BolluFlow.Infrastructure.Migrations
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    number = table.Column<int>(type: "integer", nullable: false),
                     customer_id = table.Column<long>(type: "bigint", nullable: false),
                     status = table.Column<string>(type: "text", nullable: false),
                     note = table.Column<string>(type: "text", nullable: true),

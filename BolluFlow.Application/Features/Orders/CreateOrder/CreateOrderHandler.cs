@@ -4,6 +4,7 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Errors;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using Mapster;
 using MediatR;
@@ -11,7 +12,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Orders.CreateOrder;
 
-public class CreateOrderHandler(ApplicationDbContext db) : IRequestHandler<CreateOrderCommand, ResultOf<OrderModel>>
+public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
+    : IRequestHandler<CreateOrderCommand, ResultOf<OrderModel>>
 {
     public async Task<ResultOf<OrderModel>> Handle(
         CreateOrderCommand request,
@@ -25,7 +27,11 @@ public class CreateOrderHandler(ApplicationDbContext db) : IRequestHandler<Creat
             if (!customerExists)
                 return ResultOf<OrderModel>.NotFound(CommonErrors.CustomerNotFound);
             
-            var order = Order.Create(request.CustomerId, request.Note, request.DeliveryDate);
+            var lastNumber = await db.Orders
+                .Where(x => x.Customer.UserId == user.Id)
+                .MaxAsync(x => (int?)x.Number, cancellationToken) ?? 0;
+            
+            var order = Order.Create(request.CustomerId, lastNumber + 1, request.Note, request.DeliveryDate);
             
             var recipeIds = request.Items
                 .Select(x => x.RecipeId)

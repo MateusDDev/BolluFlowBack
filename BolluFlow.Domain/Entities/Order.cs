@@ -9,6 +9,8 @@ public class Order
     private Order() { }
 
     public long Id { get; private set; }
+    
+    public int Number { get; private set; }
 
     public long CustomerId { get; private set; }
 
@@ -32,11 +34,12 @@ public class Order
         return item ?? throw new DomainException(OrderErrors.ItemNotFound);
     }
 
-    public static Order Create(long customerId, string? note = null, DateTime? deliveryDate = null)
+    public static Order Create(long customerId, int number, string? note = null, DateTime? deliveryDate = null)
     {
         return new Order
         {
             CustomerId = customerId,
+            Number = number,
             Status = OrderStatus.Pending,
             Note = note,
             DeliveryDate = deliveryDate,

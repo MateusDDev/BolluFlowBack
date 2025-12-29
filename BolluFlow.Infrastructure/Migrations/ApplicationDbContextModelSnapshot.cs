@@ -162,6 +162,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("note");
 
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")

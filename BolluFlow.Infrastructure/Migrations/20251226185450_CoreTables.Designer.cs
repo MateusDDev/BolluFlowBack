@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BolluFlow.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251226163635_CoreTables")]
+    [Migration("20251226185450_CoreTables")]
     partial class CoreTables
     {
         /// <inheritdoc />
@@ -164,6 +164,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text")
                         .HasColumnName("note");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
 
                     b.Property<string>("Status")
                         .IsRequired()
