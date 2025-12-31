@@ -285,8 +285,8 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("ingredient_id");
 
-                    b.Property<int>("QuantityUsed")
-                        .HasColumnType("integer")
+                    b.Property<decimal>("QuantityUsed")
+                        .HasColumnType("numeric")
                         .HasColumnName("quantity_used");
 
                     b.HasKey("RecipeId", "IngredientId")

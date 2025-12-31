@@ -2,7 +2,7 @@
 
 public static class RecipePricingService
 {
-    public static decimal CalculateIngredientCost(List<(decimal unitPrice, int quantityUsed)> ingredients)
+    public static decimal CalculateIngredientCost(List<(decimal unitPrice, decimal quantityUsed)> ingredients)
     {
         return ingredients.Sum(x => x.unitPrice * x.quantityUsed);
     }

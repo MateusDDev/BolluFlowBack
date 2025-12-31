@@ -18,4 +18,7 @@ public class CommonErrors
     
     public static readonly DomainError IngredientNotFound =
         new("INGREDIENT_NOT_FOUND", "Ingrediente não encontrado");
+    
+    public static readonly DomainError RecipeIngredientNotFound =
+        new("RECIPE_INGREDIENT_NOT_FOUND", "Ingrediente não encontrado");
 }

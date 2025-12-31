@@ -12,17 +12,17 @@ public class RecipeIngredient
     
     public Ingredient Ingredient { get; set; } = null!;
 
-    public int QuantityUsed { get; set; }
+    public decimal QuantityUsed { get; set; }
 
     public static RecipeIngredient Create(
-        Recipe recipe, 
-        Ingredient ingredient,
-        int quantityUsed)
+        long recipeId, 
+        long ingredientId,
+        decimal quantityUsed)
     {
         return new RecipeIngredient
         {
-            Recipe = recipe,
-            Ingredient = ingredient,
+            RecipeId = recipeId,
+            IngredientId = ingredientId,
             QuantityUsed = quantityUsed
         };
     }

@@ -9,4 +9,4 @@ public record SimulatePricingCommand(
 
 public record SimulatePricingCommandIngredient(
     long IngredientId,
-    int QuantityUsed);
+    decimal QuantityUsed);

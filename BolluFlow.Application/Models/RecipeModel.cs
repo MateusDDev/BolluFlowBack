@@ -19,6 +19,4 @@ public class RecipeModel
     public decimal? DiscountPercentage { get; set; }
     
     public bool IsActive { get; set; }
-
-    public List<RecipeIngredientModel> RecipeIngredients { get; set; } = [];
 }

@@ -9,7 +9,4 @@ public record CreateRecipeCommand(
     decimal IndirectCostPercentage,
     decimal MarkupPercentage,
     decimal FinalPrice,
-    decimal? DiscountPercentage,
-    List<CreateRecipeCommandIngredient> Ingredients) : ICommand<ResultOf<CreateRecipeResult>>;
-
-public record CreateRecipeCommandIngredient(long IngredientId, int QuantityUsed);
+    decimal? DiscountPercentage) : ICommand<ResultOf<CreateRecipeResult>>;

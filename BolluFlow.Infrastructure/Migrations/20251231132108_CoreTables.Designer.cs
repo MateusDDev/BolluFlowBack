@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BolluFlow.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251226185450_CoreTables")]
+    [Migration("20251231132108_CoreTables")]
     partial class CoreTables
     {
         /// <inheritdoc />
@@ -288,8 +288,8 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("ingredient_id");
 
-                    b.Property<int>("QuantityUsed")
-                        .HasColumnType("integer")
+                    b.Property<decimal>("QuantityUsed")
+                        .HasColumnType("numeric")
                         .HasColumnName("quantity_used");
 
                     b.HasKey("RecipeId", "IngredientId")

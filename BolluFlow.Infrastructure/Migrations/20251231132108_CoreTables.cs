@@ -137,7 +137,7 @@ namespace BolluFlow.Infrastructure.Migrations
                 {
                     recipe_id = table.Column<long>(type: "bigint", nullable: false),
                     ingredient_id = table.Column<long>(type: "bigint", nullable: false),
-                    quantity_used = table.Column<int>(type: "integer", nullable: false)
+                    quantity_used = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
                 {
