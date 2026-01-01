@@ -15,6 +15,7 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
         var recipes = await db.Recipes
             .AsNoTracking()
             .Where(x => x.UserId == user.Id)
+            .OrderByDescending(x => x.Id)
             .ToListAsync(cancellationToken);
 
         return ResultOf<List<RecipeModel>>.Success(recipes.Adapt<List<RecipeModel>>());

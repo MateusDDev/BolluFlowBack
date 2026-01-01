@@ -8,9 +8,5 @@ public record UpdateRecipeCommand(long RecipeId, UpdateRecipeCommandBody Body) :
 public record UpdateRecipeCommandBody(
     string Name,
     string Category,
-    decimal IndirectCostPercentage,
-    decimal MarkupPercentage,
-    decimal FinalPrice,
-    decimal? DiscountPercentage,
     int? PreparationTime,
     bool IsActive);

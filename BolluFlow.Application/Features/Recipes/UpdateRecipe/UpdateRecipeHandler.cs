@@ -23,10 +23,6 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
         recipe.Update(
             name: command.Name,
             category: command.Category,
-            indirectCostPercentage: command.IndirectCostPercentage, 
-            markupPercentage: command.MarkupPercentage,
-            finalPrice: command.FinalPrice, 
-            discountPercentage: command.DiscountPercentage,
             preparationTime: command.PreparationTime,
             isActive: command.IsActive);
 

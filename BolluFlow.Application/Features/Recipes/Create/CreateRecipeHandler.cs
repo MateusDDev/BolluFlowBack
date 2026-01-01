@@ -19,10 +19,6 @@ public class CreateRecipeHandler(ApplicationDbContext db, CurrentUser user) : IR
                 userId: user.Id,
                 name: request.Name,
                 category: request.Category,
-                indirectCostPercentage: request.IndirectCostPercentage,
-                markupPercentage: request.MarkupPercentage,
-                finalPrice: request.FinalPrice,
-                discountPercentage: request.DiscountPercentage,
                 preparationTime: request.PreparationTime);
             
             db.Recipes.Add(recipe);

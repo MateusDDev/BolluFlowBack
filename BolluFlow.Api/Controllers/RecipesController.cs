@@ -1,8 +1,10 @@
 ﻿using BolluFlow.Application.Features.Recipes.Create;
+using BolluFlow.Application.Features.Recipes.DeleteRecipe;
 using BolluFlow.Application.Features.Recipes.GetRecipeDetails;
 using BolluFlow.Application.Features.Recipes.ListRecipes;
 using BolluFlow.Application.Features.Recipes.SimulatePricing;
 using BolluFlow.Application.Features.Recipes.UpdateRecipe;
+using BolluFlow.Application.Features.Recipes.UpdateRecipePricing;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -29,13 +31,26 @@ public class RecipesController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpPut("{recipeId:long}")]
+    [HttpPatch("{recipeId:long}")]
     public async Task<IActionResult> UpdateRecipe(
         [FromRoute] long recipeId,
         [FromBody] UpdateRecipeCommandBody body,
         CancellationToken ct)
     {
         var command = new UpdateRecipeCommand(recipeId, body);
+        
+        var result = await mediator.Send(command, ct);
+        
+        return result.ToActionResult();
+    }
+
+    [HttpPatch("{recipeId:long}/pricing")]
+    public async Task<IActionResult> UpdateRecipePricing(
+        [FromRoute] long recipeId,
+        [FromBody] UpdateRecipePricingCommandBody body,
+        CancellationToken ct)
+    {
+        var command = new UpdateRecipePricingCommand(recipeId, body);
         
         var result = await mediator.Send(command, ct);
         
@@ -59,6 +74,16 @@ public class RecipesController(IMediator mediator) : ControllerBase
         
         var result = await mediator.Send(query, ct);
         
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("{recipeId:long}")]
+    public async Task<IActionResult> DeleteRecipe([FromRoute] long recipeId, CancellationToken ct)
+    {
+        var command = new DeleteRecipeCommand(recipeId);
+        
+        var result = await mediator.Send(command, ct);
+
         return result.ToActionResult();
     }
 }

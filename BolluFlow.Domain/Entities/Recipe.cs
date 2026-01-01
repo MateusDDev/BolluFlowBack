@@ -34,29 +34,18 @@ public class Recipe
         long userId,
         string name,
         string category,
-        decimal indirectCostPercentage,
-        decimal markupPercentage,
-        decimal finalPrice,
-        decimal? discountPercentage = null,
-        int? preparationTime = null,
-        bool isActive = true)
+        int? preparationTime = null)
     {
-        if (discountPercentage is < 0 or > 100)
-            throw new DomainException(RecipeErrors.InvalidDiscount);
-        
-        if (discountPercentage.HasValue)
-            finalPrice -= discountPercentage.Value;
-        
         return new Recipe
         {
             UserId = userId,
             Name = name,
             Category = category,
-            IndirectCostPercentage = indirectCostPercentage,
-            MarkupPercentage = markupPercentage,
-            FinalPrice = finalPrice,
-            DiscountPercentage = discountPercentage,
-            IsActive = isActive,
+            IndirectCostPercentage = 0,
+            MarkupPercentage = 0,
+            FinalPrice = 0,
+            DiscountPercentage = null,
+            IsActive = true,
             PreparationTime = preparationTime
         };
     }
@@ -64,12 +53,20 @@ public class Recipe
     public void Update(
         string name,
         string category,
+        int? preparationTime = null,
+        bool isActive = true)
+    {
+        Name = name;
+        Category = category;
+        IsActive = isActive;
+        PreparationTime = preparationTime;
+    }
+
+    public void UpdatePricing(
         decimal indirectCostPercentage,
         decimal markupPercentage,
         decimal finalPrice,
-        decimal? discountPercentage = null,
-        int? preparationTime = null,
-        bool isActive = true)
+        decimal? discountPercentage = null)
     {
         if (discountPercentage is < 0 or > 100)
             throw new DomainException(RecipeErrors.InvalidDiscount);
@@ -77,14 +74,10 @@ public class Recipe
         if (discountPercentage.HasValue)
             finalPrice -= discountPercentage.Value;
         
-        Name = name;
-        Category = category;
         IndirectCostPercentage = indirectCostPercentage;
         MarkupPercentage = markupPercentage;
         FinalPrice = finalPrice;
         DiscountPercentage = discountPercentage;
-        IsActive = isActive;
-        PreparationTime = preparationTime;
     }
     
     public decimal CalculateUnitCost()
