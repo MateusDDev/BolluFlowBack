@@ -29,10 +29,9 @@ public class OrderController(IMediator mediator) : ControllerBase
     [HttpPost("{orderId:long}/cancel")]
     public async Task<IActionResult> CancelOrder(
         [FromRoute] long orderId, 
-        [FromBody] CancelOrderCommandBody body, 
         CancellationToken ct)
     {
-        var command = new CancelOrderCommand(orderId, body);
+        var command = new CancelOrderCommand(orderId);
         
         var result = await mediator.Send(command, ct);
         

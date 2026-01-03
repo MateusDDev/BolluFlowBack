@@ -1,6 +1,7 @@
 ﻿using BolluFlow.Application.Features.Recipes.RecipeIngredients.CreateRecipeIngredient;
 using BolluFlow.Application.Features.Recipes.RecipeIngredients.DeleteRecipeIngredient;
 using BolluFlow.Application.Features.Recipes.RecipeIngredients.GetRecipeIngredients;
+using BolluFlow.Application.Features.Recipes.RecipeIngredients.UpdateRecipeIngredient;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -43,6 +44,20 @@ public class RecipeIngredientsController(IMediator mediator) : ControllerBase
         CancellationToken ct)
     {
         var command = new CreateRecipeIngredientCommand(recipeId, body);
+        
+        var result = await mediator.Send(command, ct);
+        
+        return result.ToActionResult();
+    }
+
+    [HttpPut("{ingredientId:long}")]
+    public async Task<IActionResult> UpdateRecipeIngredients(
+        [FromRoute] long recipeId,
+        [FromRoute] long ingredientId,
+        [FromBody] UpdateRecipeIngredientCommandBody body,
+        CancellationToken ct)
+    {
+        var command = new UpdateRecipeIngredientCommand(recipeId, ingredientId, body);
         
         var result = await mediator.Send(command, ct);
         

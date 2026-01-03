@@ -12,8 +12,6 @@ public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<Cance
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
-        var command = request.Body;
-        
         var order = await db.Orders
             .Include(x => x.Items)
             .ThenInclude(x => x.Recipe)
@@ -31,15 +29,12 @@ public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<Cance
         }
         
         order.Status = OrderStatus.Canceled;
-
-        if (command.RevertStock == true)
+        
+        foreach (var item in order.Items)
         {
-            foreach (var item in order.Items)
+            foreach (var ri in item.Recipe.RecipeIngredients)
             {
-                foreach (var ri in item.Recipe.RecipeIngredients)
-                {
-                    ri.Ingredient.AddStock(ri.QuantityUsed * item.Quantity);
-                }
+                ri.Ingredient.AddStock(ri.QuantityUsed * item.Quantity);
             }
         }
         
