@@ -7,6 +7,7 @@ using BolluFlow.Application.Features.Orders.ListOrders;
 using BolluFlow.Application.Features.Orders.ReopenOrder;
 using BolluFlow.Application.Features.Orders.StartOrder;
 using BolluFlow.Application.Features.Orders.UpdateOrder;
+using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -20,14 +21,14 @@ namespace BolluFlow.Controllers;
 public class OrdersController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken ct)
+    public async Task<ActionResult<OrderModel>> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
     [HttpPost("{orderId:long}/cancel")]
-    public async Task<IActionResult> CancelOrder(
+    public async Task<ActionResult> CancelOrder(
         [FromRoute] long orderId, 
         CancellationToken ct)
     {
@@ -39,7 +40,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost("{orderId:long}/start")]
-    public async Task<IActionResult> StartOrder([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult> StartOrder([FromRoute] long orderId, CancellationToken ct)
     {
         var command = new StartOrderCommand(orderId);
         
@@ -49,7 +50,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
     
     [HttpPost("{orderId:long}/deliver")]
-    public async Task<IActionResult> DeliverOrder([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult> DeliverOrder([FromRoute] long orderId, CancellationToken ct)
     {
         var command = new DeliverOrderCommand(orderId);
         
@@ -59,7 +60,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
     
     [HttpPost("{orderId:long}/finish")]
-    public async Task<IActionResult> FinishOrder([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult> FinishOrder([FromRoute] long orderId, CancellationToken ct)
     {
         var command = new FinishOrderCommand(orderId);
         
@@ -69,7 +70,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
     
     [HttpPost("{orderId:long}/reopen")]
-    public async Task<IActionResult> ReopenOrder([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult> ReopenOrder([FromRoute] long orderId, CancellationToken ct)
     {
         var command = new ReopenOrderCommand(orderId);
         
@@ -79,7 +80,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{orderId:long}")]
-    public async Task<IActionResult> UpdateOrder(
+    public async Task<ActionResult> UpdateOrder(
         [FromRoute] long orderId,
         [FromBody] UpdateOrderCommandBody body,
         CancellationToken ct)
@@ -92,7 +93,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{orderId:long}")]
-    public async Task<IActionResult> GetOrderDetails([FromRoute] long orderId)
+    public async Task<ActionResult<OrderModel>> GetOrderDetails([FromRoute] long orderId)
     {
         var query = new GetOrderDetailsQuery(orderId);
         
@@ -102,7 +103,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     }
     
     [HttpGet]
-    public async Task<IActionResult> ListOrders(CancellationToken ct)
+    public async Task<ActionResult<List<OrderModel>>> ListOrders(CancellationToken ct)
     {
         var query = new ListOrdersQuery();
         
