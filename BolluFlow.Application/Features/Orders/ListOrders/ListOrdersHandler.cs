@@ -13,6 +13,7 @@ public class ListOrdersHandler(ApplicationDbContext db, CurrentUser user) : IReq
     public async Task<ResultOf<List<OrderModel>>> Handle(ListOrdersQuery request, CancellationToken cancellationToken)
     {
         var recipes = await db.Orders
+            .Include(x => x.Customer)
             .Where(x => x.Customer.UserId == user.Id)
             .ToListAsync(cancellationToken);
 

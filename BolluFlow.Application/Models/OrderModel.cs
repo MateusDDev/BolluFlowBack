@@ -15,4 +15,6 @@ public class OrderModel
     public string? Note { get; set; }
     
     public DateTime CreatedAt { get; set; }
+    
+    public DateTime? DeliveryDate { get; set; }
 }

@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
-using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using Mapster;
@@ -32,32 +31,6 @@ public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
                 .MaxAsync(x => (int?)x.Number, cancellationToken) ?? 0;
             
             var order = Order.Create(request.CustomerId, lastNumber + 1, request.Note, request.DeliveryDate);
-            
-            var recipeIds = request.Items
-                .Select(x => x.RecipeId)
-                .Distinct()
-                .ToList();
-
-            var recipes = await db.Recipes
-                .Include(x => x.RecipeIngredients)
-                .ThenInclude(x => x.Ingredient)
-                .Where(x => recipeIds.Contains(x.Id))
-                .ToListAsync(cancellationToken);
-
-            var recipesById = recipes.ToDictionary(x => x.Id);
-
-            foreach (var item in request.Items)
-            {
-                if (!recipesById.TryGetValue(item.RecipeId, out var recipe))
-                    return ResultOf<OrderModel>.NotFound(CommonErrors.RecipeNotFound);
-
-                if (!recipe.IsActive)
-                    return ResultOf<OrderModel>.BadRequest(OrderErrors.RecipeInactive);
-
-                var unitCost = recipe.CalculateUnitCost();
-                
-                order.AddItem(recipe.Id, item.Quantity, recipe.FinalPrice, unitCost);
-            }
             
             db.Orders.Add(order);
             
