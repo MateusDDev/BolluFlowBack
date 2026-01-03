@@ -2,9 +2,9 @@
 using BolluFlow.Application.Features.Recipes.DeleteRecipe;
 using BolluFlow.Application.Features.Recipes.GetRecipeDetails;
 using BolluFlow.Application.Features.Recipes.ListRecipes;
-using BolluFlow.Application.Features.Recipes.SimulatePricing;
 using BolluFlow.Application.Features.Recipes.UpdateRecipe;
 using BolluFlow.Application.Features.Recipes.UpdateRecipePricing;
+using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -18,21 +18,16 @@ namespace BolluFlow.Controllers;
 public class RecipesController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateRecipe([FromBody] CreateRecipeCommand command, CancellationToken ct)
-    {
-        var result = await mediator.Send(command, ct);
-        return result.ToActionResult();
-    }
-
-    [HttpPost("simulate-pricing")]
-    public async Task<IActionResult> SimulatePricing([FromBody] SimulatePricingCommand command, CancellationToken ct)
+    public async Task<ActionResult<CreateRecipeResult>> CreateRecipe(
+        [FromBody] CreateRecipeCommand command, 
+        CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
     [HttpPatch("{recipeId:long}")]
-    public async Task<IActionResult> UpdateRecipe(
+    public async Task<ActionResult<RecipeModel>> UpdateRecipe(
         [FromRoute] long recipeId,
         [FromBody] UpdateRecipeCommandBody body,
         CancellationToken ct)
@@ -45,7 +40,7 @@ public class RecipesController(IMediator mediator) : ControllerBase
     }
 
     [HttpPatch("{recipeId:long}/pricing")]
-    public async Task<IActionResult> UpdateRecipePricing(
+    public async Task<ActionResult> UpdateRecipePricing(
         [FromRoute] long recipeId,
         [FromBody] UpdateRecipePricingCommandBody body,
         CancellationToken ct)
@@ -58,7 +53,7 @@ public class RecipesController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{recipeId:long}")]
-    public async Task<IActionResult> GetRecipeById([FromRoute] long recipeId, CancellationToken ct)
+    public async Task<ActionResult<RecipeModel>> GetRecipeById([FromRoute] long recipeId, CancellationToken ct)
     {
         var query = new GetRecipeDetailsQuery(recipeId);
         
@@ -68,7 +63,7 @@ public class RecipesController(IMediator mediator) : ControllerBase
     }
     
     [HttpGet]
-    public async Task<IActionResult> ListRecipes(CancellationToken ct)
+    public async Task<ActionResult<List<RecipeModel>>> ListRecipes(CancellationToken ct)
     {
         var query = new ListRecipesQuery();
         
@@ -78,7 +73,7 @@ public class RecipesController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{recipeId:long}")]
-    public async Task<IActionResult> DeleteRecipe([FromRoute] long recipeId, CancellationToken ct)
+    public async Task<ActionResult> DeleteRecipe([FromRoute] long recipeId, CancellationToken ct)
     {
         var command = new DeleteRecipeCommand(recipeId);
         

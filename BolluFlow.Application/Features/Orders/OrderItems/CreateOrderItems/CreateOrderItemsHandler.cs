@@ -7,11 +7,11 @@ using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace BolluFlow.Application.Features.Orders.OrderItems.CreateOrderItem;
+namespace BolluFlow.Application.Features.Orders.OrderItems.CreateOrderItems;
 
-public class CreateOrderItemHandler(ApplicationDbContext db) : IRequestHandler<CreateOrderItemCommand, ResultOf<List<OrderItemModel>>>
+public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<CreateOrderItemsCommand, ResultOf<List<OrderItemModel>>>
 {
-    public async Task<ResultOf<List<OrderItemModel>>> Handle(CreateOrderItemCommand request, CancellationToken cancellationToken)
+    public async Task<ResultOf<List<OrderItemModel>>> Handle(CreateOrderItemsCommand request, CancellationToken cancellationToken)
     {
         try
         {

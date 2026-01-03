@@ -12,7 +12,7 @@ namespace BolluFlow.Controllers;
 public class DashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet("low-stock-ingredients")]
-    public async Task<IActionResult> ListLowStockIngredients(CancellationToken ct)
+    public async Task<ActionResult<List<GetLowStockIngredientsResult>>> ListLowStockIngredients(CancellationToken ct)
     {
         var query = new GetLowStockIngredientsQuery();
         

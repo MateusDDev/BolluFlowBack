@@ -15,7 +15,9 @@ namespace BolluFlow.Controllers;
 public class RecipeIngredientsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> GetRecipeIngredients([FromRoute] long recipeId, CancellationToken ct)
+    public async Task<ActionResult<List<GetRecipeIngredientsResult>>> GetRecipeIngredients(
+        [FromRoute] long recipeId,
+        CancellationToken ct)
     {
         var query = new GetRecipeIngredientsQuery(recipeId);
         
@@ -25,7 +27,7 @@ public class RecipeIngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{ingredientId:long}")]
-    public async Task<IActionResult> DeleteRecipeIngredients(
+    public async Task<ActionResult> DeleteRecipeIngredients(
         [FromRoute] long recipeId,
         [FromRoute] long ingredientId, 
         CancellationToken ct)
@@ -38,7 +40,7 @@ public class RecipeIngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateRecipeIngredients(
+    public async Task<ActionResult> CreateRecipeIngredients(
         [FromRoute] long recipeId,
         [FromBody] CreateRecipeIngredientCommandBody body, 
         CancellationToken ct)
@@ -51,7 +53,7 @@ public class RecipeIngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{ingredientId:long}")]
-    public async Task<IActionResult> UpdateRecipeIngredients(
+    public async Task<ActionResult> UpdateRecipeIngredients(
         [FromRoute] long recipeId,
         [FromRoute] long ingredientId,
         [FromBody] UpdateRecipeIngredientCommandBody body,

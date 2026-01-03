@@ -1,7 +1,8 @@
-﻿using BolluFlow.Application.Features.Orders.OrderItems.CreateOrderItem;
+﻿using BolluFlow.Application.Features.Orders.OrderItems.CreateOrderItems;
 using BolluFlow.Application.Features.Orders.OrderItems.DeleteOrderItem;
 using BolluFlow.Application.Features.Orders.OrderItems.ListOrderItems;
 using BolluFlow.Application.Features.Orders.OrderItems.UpdateOrderItem;
+using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,12 +16,12 @@ namespace BolluFlow.Controllers;
 public class OrderItemsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateOrderItem(
+    public async Task<ActionResult<List<OrderItemModel>>> CreateOrderItems(
         [FromRoute] long orderId,
         [FromBody] List<CreateOrderItemCommandBody> body,
         CancellationToken ct)
     {
-        var command = new CreateOrderItemCommand(orderId, body);
+        var command = new CreateOrderItemsCommand(orderId, body);
 
         var result = await mediator.Send(command, ct);
 
@@ -28,7 +29,7 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{itemId:long}")]
-    public async Task<IActionResult> DeleteItem([FromRoute] long orderId, [FromRoute] long itemId, CancellationToken ct)
+    public async Task<ActionResult> DeleteItem([FromRoute] long orderId, [FromRoute] long itemId, CancellationToken ct)
     {
         var command = new DeleteOrderItemCommand(orderId, itemId);
         
@@ -38,7 +39,7 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{itemId:long}")]
-    public async Task<IActionResult> UpdateItem(
+    public async Task<ActionResult<OrderItemModel>> UpdateItem(
         [FromRoute] long orderId,
         [FromRoute] long itemId,
         [FromBody] UpdateOrderItemCommandBody body,
@@ -52,7 +53,7 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> ListItems([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult<List<OrderItemModel>>> ListItems([FromRoute] long orderId, CancellationToken ct)
     {
         var query = new ListOrderItemsQuery(orderId);
         

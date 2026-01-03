@@ -17,7 +17,7 @@ namespace BolluFlow.Controllers;
 [ApiController]
 [Route("[controller]")]
 [Authorize]
-public class OrderController(IMediator mediator) : ControllerBase
+public class OrdersController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderCommand command, CancellationToken ct)

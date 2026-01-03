@@ -6,7 +6,7 @@ namespace BolluFlow.Extensions;
 
 public static class ResultToAction
 {
-    public static IActionResult ToActionResult<T>(this ResultOf<T> result)
+    public static ActionResult ToActionResult<T>(this ResultOf<T> result)
     {
         if (result.IsSuccessful)
         {
@@ -25,7 +25,7 @@ public static class ResultToAction
     }
 
 
-    public static IActionResult ToActionResult(this Result result)
+    public static ActionResult ToActionResult(this Result result)
     {
         if (result.IsSuccessful)
             return new StatusCodeResult(result.StatusCode);

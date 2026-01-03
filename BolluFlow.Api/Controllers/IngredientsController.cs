@@ -3,6 +3,7 @@ using BolluFlow.Application.Features.Ingredients.DeleteIngredient;
 using BolluFlow.Application.Features.Ingredients.GetIngredientDetails;
 using BolluFlow.Application.Features.Ingredients.ListIngredients;
 using BolluFlow.Application.Features.Ingredients.UpdateIngredient;
+using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,14 +17,14 @@ namespace BolluFlow.Controllers;
 public class IngredientsController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateIngredient([FromBody] CreateIngredientCommand command, CancellationToken ct)
+    public async Task<ActionResult<CreateIngredientResult>> CreateIngredient([FromBody] CreateIngredientCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
     [HttpGet]
-    public async Task<IActionResult> ListIngredients(CancellationToken ct)
+    public async Task<ActionResult<List<IngredientModel>>> ListIngredients(CancellationToken ct)
     {
         var query = new ListIngredientsQuery();
         
@@ -33,7 +34,7 @@ public class IngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("{ingredientId:long}")]
-    public async Task<IActionResult> GetIngredientById([FromRoute] long ingredientId, CancellationToken ct)
+    public async Task<ActionResult<IngredientModel>> GetIngredientById([FromRoute] long ingredientId, CancellationToken ct)
     {
         var query = new GetIngredientDetailsQuery(ingredientId);
         
@@ -43,7 +44,7 @@ public class IngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut("{ingredientId:long}")]
-    public async Task<IActionResult> UpdateIngredient(
+    public async Task<ActionResult<IngredientModel>> UpdateIngredient(
         [FromRoute] long ingredientId,
         [FromBody] UpdateIngredientCommandBody body,
         CancellationToken ct)
@@ -56,7 +57,7 @@ public class IngredientsController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{ingredientId:long}")]
-    public async Task<IActionResult> DeleteIngredient([FromRoute] long ingredientId, CancellationToken ct)
+    public async Task<ActionResult> DeleteIngredient([FromRoute] long ingredientId, CancellationToken ct)
     {
         var command = new DeleteIngredientCommand(ingredientId);
         

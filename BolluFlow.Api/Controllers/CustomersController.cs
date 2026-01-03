@@ -1,8 +1,8 @@
-﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Application.Features.Customers.CreateCustomer;
+﻿using BolluFlow.Application.Features.Customers.CreateCustomer;
 using BolluFlow.Application.Features.Customers.DeleteCustomer;
 using BolluFlow.Application.Features.Customers.ListCustomers;
 using BolluFlow.Application.Features.Customers.UpdateCustomer;
+using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,7 +16,7 @@ namespace BolluFlow.Controllers;
 public class CustomersController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> ListCustomers(CancellationToken ct)
+    public async Task<ActionResult<List<CustomerModel>>> ListCustomers(CancellationToken ct)
     { 
         var query = new ListCustomersQuery();
         
@@ -26,14 +26,14 @@ public class CustomersController(IMediator mediator) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateCustomer([FromBody] CreateCustomerCommand command, CancellationToken ct)
+    public async Task<ActionResult<CustomerModel>> CreateCustomer([FromBody] CreateCustomerCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
     [HttpPut("{customerId:long}")]
-    public async Task<IActionResult> UpdateCustomer(
+    public async Task<ActionResult<CustomerModel>> UpdateCustomer(
         [FromRoute] long customerId,
         [FromBody] UpdateCustomerCommandBody body,
         CancellationToken ct)
@@ -46,7 +46,7 @@ public class CustomersController(IMediator mediator) : ControllerBase
     }
 
     [HttpDelete("{id:long}")]
-    public async Task<IActionResult> DeleteCustomer([FromRoute] long id, CancellationToken ct)
+    public async Task<ActionResult> DeleteCustomer([FromRoute] long id, CancellationToken ct)
     {
         var command = new DeleteCustomerCommand(id);
         
