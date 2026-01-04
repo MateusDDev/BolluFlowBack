@@ -1,15 +1,18 @@
 using System.Text;
 using System.Text.Json.Serialization;
-using BolluFlow.Application.Features.Customers.List;
+using BolluFlow.Application.Features.Customers.ListCustomers;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<JwtHelper>();
 
 builder.Services.AddCors(options =>
@@ -52,12 +55,42 @@ builder.Services.AddMediatR(config =>
 
 builder.Services
     .AddControllers()
-    .AddJsonOptions(opts => opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
-
-builder.Services.AddOpenApi();
+    .AddJsonOptions(opts =>
+    {
+        opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "BolluFlow API",
+        Version = "v1"
+    });
+    
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Bearer {seu_token}"
+    });
+    
+    options.AddSecurityRequirement(document => 
+        new OpenApiSecurityRequirement 
+        {
+            [
+                new OpenApiSecuritySchemeReference(
+                    "Bearer",
+                    document)
+            ] = []
+        });
+});
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5143";
 
@@ -67,7 +100,6 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
     app.UseSwagger();
     app.UseSwaggerUI();
 }

@@ -17,4 +17,10 @@
         <ProjectReference Include="..\BolluFlow.Domain\BolluFlow.Domain.csproj" />
         <ProjectReference Include="..\BolluFlow.Infrastructure\BolluFlow.Infrastructure.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\Dashboard\GetSales\" />
+      <Folder Include="Features\Dashboard\GetSummary\" />
+      <Folder Include="Features\Dashboard\GetTopRecipes\" />
+    </ItemGroup>
 </Project>

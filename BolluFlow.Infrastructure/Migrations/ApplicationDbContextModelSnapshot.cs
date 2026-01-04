@@ -96,6 +96,208 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.ToTable("tb_delivery_address", (string)null);
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal?>("MinimumStockQuantity")
+                        .HasColumnType("numeric")
+                        .HasColumnName("minimum_stock_quantity");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("StockQuantity")
+                        .HasColumnType("numeric")
+                        .HasColumnName("stock_quantity");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("unit");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_price");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_ingredient");
+
+                    b.ToTable("tb_ingredient", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("customer_id");
+
+                    b.Property<DateTime?>("DeliveryDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivery_date");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("text")
+                        .HasColumnName("note");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("integer")
+                        .HasColumnName("number");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("status");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_order");
+
+                    b.HasIndex("CustomerId")
+                        .HasDatabaseName("ix_tb_order_customer_id");
+
+                    b.ToTable("tb_order", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.OrderItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("OrderId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("order_id");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("quantity");
+
+                    b.Property<long>("RecipeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_order_item");
+
+                    b.HasIndex("RecipeId")
+                        .HasDatabaseName("ix_tb_order_item_recipe_id");
+
+                    b.HasIndex("OrderId", "RecipeId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tb_order_item_order_id_recipe_id");
+
+                    b.ToTable("tb_order_item", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Recipe", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
+                    b.Property<decimal?>("DiscountPercentage")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount_percentage");
+
+                    b.Property<decimal>("FinalPrice")
+                        .HasColumnType("numeric")
+                        .HasColumnName("final_price");
+
+                    b.Property<decimal>("IndirectCostPercentage")
+                        .HasColumnType("numeric")
+                        .HasColumnName("indirect_cost_percentage");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<decimal>("MarkupPercentage")
+                        .HasColumnType("numeric")
+                        .HasColumnName("markup_percentage");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("PreparationTime")
+                        .HasColumnType("integer")
+                        .HasColumnName("preparation_time");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_recipe");
+
+                    b.ToTable("tb_recipe", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.RecipeIngredient", b =>
+                {
+                    b.Property<long>("RecipeId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("recipe_id");
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<decimal>("QuantityUsed")
+                        .HasColumnType("numeric")
+                        .HasColumnName("quantity_used");
+
+                    b.HasKey("RecipeId", "IngredientId")
+                        .HasName("pk_tb_recipe_ingredient");
+
+                    b.HasIndex("IngredientId")
+                        .HasDatabaseName("ix_tb_recipe_ingredient_ingredient_id");
+
+                    b.ToTable("tb_recipe_ingredient", (string)null);
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.User", b =>
                 {
                     b.Property<long>("Id")
@@ -124,6 +326,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("password");
 
+                    b.Property<string>("ProfileImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("profile_image_url");
+
                     b.HasKey("Id")
                         .HasName("pk_tb_user");
 
@@ -142,10 +348,79 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_order_tb_customer_customer_id");
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.OrderItem", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Order", "Order")
+                        .WithMany("Items")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_order_item_tb_order_order_id");
+
+                    b.HasOne("BolluFlow.Domain.Entities.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_order_item_recipes_recipe_id");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Recipe");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.RecipeIngredient", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Ingredient", "Ingredient")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_recipe_ingredient_tb_ingredient_ingredient_id");
+
+                    b.HasOne("BolluFlow.Domain.Entities.Recipe", "Recipe")
+                        .WithMany("RecipeIngredients")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_recipe_ingredient_tb_recipe_recipe_id");
+
+                    b.Navigation("Ingredient");
+
+                    b.Navigation("Recipe");
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("DeliveryAddress")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>
+                {
+                    b.Navigation("RecipeIngredients");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
+                {
+                    b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Recipe", b =>
+                {
+                    b.Navigation("RecipeIngredients");
                 });
 #pragma warning restore 612, 618
         }
