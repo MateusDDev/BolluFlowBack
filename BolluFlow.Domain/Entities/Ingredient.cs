@@ -79,19 +79,16 @@ public class Ingredient
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
         if (StockQuantity < quantity) 
-            throw new DomainException(IngredientErrors.StockInsufficient);
+            throw new DomainException(IngredientErrors.StockInsufficient(Name));
         
         StockQuantity -= quantity;
     }
     
-    public void AddStock(decimal quantity)
+    public void RevertStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
-        if (StockQuantity < quantity) 
-            throw new DomainException(IngredientErrors.StockInsufficient);
-        
         StockQuantity += quantity;
     }
 }

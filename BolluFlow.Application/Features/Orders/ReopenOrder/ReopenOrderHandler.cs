@@ -12,22 +12,29 @@ public class ReopenOrderHandler(ApplicationDbContext db) : IRequestHandler<Reope
 {
     public async Task<Result> Handle(ReopenOrderCommand request, CancellationToken cancellationToken)
     {
-        var order = await db.Orders
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
-
-        if (order is null)
-            return Result.NotFound(CommonErrors.OrderNotFound);
-
-        if (order.Status != OrderStatus.Canceled)
+        try
         {
-            return Result.BadRequest(new DomainError("ORDER_NOT_CANCELED",
-                "Apenas pedidos cancelados podem ser reabertos"));
+            var order = await db.Orders
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+
+            if (order is null)
+                return Result.NotFound(CommonErrors.OrderNotFound);
+
+            if (order.Status != OrderStatus.Canceled)
+            {
+                return Result.BadRequest(new DomainError("ORDER_NOT_CANCELED",
+                    "Apenas pedidos cancelados podem ser reabertos"));
+            }
+
+            order.Status = OrderStatus.Pending;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
         }
-        
-        order.Status = OrderStatus.Pending;
-        
-        await db.SaveChangesAsync(cancellationToken);
-        
-        return Result.Success();
+        catch (DomainException e)
+        {
+            return Result.BadRequest(e.Error);
+        }
     }
 }

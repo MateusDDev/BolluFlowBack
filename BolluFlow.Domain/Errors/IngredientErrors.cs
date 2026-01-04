@@ -13,8 +13,8 @@ public static class IngredientErrors
     public static readonly DomainError UnitPriceInvalid =
         new("INGREDIENT_UNIT_PRICE_INVALID", "Preço unitário inválido");
 
-    public static readonly DomainError StockInsufficient =
-        new("INGREDIENT_STOCK_INSUFFICIENT", "Estoque insuficiente");
+    public static DomainError StockInsufficient(string name) =>
+        new("INGREDIENT_STOCK_INSUFFICIENT", $"Estoque insuficiente para {name}");
 
     public static readonly DomainError QuantityInvalid =
         new("INGREDIENT_QUANTITY_INVALID", "Quantidade inválida");

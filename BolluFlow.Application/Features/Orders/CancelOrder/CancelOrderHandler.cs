@@ -12,34 +12,56 @@ public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<Cance
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
-        var order = await db.Orders
-            .Include(x => x.Items)
-            .ThenInclude(x => x.Recipe)
-            .ThenInclude(x => x.RecipeIngredients)
-            .ThenInclude(x => x.Ingredient)
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
-
-        if (order is null)
-            return Result.NotFound(CommonErrors.OrderNotFound);
-
-        if (order.Status is OrderStatus.Canceled or OrderStatus.Delivered)
+        try
         {
-            return Result.BadRequest(new DomainError("ORDER_NOT_POSSIBLE_TO_CANCEL",
-                "Não é possível cancelar pedidos já entregues ou já cancelados"));
-        }
-        
-        order.Status = OrderStatus.Canceled;
-        
-        foreach (var item in order.Items)
-        {
-            foreach (var ri in item.Recipe.RecipeIngredients)
+            var order = await db.Orders
+                .Include(x => x.Items)
+                .ThenInclude(x => x.Recipe)
+                .ThenInclude(x => x.RecipeIngredients)
+                .ThenInclude(x => x.Ingredient)
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+
+            if (order is null)
+                return Result.NotFound(CommonErrors.OrderNotFound);
+
+            if (order.Status is OrderStatus.Canceled or OrderStatus.Delivered)
             {
-                ri.Ingredient.AddStock(ri.QuantityUsed * item.Quantity);
+                return Result.BadRequest(new DomainError("ORDER_NOT_POSSIBLE_TO_CANCEL",
+                    "Não é possível cancelar pedidos já entregues ou já cancelados"));
             }
+
+            if (order.Status is not OrderStatus.Pending)
+            {
+                var ingredientQuantities = order.Items
+                    .SelectMany(item =>
+                        item.Recipe.RecipeIngredients.Select(ri => new
+                        {
+                            ri.Ingredient,
+                            Quantity = ri.QuantityUsed * item.Quantity
+                        })
+                    )
+                    .GroupBy(x => x.Ingredient.Id)
+                    .Select(g => new
+                    {
+                        g.First().Ingredient,
+                        TotalQuantity = g.Sum(x => x.Quantity)
+                    });
+
+                foreach (var entry in ingredientQuantities)
+                {
+                    entry.Ingredient.RevertStock(entry.TotalQuantity);
+                }
+            }
+
+            order.Status = OrderStatus.Canceled;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
         }
-        
-        await db.SaveChangesAsync(cancellationToken);
-        
-        return Result.Success();
+        catch (DomainException e)
+        {
+            return Result.BadRequest(e.Error);
+        }
     }
 }

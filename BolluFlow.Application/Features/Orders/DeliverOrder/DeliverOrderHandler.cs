@@ -1,5 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
+using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -11,16 +12,23 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
 {
     public async Task<Result> Handle(DeliverOrderCommand request, CancellationToken cancellationToken)
     {
-        var order = await db.Orders
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+        try
+        {
+            var order = await db.Orders
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 
-        if (order is null)
-            return Result.NotFound(CommonErrors.OrderNotFound);
+            if (order is null)
+                return Result.NotFound(CommonErrors.OrderNotFound);
 
-        order.Status = OrderStatus.Delivered;
-        
-        await db.SaveChangesAsync(cancellationToken);
-        
-        return Result.Success();
+            order.Status = OrderStatus.Delivered;
+
+            await db.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
+        catch (DomainException e)
+        {
+            return Result.BadRequest(e.Error);
+        }
     }
 }

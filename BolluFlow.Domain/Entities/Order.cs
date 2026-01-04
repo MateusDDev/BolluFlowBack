@@ -47,8 +47,12 @@ public class Order
         };
     }
     
-    public void Update(string? note)
+    public void Update(string? note, DateTime? deliveryDate, long? customerId)
     {
+        if (Status != OrderStatus.Delivered)
+            DeliveryDate = deliveryDate;
+        
+        CustomerId = customerId ?? CustomerId;
         Note = note;
     }
 

@@ -20,7 +20,7 @@ public class UpdateOrderHandler(ApplicationDbContext db) : IRequestHandler<Updat
         if (order is null)
             return ResultOf<OrderModel>.NotFound(CommonErrors.OrderNotFound);
 
-        order.Update(command.Note);
+        order.Update(command.Note, command.DeliveryDate, command.CustomerId);
         
         await db.SaveChangesAsync(cancellationToken);
 
