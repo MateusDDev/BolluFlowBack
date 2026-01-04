@@ -1,27 +1,33 @@
 ﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Application.Errors;
-using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Orders.OrderItems.ListOrderItems;
 
 public class ListOrderItemsHandler(ApplicationDbContext db, CurrentUser user)
-    : IRequestHandler<ListOrderItemsQuery, ResultOf<List<OrderItemModel>>>
+    : IRequestHandler<ListOrderItemsQuery, ResultOf<List<ListOrderItemsResult>>>
 {
-    public async Task<ResultOf<List<OrderItemModel>>> Handle(ListOrderItemsQuery request, CancellationToken cancellationToken)
+    public async Task<ResultOf<List<ListOrderItemsResult>>> Handle(ListOrderItemsQuery request, CancellationToken cancellationToken)
     {
-        var order = await db.Orders
-            .Include(x => x.Items)
-            .Where(x => x.Customer.UserId == user.Id && x.Id == request.OrderId)
-            .FirstOrDefaultAsync(cancellationToken);
+        var orderItems = await db.OrderItems
+            .Where(x => x.Order.Customer.UserId == user.Id && x.OrderId == request.OrderId)
+            .Select(x => new ListOrderItemsResult
+            {
+                Id = x.Id,
+                OrderId = x.OrderId,
+                Quantity = x.Quantity,
+                Recipe = new ListOrderItemsResultRecipeModel
+                {
+                    Id = x.RecipeId,
+                    Name = x.Recipe.Name
+                },
+                UnitPrice = x.UnitPrice,
+                TotalPrice = x.UnitPrice * x.Quantity
+            })
+            .ToListAsync(cancellationToken);
 
-        if (order is null)
-            return ResultOf<List<OrderItemModel>>.BadRequest(CommonErrors.OrderNotFound);
-
-        return ResultOf<List<OrderItemModel>>.Success(order.Items.Adapt<List<OrderItemModel>>());
+        return ResultOf<List<ListOrderItemsResult>>.Success(orderItems);
     }
 }

@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace BolluFlow.Controllers;
 
 [ApiController]
-[Route("orders/{orderId:long}/[controller]")]
+[Route("orders/{orderId:long}/items")]
 [Authorize]
 public class OrderItemsController(IMediator mediator) : ControllerBase
 {
@@ -53,7 +53,7 @@ public class OrderItemsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<OrderItemModel>>> ListItems([FromRoute] long orderId, CancellationToken ct)
+    public async Task<ActionResult<List<ListOrderItemsResult>>> ListItems([FromRoute] long orderId, CancellationToken ct)
     {
         var query = new ListOrderItemsQuery(orderId);
         

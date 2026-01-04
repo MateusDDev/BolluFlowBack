@@ -14,6 +14,7 @@ public class DeleteOrderItemHandler(ApplicationDbContext db) : IRequestHandler<D
         try
         {
             var order = await db.Orders
+                .Include(x => x.Items)
                 .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 
             if (order is null)

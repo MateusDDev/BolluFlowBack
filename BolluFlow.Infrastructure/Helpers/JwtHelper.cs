@@ -29,7 +29,7 @@ public class JwtHelper(IConfiguration config)
             issuer: _issuer,
             audience: _audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(1),
+            expires: DateTime.UtcNow.AddDays(1),
             signingCredentials: creds
         );
 

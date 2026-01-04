@@ -72,7 +72,7 @@ public class Recipe
             throw new DomainException(RecipeErrors.InvalidDiscount);
         
         if (discountPercentage.HasValue)
-            finalPrice -= discountPercentage.Value;
+            finalPrice -= finalPrice * (discountPercentage.Value / 100);
         
         IndirectCostPercentage = indirectCostPercentage;
         MarkupPercentage = markupPercentage;
