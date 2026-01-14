@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using BolluFlow.Application.Configuration;
 using BolluFlow.Application.Features.Customers.ListCustomers;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Helpers;
@@ -8,18 +9,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<JwtHelper>();
+builder.Services.Configure<FrontOptions>(builder.Configuration.GetSection(FrontOptions.SectionName));
 
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
         policy
-            .WithOrigins(builder.Configuration["Cors:FrontUrl"] ?? string.Empty)
+            .WithOrigins(builder.Configuration["Front:Url"] ?? string.Empty)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials()
@@ -39,10 +42,24 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration.GetSection("Jwt:Issuer").Value ?? throw new ArgumentNullException(),
-            ValidAudience = builder.Configuration.GetSection("Jwt:Audience").Value ?? throw new ArgumentNullException(),
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration.GetSection("Jwt:Key").Value ?? throw new ArgumentNullException()))
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
+            )
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var token = context.Request.Cookies["access_token"];
+
+                if (!string.IsNullOrEmpty(token))
+                    context.Token = token;
+
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -95,6 +112,8 @@ builder.Services.AddSwaggerGen(options =>
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5143";
 
 builder.WebHost.UseUrls($"http://*:{port}");
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 var app = builder.Build();
 
