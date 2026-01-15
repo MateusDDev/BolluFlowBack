@@ -1,4 +1,5 @@
 ﻿using BolluFlow.Application.Features.Auth.Login;
+using BolluFlow.Application.Features.Auth.Logout;
 using BolluFlow.Application.Features.Auth.Me;
 using BolluFlow.Application.Features.Auth.SignUp;
 using BolluFlow.Application.Models;
@@ -21,6 +22,13 @@ public class AuthController(IMediator mediator)
 
     [HttpPost("sign-up")]
     public async Task<ActionResult<UserModel>> SignUp([FromBody] SignUpCommand command, CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("logout")]
+    public async Task<ActionResult> Logout([FromRoute] LogoutCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
