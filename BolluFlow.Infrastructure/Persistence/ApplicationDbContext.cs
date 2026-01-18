@@ -29,6 +29,8 @@ public class ApplicationDbContext : DbContext
     
     public DbSet<Ingredient> Ingredients { get; set; }
     
+    public DbSet<IngredientConversion> IngredientConversions { get; set; }
+    
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

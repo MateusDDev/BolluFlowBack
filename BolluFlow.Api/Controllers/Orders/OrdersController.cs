@@ -13,7 +13,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BolluFlow.Controllers;
+namespace BolluFlow.Controllers.Orders;
 
 [ApiController]
 [Route("[controller]")]

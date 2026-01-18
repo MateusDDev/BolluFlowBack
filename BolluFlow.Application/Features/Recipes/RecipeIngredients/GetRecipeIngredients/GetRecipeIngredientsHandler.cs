@@ -17,10 +17,10 @@ public class GetRecipeIngredientsHandler(ApplicationDbContext db)
                 RecipeId = x.RecipeId,
                 IngredientId = x.IngredientId,
                 Name = x.Ingredient.Name,
-                Unit = x.Ingredient.Unit,
+                Unit = x.Ingredient.BaseUnit.ToString(),
                 MinimumStockQuantity = x.Ingredient.MinimumStockQuantity,
                 StockQuantity = x.Ingredient.StockQuantity,
-                UnitPrice = x.Ingredient.UnitPrice,
+                UnitPrice = x.Ingredient.UnitCost,
                 QuantityUsed = x.QuantityUsed
             }).ToListAsync(cancellationToken);
         

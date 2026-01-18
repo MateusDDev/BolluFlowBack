@@ -1,4 +1,5 @@
 ﻿using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
@@ -10,25 +11,23 @@ public class Ingredient
     public long Id { get; private set; }
     public long UserId { get; private set; }
     public string Name { get; private set; } = null!;
-    public string Unit { get; private set; } = null!;
-    public decimal UnitPrice { get; private set; }
+    public IngredientBaseUnit BaseUnit { get; private set; }
+    public decimal UnitCost { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
-    public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
+    public List<RecipeIngredient> RecipeIngredients { get; init; } = [];
+    public List<IngredientConversion> IngredientConversions { get; init; } = [];
 
     public static Ingredient Create(
         long userId,
         string name,
-        string unit,
+        IngredientBaseUnit unit,
         decimal unitPrice,
         decimal stockQuantity,
         decimal? minimumStockQuantity)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException(IngredientErrors.NameRequired);
-
-        if (string.IsNullOrWhiteSpace(unit))
-            throw new DomainException(IngredientErrors.UnitRequired);
 
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
@@ -40,8 +39,8 @@ public class Ingredient
         {
             UserId = userId,
             Name = name,
-            Unit = unit,
-            UnitPrice = unitPrice,
+            BaseUnit = unit,
+            UnitCost = unitPrice,
             StockQuantity = stockQuantity,
             MinimumStockQuantity = minimumStockQuantity
         };
@@ -49,16 +48,13 @@ public class Ingredient
 
     public void Update(
         string name, 
-        string unit, 
+        IngredientBaseUnit unit, 
         decimal unitPrice,
         decimal stockQuantity,
         decimal? minimumStockQuantity)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException(IngredientErrors.NameRequired);
-
-        if (string.IsNullOrWhiteSpace(unit))
-            throw new DomainException(IngredientErrors.UnitRequired);
 
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
@@ -67,8 +63,8 @@ public class Ingredient
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
         Name = name;
-        Unit = unit;
-        UnitPrice = unitPrice;
+        BaseUnit = unit;
+        UnitCost = unitPrice;
         StockQuantity = stockQuantity;
         MinimumStockQuantity = minimumStockQuantity;
     }
@@ -90,5 +86,10 @@ public class Ingredient
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
         StockQuantity += quantity;
+    }
+
+    public void AddConversion(string name, decimal quantityInBaseUnit)
+    {
+        IngredientConversions.Add(IngredientConversion.Create(Id, name, quantityInBaseUnit));
     }
 }

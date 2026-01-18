@@ -24,5 +24,7 @@
       <Folder Include="Features\Dashboard\GetSales\" />
       <Folder Include="Features\Dashboard\GetSummary\" />
       <Folder Include="Features\Dashboard\GetTopRecipes\" />
+      <Folder Include="Features\Products\" />
+      <Folder Include="Features\Supplies\" />
     </ItemGroup>
 </Project>
