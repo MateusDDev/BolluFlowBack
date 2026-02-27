@@ -14,7 +14,7 @@ public class IngredientConversionConfiguration : IEntityTypeConfiguration<Ingred
         
         builder
             .HasOne(x => x.Ingredient)
-            .WithMany()
+            .WithMany(x => x.IngredientConversions)
             .HasForeignKey(x => x.IngredientId);
     }
 }

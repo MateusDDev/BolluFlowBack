@@ -6,6 +6,6 @@ namespace BolluFlow.Application.Features.Ingredients.CreateIngredient;
 public record CreateIngredientCommand( 
     string Name,
     IngredientBaseUnit Unit,
-    decimal UnitPrice,
+    decimal UnitCost,
     decimal StockQuantity,
     decimal? MinimumStockQuantity) : ICommand<ResultOf<CreateIngredientResult>>;

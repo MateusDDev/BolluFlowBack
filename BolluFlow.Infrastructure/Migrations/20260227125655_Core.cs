@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BolluFlow.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class CoreTables : Migration
+    public partial class Core : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -37,8 +37,8 @@ namespace BolluFlow.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     user_id = table.Column<long>(type: "bigint", nullable: false),
                     name = table.Column<string>(type: "text", nullable: false),
-                    unit = table.Column<string>(type: "text", nullable: false),
-                    unit_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    base_unit = table.Column<string>(type: "text", nullable: false),
+                    unit_cost = table.Column<decimal>(type: "numeric", nullable: false),
                     stock_quantity = table.Column<decimal>(type: "numeric", nullable: false),
                     minimum_stock_quantity = table.Column<decimal>(type: "numeric", nullable: true)
                 },
@@ -132,6 +132,27 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_ingredient_conversion",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ingredient_id = table.Column<long>(type: "bigint", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    quantity_in_base_unit = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_ingredient_conversion", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_ingredient_conversion_tb_ingredient_ingredient_id",
+                        column: x => x.ingredient_id,
+                        principalTable: "tb_ingredient",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_recipe_ingredient",
                 columns: table => new
                 {
@@ -192,6 +213,11 @@ namespace BolluFlow.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_tb_ingredient_conversion_ingredient_id",
+                table: "tb_ingredient_conversion",
+                column: "ingredient_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tb_order_customer_id",
                 table: "tb_order",
                 column: "customer_id");
@@ -218,6 +244,9 @@ namespace BolluFlow.Infrastructure.Migrations
         {
             migrationBuilder.DropTable(
                 name: "tb_delivery_address");
+
+            migrationBuilder.DropTable(
+                name: "tb_ingredient_conversion");
 
             migrationBuilder.DropTable(
                 name: "tb_order_item");

@@ -11,7 +11,7 @@ public class DeleteConversionHandler(ApplicationDbContext db) : IRequestHandler<
     public async Task<Result> Handle(DeleteConversionCommand request, CancellationToken cancellationToken)
     {
         var ingredientConversion = await db.IngredientConversions
-            .FirstOrDefaultAsync(x => x.Id == request.IngredientId && x.Id == request.ConversionId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.IngredientId == request.IngredientId && x.Id == request.ConversionId, cancellationToken);
 
         if (ingredientConversion is null)
             return Result.NotFound(CommonErrors.IngredientNotFound);

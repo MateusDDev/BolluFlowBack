@@ -150,10 +150,6 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("ingredient_id");
 
-                    b.Property<long?>("IngredientId1")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ingredient_id1");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -168,9 +164,6 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     b.HasIndex("IngredientId")
                         .HasDatabaseName("ix_tb_ingredient_conversion_ingredient_id");
-
-                    b.HasIndex("IngredientId1")
-                        .HasDatabaseName("ix_tb_ingredient_conversion_ingredient_id1");
 
                     b.ToTable("tb_ingredient_conversion", (string)null);
                 });
@@ -389,16 +382,11 @@ namespace BolluFlow.Infrastructure.Migrations
             modelBuilder.Entity("BolluFlow.Domain.Entities.IngredientConversion", b =>
                 {
                     b.HasOne("BolluFlow.Domain.Entities.Ingredient", "Ingredient")
-                        .WithMany()
+                        .WithMany("IngredientConversions")
                         .HasForeignKey("IngredientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_tb_ingredient_conversion_tb_ingredient_ingredient_id");
-
-                    b.HasOne("BolluFlow.Domain.Entities.Ingredient", null)
-                        .WithMany("IngredientConversions")
-                        .HasForeignKey("IngredientId1")
-                        .HasConstraintName("fk_tb_ingredient_conversion_tb_ingredient_ingredient_id1");
 
                     b.Navigation("Ingredient");
                 });
