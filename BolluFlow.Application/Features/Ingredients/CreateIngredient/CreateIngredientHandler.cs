@@ -18,7 +18,7 @@ public class CreateIngredientHandler(ApplicationDbContext db, CurrentUser user)
                 user.Id,
                 request.Name,
                 request.Unit,
-                request.UnitPrice,
+                request.UnitCost,
                 request.StockQuantity,
                 request.MinimumStockQuantity);
             

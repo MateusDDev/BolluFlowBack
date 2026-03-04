@@ -9,7 +9,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BolluFlow.Controllers;
+namespace BolluFlow.Controllers.Ingredients;
 
 [ApiController]
 [Route("[controller]")]

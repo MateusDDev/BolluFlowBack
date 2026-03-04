@@ -11,5 +11,7 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         builder.ToTable("tb_ingredient");
         
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.BaseUnit).HasConversion<string>();
     }
 }

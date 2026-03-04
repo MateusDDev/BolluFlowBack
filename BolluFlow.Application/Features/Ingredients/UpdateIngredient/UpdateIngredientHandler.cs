@@ -26,7 +26,7 @@ public class UpdateIngredientHandler(ApplicationDbContext db) : IRequestHandler<
             ingredient.Update(
                 command.Name, 
                 command.Unit, 
-                command.UnitPrice, 
+                command.UnitCost, 
                 command.StockQuantity, 
                 command.MinimumStockQuantity);
 

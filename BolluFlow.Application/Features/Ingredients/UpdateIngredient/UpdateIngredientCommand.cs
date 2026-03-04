@@ -1,5 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Enums;
 
 namespace BolluFlow.Application.Features.Ingredients.UpdateIngredient;
 
@@ -7,7 +8,7 @@ public record UpdateIngredientCommand(long Id, UpdateIngredientCommandBody Body)
 
 public record UpdateIngredientCommandBody(
     string Name,
-    string Unit, 
-    decimal UnitPrice, 
+    IngredientBaseUnit Unit, 
+    decimal UnitCost, 
     decimal StockQuantity, 
     decimal? MinimumStockQuantity);

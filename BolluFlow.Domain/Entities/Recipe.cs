@@ -83,7 +83,7 @@ public class Recipe
     public decimal CalculateUnitCost()
     {
         var ingredientCost = RecipePricingService.CalculateIngredientCost(RecipeIngredients
-            .Select(x => (x.Ingredient.UnitPrice, x.QuantityUsed))
+            .Select(x => (UnitPrice: x.Ingredient.UnitCost, x.QuantityUsed))
             .ToList());
 
         return RecipePricingService.CalculateFinalCost(ingredientCost, IndirectCostPercentage);

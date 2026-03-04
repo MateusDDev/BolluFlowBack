@@ -6,9 +6,9 @@ public class IngredientModel
     
     public string Name { get; set; }
     
-    public string Unit { get; set; }
+    public string BaseUnit { get; set; }
     
-    public decimal UnitPrice { get; set; }
+    public decimal UnitCost { get; set; }
     
     public decimal StockQuantity { get; set; }
     

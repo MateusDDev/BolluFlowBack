@@ -105,6 +105,11 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("BaseUnit")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("base_unit");
+
                     b.Property<decimal?>("MinimumStockQuantity")
                         .HasColumnType("numeric")
                         .HasColumnName("minimum_stock_quantity");
@@ -118,14 +123,9 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("unit");
-
-                    b.Property<decimal>("UnitPrice")
+                    b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
-                        .HasColumnName("unit_price");
+                        .HasColumnName("unit_cost");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -135,6 +135,37 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasName("pk_tb_ingredient");
 
                     b.ToTable("tb_ingredient", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.IngredientConversion", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("IngredientId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("ingredient_id");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<decimal>("QuantityInBaseUnit")
+                        .HasColumnType("numeric")
+                        .HasColumnName("quantity_in_base_unit");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_ingredient_conversion");
+
+                    b.HasIndex("IngredientId")
+                        .HasDatabaseName("ix_tb_ingredient_conversion_ingredient_id");
+
+                    b.ToTable("tb_ingredient_conversion", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
@@ -348,6 +379,18 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.IngredientConversion", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Ingredient", "Ingredient")
+                        .WithMany("IngredientConversions")
+                        .HasForeignKey("IngredientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_ingredient_conversion_tb_ingredient_ingredient_id");
+
+                    b.Navigation("Ingredient");
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
                 {
                     b.HasOne("BolluFlow.Domain.Entities.Customer", "Customer")
@@ -410,6 +453,8 @@ namespace BolluFlow.Infrastructure.Migrations
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>
                 {
+                    b.Navigation("IngredientConversions");
+
                     b.Navigation("RecipeIngredients");
                 });
 
