@@ -56,12 +56,12 @@ public class Order
         Note = note;
     }
 
-    public void AddItem(long recipeId, int quantity, decimal unitPrice, decimal unitCost)
+    public void AddItem(long productId, int quantity, decimal unitPrice, decimal unitCost)
     {
         if (Status != OrderStatus.Pending)
             throw new DomainException(OrderErrors.OrderIsNotOpen);
         
-        _items.Add(OrderItem.Create(recipeId, quantity, unitPrice, unitCost));
+        _items.Add(OrderItem.Create(productId, quantity, unitPrice, unitCost));
     }
     
     public void RemoveItem(long orderItemId)

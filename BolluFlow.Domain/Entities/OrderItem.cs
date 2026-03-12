@@ -13,9 +13,9 @@ public class OrderItem
 
     public Order Order { get; set; } = null!;
     
-    public long RecipeId { get; set; }
+    public long ProductId { get; set; }
 
-    public Recipe Recipe { get; set; } = null!;
+    public Product Product { get; set; } = null!;
     
     public int Quantity { get; private set; }
     
@@ -31,11 +31,11 @@ public class OrderItem
         Quantity = quantity;
     }
 
-    public static OrderItem Create(long recipeId, int quantity, decimal unitPrice, decimal unitCost)
+    public static OrderItem Create(long productId, int quantity, decimal unitPrice, decimal unitCost)
     {
         return new OrderItem
         {
-            RecipeId = recipeId,
+            ProductId = productId,
             Quantity = quantity,
             UnitPrice = unitPrice,
             UnitCost = unitCost

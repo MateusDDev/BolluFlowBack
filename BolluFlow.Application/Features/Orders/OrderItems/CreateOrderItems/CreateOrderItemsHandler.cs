@@ -1,9 +1,9 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,47 +15,43 @@ public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<
     {
         try
         {
-            var requestItems = request.Items;
-
-            var order = await db.Orders
-                .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
-
+            var order = await db.Orders.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
             if (order is null)
-                return ResultOf<List<OrderItemModel>>.BadRequest(CommonErrors.OrderNotFound);
-            
-            var orderItemsIds = order.Items.Select(x => x.RecipeId);
+                return ResultOf<List<OrderItemModel>>.NotFound(CommonErrors.OrderNotFound);
 
-            if (requestItems.Any(x => orderItemsIds.Contains(x.RecipeId)))
-            {
-                return ResultOf<List<OrderItemModel>>.BadRequest(new DomainError(
-                    "ITEM_ALREADY_ADDED",
-                    "Item já adicionado ao pedido"));
-            }
+            var orderItemsIds = order.Items.Select(x => x.ProductId).ToHashSet();
+            if (request.Items.Any(x => orderItemsIds.Contains(x.ProductId)))
+                return ResultOf<List<OrderItemModel>>.Conflict(new DomainError("ITEM_ALREADY_ADDED", "Item já adicionado ao pedido"));
 
-            var recipesIds = requestItems
-                .Select(x => x.RecipeId)
-                .Distinct()
-                .ToList();
-
-            var recipes = await db.Recipes
-                .AsNoTracking()
-                .Include(x => x.RecipeIngredients)
-                .ThenInclude(x => x.Ingredient)
-                .Where(x => recipesIds.Contains(x.Id) && x.IsActive)
+            var productIds = request.Items.Select(x => x.ProductId).Distinct().ToList();
+            var products = await db.Products.AsNoTracking().Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-            foreach (var item in requestItems)
+            foreach (var item in request.Items)
             {
-                if (!recipes.TryGetValue(item.RecipeId, out var recipe))
-                    return ResultOf<List<OrderItemModel>>.BadRequest(CommonErrors.RecipeNotFound);
+                if (!products.TryGetValue(item.ProductId, out var product))
+                    return ResultOf<List<OrderItemModel>>.NotFound(CommonErrors.ProductNotFound);
 
-                order.AddItem(item.RecipeId, item.Quantity, recipe.FinalPrice, recipe.CalculateUnitCost());
+                if (!product.IsActive)
+                    return ResultOf<List<OrderItemModel>>.Unprocessable(ProductErrors.ProductInactive);
+
+                order.AddItem(product.Id, item.Quantity, product.FinalPrice, 0);
             }
 
             await db.SaveChangesAsync(cancellationToken);
 
-            return ResultOf<List<OrderItemModel>>.Success(order.Items.Adapt<List<OrderItemModel>>());
+            var created = await db.OrderItems.Where(x => x.OrderId == request.OrderId).Select(x => new OrderItemModel
+            {
+                Id = x.Id,
+                OrderId = x.OrderId,
+                ProductId = x.ProductId,
+                Quantity = x.Quantity,
+                UnitPrice = x.UnitPrice,
+                TotalPrice = x.UnitPrice * x.Quantity,
+                Product = new ProductRefModel { Id = x.ProductId, Name = x.Product.Name }
+            }).ToListAsync(cancellationToken);
+
+            return ResultOf<List<OrderItemModel>>.Success(created);
         }
         catch (DomainException e)
         {

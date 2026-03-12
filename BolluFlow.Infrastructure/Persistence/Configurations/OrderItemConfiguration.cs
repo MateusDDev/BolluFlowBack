@@ -1,4 +1,4 @@
-﻿using BolluFlow.Domain.Entities;
+using BolluFlow.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,8 +13,11 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.HasKey(x => x.Id);
 
         builder
-            .HasIndex(x => new { x.OrderId, x.RecipeId })
+            .HasIndex(x => new { x.OrderId, x.ProductId })
             .IsUnique();
+
+        builder
+            .HasIndex(x => x.OrderId);
         
         builder
             .HasOne(x => x.Order)
@@ -22,8 +25,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .HasForeignKey(x => x.OrderId);
         
         builder
-            .HasOne(x => x.Recipe)
+            .HasOne(x => x.Product)
             .WithMany()
-            .HasForeignKey(x => x.RecipeId);
+            .HasForeignKey(x => x.ProductId);
     }
 }
