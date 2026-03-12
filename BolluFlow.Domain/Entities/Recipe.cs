@@ -16,8 +16,6 @@ public class Recipe
 
     public int? PreparationTime { get; set; }
 
-    public decimal IndirectCostPercentage { get; set; }
-
     public bool IsActive { get; set; }
 
     public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
@@ -33,7 +31,6 @@ public class Recipe
             UserId = userId,
             Name = name,
             Category = category,
-            IndirectCostPercentage = 0,
             IsActive = true,
             PreparationTime = preparationTime
         };
@@ -51,17 +48,10 @@ public class Recipe
         PreparationTime = preparationTime;
     }
 
-    public void UpdatePricing(decimal indirectCostPercentage)
-    {
-        IndirectCostPercentage = indirectCostPercentage;
-    }
-
     public decimal CalculateUnitCost()
     {
-        var ingredientCost = RecipePricingService.CalculateIngredientCost(RecipeIngredients
+        return RecipePricingService.CalculateIngredientCost(RecipeIngredients
             .Select(x => (UnitPrice: x.Ingredient.UnitCost, x.QuantityUsed))
             .ToList());
-
-        return RecipePricingService.CalculateFinalCost(ingredientCost, IndirectCostPercentage);
     }
 }

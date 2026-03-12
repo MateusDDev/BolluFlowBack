@@ -35,7 +35,6 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             Name = recipe.Name,
             Category = recipe.Category,
             PreparationTime = recipe.PreparationTime,
-            IndirectCostPercentage = recipe.IndirectCostPercentage,
             UnitCost = recipe.CalculateUnitCost(),
             IsActive = recipe.IsActive
         });

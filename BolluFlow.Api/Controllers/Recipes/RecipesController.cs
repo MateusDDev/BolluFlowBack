@@ -1,9 +1,8 @@
-﻿using BolluFlow.Application.Features.Recipes.Create;
+using BolluFlow.Application.Features.Recipes.Create;
 using BolluFlow.Application.Features.Recipes.DeleteRecipe;
 using BolluFlow.Application.Features.Recipes.GetRecipeDetails;
 using BolluFlow.Application.Features.Recipes.ListRecipes;
 using BolluFlow.Application.Features.Recipes.UpdateRecipe;
-using BolluFlow.Application.Features.Recipes.UpdateRecipePricing;
 using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
@@ -19,7 +18,7 @@ public class RecipesController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
     public async Task<ActionResult<CreateRecipeResult>> CreateRecipe(
-        [FromBody] CreateRecipeCommand command, 
+        [FromBody] CreateRecipeCommand command,
         CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
@@ -33,22 +32,9 @@ public class RecipesController(IMediator mediator) : ControllerBase
         CancellationToken ct)
     {
         var command = new UpdateRecipeCommand(recipeId, body);
-        
-        var result = await mediator.Send(command, ct);
-        
-        return result.ToActionResult();
-    }
 
-    [HttpPatch("{recipeId:long}/pricing")]
-    public async Task<ActionResult> UpdateRecipePricing(
-        [FromRoute] long recipeId,
-        [FromBody] UpdateRecipePricingCommandBody body,
-        CancellationToken ct)
-    {
-        var command = new UpdateRecipePricingCommand(recipeId, body);
-        
         var result = await mediator.Send(command, ct);
-        
+
         return result.ToActionResult();
     }
 
@@ -56,19 +42,19 @@ public class RecipesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<RecipeModel>> GetRecipeById([FromRoute] long recipeId, CancellationToken ct)
     {
         var query = new GetRecipeDetailsQuery(recipeId);
-        
+
         var result = await mediator.Send(query, ct);
-        
+
         return result.ToActionResult();
     }
-    
+
     [HttpGet]
     public async Task<ActionResult<List<RecipeModel>>> ListRecipes(CancellationToken ct)
     {
         var query = new ListRecipesQuery();
-        
+
         var result = await mediator.Send(query, ct);
-        
+
         return result.ToActionResult();
     }
 
@@ -76,10 +62,9 @@ public class RecipesController(IMediator mediator) : ControllerBase
     public async Task<ActionResult> DeleteRecipe([FromRoute] long recipeId, CancellationToken ct)
     {
         var command = new DeleteRecipeCommand(recipeId);
-        
+
         var result = await mediator.Send(command, ct);
 
         return result.ToActionResult();
     }
 }
-    

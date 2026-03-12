@@ -23,7 +23,6 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
                 Name = x.Name,
                 Category = x.Category,
                 PreparationTime = x.PreparationTime,
-                IndirectCostPercentage = x.IndirectCostPercentage,
                 UnitCost = x.CalculateUnitCost(),
                 IsActive = x.IsActive
             })

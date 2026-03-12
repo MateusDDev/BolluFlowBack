@@ -10,8 +10,6 @@ public class RecipeModel
 
     public int? PreparationTime { get; set; }
 
-    public decimal IndirectCostPercentage { get; set; }
-
     public decimal UnitCost { get; set; }
 
     public bool IsActive { get; set; }

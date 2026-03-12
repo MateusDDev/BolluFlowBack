@@ -25,7 +25,6 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
             Name = recipe.Name,
             Category = recipe.Category,
             PreparationTime = recipe.PreparationTime,
-            IndirectCostPercentage = recipe.IndirectCostPercentage,
             UnitCost = recipe.CalculateUnitCost(),
             IsActive = recipe.IsActive
         });
