@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
@@ -14,6 +15,7 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
     public async Task<Result> Handle(DeliverOrderCommand request, CancellationToken cancellationToken)
     {
         await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
         try
         {
             var order = await db.Orders
@@ -27,7 +29,13 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                 return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
 
             var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await db.Products.Include(x => x.Components).Where(x => productIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+            var products = await db.Products
+                .Include(x => x.Components)
+                .Where(x => productIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id, cancellationToken);
+
+            var ingredientRequirements = new Dictionary<long, decimal>();
+            var supplyRequirements = new Dictionary<long, decimal>();
 
             foreach (var item in order.Items)
             {
@@ -39,30 +47,66 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                 foreach (var component in product.Components)
                 {
                     var total = component.QuantityUsed * item.Quantity;
+
                     if (component.ComponentType == ProductComponentType.Ingredient && component.IngredientId.HasValue)
                     {
-                        var ingredient = await db.Ingredients.FirstOrDefaultAsync(x => x.Id == component.IngredientId.Value, cancellationToken);
-                        ingredient?.ConsumeStock(total);
+                        ingredientRequirements[component.IngredientId.Value] = ingredientRequirements.GetValueOrDefault(component.IngredientId.Value) + total;
                     }
 
                     if (component.ComponentType == ProductComponentType.Supply && component.SupplyId.HasValue)
                     {
-                        var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == component.SupplyId.Value, cancellationToken);
-                        supply?.ConsumeStock(total);
+                        supplyRequirements[component.SupplyId.Value] = supplyRequirements.GetValueOrDefault(component.SupplyId.Value) + total;
                     }
 
                     if (component.ComponentType == ProductComponentType.Recipe && component.RecipeId.HasValue)
                     {
-                        var recipeIngredients = await db.RecipeIngredients.Include(x => x.Ingredient)
-                            .Where(x => x.RecipeId == component.RecipeId.Value).ToListAsync(cancellationToken);
+                        var recipeIngredients = await db.RecipeIngredients
+                            .Include(x => x.Ingredient)
+                            .Where(x => x.RecipeId == component.RecipeId.Value)
+                            .ToListAsync(cancellationToken);
+
+                        if (recipeIngredients.Count == 0)
+                            return Result.Unprocessable(new DomainError("RECIPE_WITHOUT_INGREDIENTS", "Receita da composição não possui ingredientes"));
 
                         foreach (var recipeIngredient in recipeIngredients)
-                            recipeIngredient.Ingredient.ConsumeStock(recipeIngredient.QuantityUsed * total);
+                        {
+                            var required = recipeIngredient.QuantityUsed * total;
+                            ingredientRequirements[recipeIngredient.IngredientId] = ingredientRequirements.GetValueOrDefault(recipeIngredient.IngredientId) + required;
+                        }
                     }
                 }
             }
 
+            if (ingredientRequirements.Count > 0)
+            {
+                var ingredientIds = ingredientRequirements.Keys.ToList();
+                var ingredients = await db.Ingredients.Where(x => ingredientIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+
+                foreach (var (ingredientId, quantity) in ingredientRequirements)
+                {
+                    if (!ingredients.TryGetValue(ingredientId, out var ingredient))
+                        return Result.NotFound(CommonErrors.IngredientNotFound);
+
+                    ingredient.ConsumeStock(quantity);
+                }
+            }
+
+            if (supplyRequirements.Count > 0)
+            {
+                var supplyIds = supplyRequirements.Keys.ToList();
+                var supplies = await db.Supplies.Where(x => supplyIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);
+
+                foreach (var (supplyId, quantity) in supplyRequirements)
+                {
+                    if (!supplies.TryGetValue(supplyId, out var supply))
+                        return Result.NotFound(CommonErrors.SupplyNotFound);
+
+                    supply.ConsumeStock(quantity);
+                }
+            }
+
             order.Status = OrderStatus.Delivered;
+
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
 
