@@ -44,7 +44,9 @@ public class ApplicationDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Default"));
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseNpgsql(_configuration.GetConnectionString("Default"));
+
         optionsBuilder.UseSnakeCaseNamingConvention();
     }
 }
