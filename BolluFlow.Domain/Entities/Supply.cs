@@ -15,6 +15,7 @@ public class Supply
     public decimal UnitCost { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
+    public List<SupplyConversion> SupplyConversions { get; init; } = [];
 
     public static Supply Create(long userId, string name, IngredientBaseUnit unit, decimal unitCost, decimal stockQuantity, decimal? minimumStockQuantity)
     {
@@ -62,5 +63,10 @@ public class Supply
             throw new DomainException(SupplyErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;
+    }
+
+    public void AddConversion(string name, decimal quantityInBaseUnit)
+    {
+        SupplyConversions.Add(SupplyConversion.Create(Id, name, quantityInBaseUnit));
     }
 }

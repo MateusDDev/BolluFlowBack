@@ -33,4 +33,7 @@ public class CommonErrors
 
     public static readonly DomainError ProductComponentNotFound =
         new("PRODUCT_COMPONENT_NOT_FOUND", "Componente do produto não encontrado");
+
+    public static readonly DomainError SupplyConversionNotFound =
+        new("SUPPLY_CONVERSION_NOT_FOUND", "Conversão para o insumo não encontrada");
 }

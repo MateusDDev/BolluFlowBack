@@ -20,6 +20,8 @@ public class CreateRecipeHandler(ApplicationDbContext db, CurrentUser user) : IR
                 name: request.Name,
                 category: request.Category,
                 preparationTime: request.PreparationTime);
+
+            recipe.UpdatePricing(request.IndirectCostPercentage);
             
             db.Recipes.Add(recipe);
             

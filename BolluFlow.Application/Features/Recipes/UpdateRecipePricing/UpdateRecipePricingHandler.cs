@@ -1,4 +1,4 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -10,20 +10,14 @@ public class UpdateRecipePricingHandler(ApplicationDbContext db) : IRequestHandl
 {
     public async Task<Result> Handle(UpdateRecipePricingCommand request, CancellationToken cancellationToken)
     {
-        var command = request.Body;
-        
         var recipe = await db.Recipes
             .FirstOrDefaultAsync(x => x.Id == request.RecipeId, cancellationToken);
 
         if (recipe is null)
             return Result.BadRequest(CommonErrors.RecipeNotFound);
-        
-        recipe.UpdatePricing(
-            indirectCostPercentage: command.IndirectCostPercentage, 
-            markupPercentage: command.MarkupPercentage,
-            finalPrice: command.FinalPrice,
-            discountPercentage: command.DiscountPercentage);
-        
+
+        recipe.UpdatePricing(request.Body.IndirectCostPercentage);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return Result.Success();

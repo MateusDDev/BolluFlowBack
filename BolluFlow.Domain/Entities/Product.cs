@@ -56,7 +56,7 @@ public class Product
         if (finalPrice < 0)
             throw new DomainException(ProductErrors.FinalPriceInvalid);
         if (discountPercentage is < 0 or > 100)
-            throw new DomainException(RecipeErrors.InvalidDiscount);
+            throw new DomainException(ProductErrors.InvalidDiscount);
 
         if (discountPercentage.HasValue)
             finalPrice -= finalPrice * (discountPercentage.Value / 100);
