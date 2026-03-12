@@ -28,7 +28,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                 Items = x.Items.Select(i => new OrderReportResultItem
                 {
                     Quantity = i.Quantity,
-                    RecipeName = i.Recipe.Name
+                    ProductName = i.Product.Name
                 }).ToList(),
                 Note = x.Note
             })
@@ -93,7 +93,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                                 col.Item().Row(row =>
                                 {
                                     row.RelativeItem()
-                                        .Text(item.RecipeName)
+                                        .Text(item.ProductName)
                                         .FontSize(10);
 
                                     row.ConstantItem(28)

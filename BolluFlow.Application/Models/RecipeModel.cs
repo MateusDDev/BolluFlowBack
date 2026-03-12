@@ -2,7 +2,7 @@ namespace BolluFlow.Application.Models;
 
 public class RecipeModel
 {
-    public long Id { get; private set; }
+    public long Id { get; set; }
 
     public required string Name { get; set; }
 

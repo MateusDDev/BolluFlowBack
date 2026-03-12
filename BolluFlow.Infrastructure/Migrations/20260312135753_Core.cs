@@ -48,6 +48,28 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_product",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    sale_price = table.Column<decimal>(type: "numeric", nullable: true),
+                    stock_quantity = table.Column<decimal>(type: "numeric", nullable: false),
+                    minimum_stock_quantity = table.Column<decimal>(type: "numeric", nullable: true),
+                    indirect_cost_percentage = table.Column<decimal>(type: "numeric", nullable: false),
+                    markup_percentage = table.Column<decimal>(type: "numeric", nullable: false),
+                    final_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    discount_percentage = table.Column<decimal>(type: "numeric", nullable: true),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_product", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_recipe",
                 columns: table => new
                 {
@@ -57,15 +79,30 @@ namespace BolluFlow.Infrastructure.Migrations
                     name = table.Column<string>(type: "text", nullable: false),
                     category = table.Column<string>(type: "text", nullable: false),
                     preparation_time = table.Column<int>(type: "integer", nullable: true),
-                    indirect_cost_percentage = table.Column<decimal>(type: "numeric", nullable: false),
-                    markup_percentage = table.Column<decimal>(type: "numeric", nullable: false),
                     final_price = table.Column<decimal>(type: "numeric", nullable: false),
-                    discount_percentage = table.Column<decimal>(type: "numeric", nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_tb_recipe", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tb_supply",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    user_id = table.Column<long>(type: "bigint", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    base_unit = table.Column<string>(type: "text", nullable: false),
+                    unit_cost = table.Column<decimal>(type: "numeric", nullable: false),
+                    stock_quantity = table.Column<decimal>(type: "numeric", nullable: false),
+                    minimum_stock_quantity = table.Column<decimal>(type: "numeric", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_supply", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -178,13 +215,77 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_product_component",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    product_id = table.Column<long>(type: "bigint", nullable: false),
+                    component_type = table.Column<string>(type: "text", nullable: false),
+                    recipe_id = table.Column<long>(type: "bigint", nullable: true),
+                    ingredient_id = table.Column<long>(type: "bigint", nullable: true),
+                    supply_id = table.Column<long>(type: "bigint", nullable: true),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    base_unit = table.Column<string>(type: "text", nullable: false),
+                    unit_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    stock_quantity = table.Column<decimal>(type: "numeric", nullable: false),
+                    quantity_used = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_product_component", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_product_component_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "tb_product",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "fk_tb_product_component_recipes_recipe_id",
+                        column: x => x.recipe_id,
+                        principalTable: "tb_recipe",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_tb_product_component_supplies_supply_id",
+                        column: x => x.supply_id,
+                        principalTable: "tb_supply",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_tb_product_component_tb_ingredient_ingredient_id",
+                        column: x => x.ingredient_id,
+                        principalTable: "tb_ingredient",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tb_supply_conversion",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    supply_id = table.Column<long>(type: "bigint", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    quantity_in_base_unit = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_supply_conversion", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_supply_conversion_tb_supply_supply_id",
+                        column: x => x.supply_id,
+                        principalTable: "tb_supply",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_order_item",
                 columns: table => new
                 {
                     id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     order_id = table.Column<long>(type: "bigint", nullable: false),
-                    recipe_id = table.Column<long>(type: "bigint", nullable: false),
+                    product_id = table.Column<long>(type: "bigint", nullable: false),
                     quantity = table.Column<int>(type: "integer", nullable: false),
                     unit_price = table.Column<decimal>(type: "numeric", nullable: false),
                     unit_cost = table.Column<decimal>(type: "numeric", nullable: false)
@@ -193,9 +294,9 @@ namespace BolluFlow.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_tb_order_item", x => x.id);
                     table.ForeignKey(
-                        name: "fk_tb_order_item_recipes_recipe_id",
-                        column: x => x.recipe_id,
-                        principalTable: "tb_recipe",
+                        name: "fk_tb_order_item_products_product_id",
+                        column: x => x.product_id,
+                        principalTable: "tb_product",
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -223,20 +324,55 @@ namespace BolluFlow.Infrastructure.Migrations
                 column: "customer_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_tb_order_item_order_id_recipe_id",
+                name: "ix_tb_order_item_order_id",
                 table: "tb_order_item",
-                columns: new[] { "order_id", "recipe_id" },
+                column: "order_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_order_item_order_id_product_id",
+                table: "tb_order_item",
+                columns: new[] { "order_id", "product_id" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "ix_tb_order_item_recipe_id",
+                name: "ix_tb_order_item_product_id",
                 table: "tb_order_item",
+                column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_product_component_ingredient_id",
+                table: "tb_product_component",
+                column: "ingredient_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_product_component_product_id",
+                table: "tb_product_component",
+                column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_product_component_recipe_id",
+                table: "tb_product_component",
                 column: "recipe_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_product_component_supply_id",
+                table: "tb_product_component",
+                column: "supply_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_tb_recipe_ingredient_ingredient_id",
                 table: "tb_recipe_ingredient",
                 column: "ingredient_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_supply_name",
+                table: "tb_supply",
+                column: "name");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_supply_conversion_supply_id",
+                table: "tb_supply_conversion",
+                column: "supply_id");
         }
 
         /// <inheritdoc />
@@ -252,7 +388,13 @@ namespace BolluFlow.Infrastructure.Migrations
                 name: "tb_order_item");
 
             migrationBuilder.DropTable(
+                name: "tb_product_component");
+
+            migrationBuilder.DropTable(
                 name: "tb_recipe_ingredient");
+
+            migrationBuilder.DropTable(
+                name: "tb_supply_conversion");
 
             migrationBuilder.DropTable(
                 name: "tb_user");
@@ -261,10 +403,16 @@ namespace BolluFlow.Infrastructure.Migrations
                 name: "tb_order");
 
             migrationBuilder.DropTable(
+                name: "tb_product");
+
+            migrationBuilder.DropTable(
                 name: "tb_ingredient");
 
             migrationBuilder.DropTable(
                 name: "tb_recipe");
+
+            migrationBuilder.DropTable(
+                name: "tb_supply");
 
             migrationBuilder.DropTable(
                 name: "tb_customer");

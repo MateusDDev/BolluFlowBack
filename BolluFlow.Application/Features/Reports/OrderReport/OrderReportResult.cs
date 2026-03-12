@@ -12,6 +12,6 @@ public sealed class OrderReportResult
 
 public sealed class OrderReportResultItem
 {
-    public string RecipeName { get; init; } = null!;
+    public string ProductName { get; init; } = null!;
     public int Quantity { get; init; }
 }
