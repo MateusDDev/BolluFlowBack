@@ -27,6 +27,10 @@ public class ResultOf<T>
 
     public static ResultOf<T> Unauthorized(DomainError error) => new(false, default, error, 401);
 
+    public static ResultOf<T> Conflict(DomainError error) => new(false, default, error, 409);
+
+    public static ResultOf<T> Unprocessable(DomainError error) => new(false, default, error, 422);
+
     public static ResultOf<T> InternalError(DomainError error) => new(false, default, error, 500);
 }
 
@@ -49,4 +53,6 @@ public class Result
     public static Result NoContent() => new(true, null, 204);
     public static Result NotFound(DomainError error) => new(false, error, 404);
     public static Result BadRequest(DomainError error) => new(false, error, 400);
+    public static Result Conflict(DomainError error) => new(false, error, 409);
+    public static Result Unprocessable(DomainError error) => new(false, error, 422);
 }

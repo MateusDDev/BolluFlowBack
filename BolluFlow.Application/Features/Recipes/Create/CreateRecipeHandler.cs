@@ -19,7 +19,9 @@ public class CreateRecipeHandler(ApplicationDbContext db, CurrentUser user) : IR
                 userId: user.Id,
                 name: request.Name,
                 category: request.Category,
-                preparationTime: request.PreparationTime);
+                preparationTime: request.PreparationTime,
+                finalPrice: request.FinalPrice ?? 0);
+
             
             db.Recipes.Add(recipe);
             

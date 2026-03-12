@@ -1,4 +1,4 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -18,10 +18,10 @@ public class ListOrderItemsHandler(ApplicationDbContext db, CurrentUser user)
                 Id = x.Id,
                 OrderId = x.OrderId,
                 Quantity = x.Quantity,
-                Recipe = new ListOrderItemsResultRecipeModel
+                Product = new ListOrderItemsResultProductModel
                 {
-                    Id = x.RecipeId,
-                    Name = x.Recipe.Name
+                    Id = x.ProductId,
+                    Name = x.Product.Name
                 },
                 UnitPrice = x.UnitPrice,
                 TotalPrice = x.UnitPrice * x.Quantity

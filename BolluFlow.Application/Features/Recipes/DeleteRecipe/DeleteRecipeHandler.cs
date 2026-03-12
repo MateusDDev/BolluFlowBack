@@ -16,15 +16,14 @@ public class DeleteRecipeHandler(ApplicationDbContext db) : IRequestHandler<Dele
 
         if (recipe is null)
             return Result.BadRequest(CommonErrors.RecipeNotFound);
-        
-        var ordersItems = await db.OrderItems
-            .Where(x => x.RecipeId == recipe.Id)
-            .ToListAsync(cancellationToken);
 
-        if (ordersItems.Count > 0)
+        var linkedProductComponents = await db.ProductComponents
+            .AnyAsync(x => x.RecipeId == recipe.Id, cancellationToken);
+
+        if (linkedProductComponents)
         {
-            return Result.BadRequest(new DomainError("RECIPE_IS_IN_AN_ORDER",
-                "Não é possível excluir uma receita presente em uma ordem"));
+            return Result.Conflict(new DomainError("RECIPE_USED_BY_PRODUCT",
+                "Não é possível excluir uma receita presente na composição de produto"));
         }
 
         var recipeItems = await db.RecipeIngredients
@@ -32,7 +31,6 @@ public class DeleteRecipeHandler(ApplicationDbContext db) : IRequestHandler<Dele
             .ToListAsync(cancellationToken);
         
         db.RecipeIngredients.RemoveRange(recipeItems);
-        
         db.Recipes.Remove(recipe);
         
         await db.SaveChangesAsync(cancellationToken);

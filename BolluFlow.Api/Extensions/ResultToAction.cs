@@ -1,5 +1,4 @@
 ﻿using BolluFlow.Application.Abstractions;
-using BolluFlow.Domain.Abstractions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BolluFlow.Extensions;
@@ -15,10 +14,12 @@ public static class ResultToAction
                 : new ObjectResult(result.Value) { StatusCode = result.StatusCode };
         }
 
-        return new ObjectResult(new DomainError(
-            result.ErrorCode ?? "UNKNOWN_ERROR",
-            result.ErrorMessage ?? "Erro inesperado"
-        ))
+        return new ObjectResult(new
+        {
+            message = result.ErrorMessage ?? "Erro inesperado",
+            code = result.ErrorCode ?? "UNKNOWN_ERROR",
+            details = new { }
+        })
         {
             StatusCode = result.StatusCode
         };
@@ -30,10 +31,12 @@ public static class ResultToAction
         if (result.IsSuccessful)
             return new StatusCodeResult(result.StatusCode);
 
-        return new ObjectResult(new DomainError(
-            result.ErrorCode ?? "UNKNOWN_ERROR",
-            result.ErrorMessage ?? "Erro inesperado"
-        ))
+        return new ObjectResult(new
+        {
+            message = result.ErrorMessage ?? "Erro inesperado",
+            code = result.ErrorCode ?? "UNKNOWN_ERROR",
+            details = new { }
+        })
         {
             StatusCode = result.StatusCode
         };

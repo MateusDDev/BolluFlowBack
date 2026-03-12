@@ -9,4 +9,5 @@ public record UpdateRecipeCommandBody(
     string Name,
     string Category,
     int? PreparationTime,
-    bool IsActive);
+    bool IsActive,
+    decimal? FinalPrice);

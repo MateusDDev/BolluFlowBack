@@ -1,8 +1,7 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,10 +13,22 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
     {
         var recipes = await db.Recipes
             .AsNoTracking()
+            .Include(x => x.RecipeIngredients)
+            .ThenInclude(x => x.Ingredient)
             .Where(x => x.UserId == user.Id)
             .OrderByDescending(x => x.Id)
+            .Select(x => new RecipeModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Category = x.Category,
+                PreparationTime = x.PreparationTime,
+                UnitCost = x.CalculateUnitCost(),
+                FinalPrice = x.FinalPrice,
+                IsActive = x.IsActive
+            })
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<RecipeModel>>.Success(recipes.Adapt<List<RecipeModel>>());
+        return ResultOf<List<RecipeModel>>.Success(recipes);
     }
 }
