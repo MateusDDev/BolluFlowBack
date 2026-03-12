@@ -12,5 +12,7 @@ public class RecipeModel
 
     public decimal UnitCost { get; set; }
 
+    public decimal FinalPrice { get; set; }
+
     public bool IsActive { get; set; }
 }

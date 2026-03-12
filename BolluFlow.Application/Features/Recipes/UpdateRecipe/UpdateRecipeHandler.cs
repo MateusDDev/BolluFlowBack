@@ -27,6 +27,9 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             preparationTime: command.PreparationTime,
             isActive: command.IsActive);
 
+        if (command.FinalPrice.HasValue)
+            recipe.SetFinalPrice(command.FinalPrice.Value);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return ResultOf<RecipeModel>.Success(new RecipeModel
@@ -36,6 +39,7 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             Category = recipe.Category,
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
+            FinalPrice = recipe.FinalPrice,
             IsActive = recipe.IsActive
         });
     }

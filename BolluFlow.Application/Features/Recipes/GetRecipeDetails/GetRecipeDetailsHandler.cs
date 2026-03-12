@@ -26,6 +26,7 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
             Category = recipe.Category,
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
+            FinalPrice = recipe.FinalPrice,
             IsActive = recipe.IsActive
         });
     }
