@@ -134,6 +134,9 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_tb_ingredient");
 
+                    b.HasIndex("UserId", "MinimumStockQuantity", "StockQuantity")
+                        .HasDatabaseName("ix_tb_ingredient_user_id_minimum_stock_quantity_stock_quantity");
+
                     b.ToTable("tb_ingredient", (string)null);
                 });
 
@@ -205,8 +208,8 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_tb_order");
 
-                    b.HasIndex("CustomerId")
-                        .HasDatabaseName("ix_tb_order_customer_id");
+                    b.HasIndex("CustomerId", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_tb_order_customer_id_status_created_at");
 
                     b.ToTable("tb_order", (string)null);
                 });
@@ -308,6 +311,9 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     b.HasKey("Id")
                         .HasName("pk_tb_product");
+
+                    b.HasIndex("UserId", "MinimumStockQuantity", "StockQuantity")
+                        .HasDatabaseName("ix_tb_product_user_id_minimum_stock_quantity_stock_quantity");
 
                     b.ToTable("tb_product", (string)null);
                 });
@@ -486,6 +492,9 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     b.HasIndex("Name")
                         .HasDatabaseName("ix_tb_supply_name");
+
+                    b.HasIndex("UserId", "MinimumStockQuantity", "StockQuantity")
+                        .HasDatabaseName("ix_tb_supply_user_id_minimum_stock_quantity_stock_quantity");
 
                     b.ToTable("tb_supply", (string)null);
                 });
