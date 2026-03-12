@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
-using BolluFlow.Application.Features.Dashboard;
+using BolluFlow.Application.Features.Dashboard.GetInventoryValueByType;
+using BolluFlow.Application.Features.Dashboard.GetOrdersByStatus;
+using BolluFlow.Application.Features.Dashboard.GetRecentOrders;
+using BolluFlow.Application.Features.Dashboard.GetStockAlerts;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
@@ -26,10 +29,10 @@ public class DashboardEndpointsTests(DashboardWebApplicationFactory factory) : I
         Assert.Equal(HttpStatusCode.OK, inventoryValueResponse.StatusCode);
         Assert.Equal(HttpStatusCode.OK, recentOrdersResponse.StatusCode);
 
-        var stockAlerts = await stockAlertsResponse.Content.ReadFromJsonAsync<List<StockAlertResponse>>();
-        var ordersByStatus = await ordersByStatusResponse.Content.ReadFromJsonAsync<List<OrdersByStatusResponse>>();
-        var inventoryValue = await inventoryValueResponse.Content.ReadFromJsonAsync<List<InventoryValueByTypeResponse>>();
-        var recentOrders = await recentOrdersResponse.Content.ReadFromJsonAsync<List<RecentOrderResponse>>();
+        var stockAlerts = await stockAlertsResponse.Content.ReadFromJsonAsync<List<GetStockAlertsResult>>();
+        var ordersByStatus = await ordersByStatusResponse.Content.ReadFromJsonAsync<List<GetOrdersByStatusResult>>();
+        var inventoryValue = await inventoryValueResponse.Content.ReadFromJsonAsync<List<GetInventoryValueByTypeResult>>();
+        var recentOrders = await recentOrdersResponse.Content.ReadFromJsonAsync<List<GetRecentOrdersResult>>();
 
         Assert.Empty(stockAlerts!);
         Assert.Equal(5, ordersByStatus!.Count);
@@ -51,10 +54,10 @@ public class DashboardEndpointsTests(DashboardWebApplicationFactory factory) : I
 
         var client = factory.CreateClient();
 
-        var stockAlerts = await client.GetFromJsonAsync<List<StockAlertResponse>>("/dashboard/stock-alerts?limit=2");
-        var ordersByStatus = await client.GetFromJsonAsync<List<OrdersByStatusResponse>>("/dashboard/orders-by-status");
-        var inventoryValues = await client.GetFromJsonAsync<List<InventoryValueByTypeResponse>>("/dashboard/inventory-value-by-type");
-        var recentOrders = await client.GetFromJsonAsync<List<RecentOrderResponse>>("/dashboard/recent-orders?limit=1");
+        var stockAlerts = await client.GetFromJsonAsync<List<GetStockAlertsResult>>("/dashboard/stock-alerts?limit=2");
+        var ordersByStatus = await client.GetFromJsonAsync<List<GetOrdersByStatusResult>>("/dashboard/orders-by-status");
+        var inventoryValues = await client.GetFromJsonAsync<List<GetInventoryValueByTypeResult>>("/dashboard/inventory-value-by-type");
+        var recentOrders = await client.GetFromJsonAsync<List<GetRecentOrdersResult>>("/dashboard/recent-orders?limit=1");
 
         Assert.NotNull(stockAlerts);
         Assert.Equal(2, stockAlerts!.Count);

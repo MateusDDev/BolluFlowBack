@@ -2,7 +2,6 @@ using System.Text;
 using System.Text.Json.Serialization;
 using BolluFlow.Application.Configuration;
 using BolluFlow.Application.Features.Customers.ListCustomers;
-using BolluFlow.Application.Features.Dashboard;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
@@ -17,7 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<JwtHelper>();
-builder.Services.AddScoped<IDashboardReadService, DashboardReadService>();
 builder.Services.Configure<FrontOptions>(builder.Configuration.GetSection(FrontOptions.SectionName));
 
 builder.Services.AddCors(options =>

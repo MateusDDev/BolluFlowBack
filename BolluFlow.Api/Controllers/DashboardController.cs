@@ -1,7 +1,10 @@
-using BolluFlow.Application.Features.Dashboard;
+using BolluFlow.Application.Features.Dashboard.GetInventoryValueByType;
 using BolluFlow.Application.Features.Dashboard.GetLowStockIngredients;
 using BolluFlow.Application.Features.Dashboard.GetLowStockProducts;
 using BolluFlow.Application.Features.Dashboard.GetLowStockSupplies;
+using BolluFlow.Application.Features.Dashboard.GetOrdersByStatus;
+using BolluFlow.Application.Features.Dashboard.GetRecentOrders;
+using BolluFlow.Application.Features.Dashboard.GetStockAlerts;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -12,38 +15,38 @@ namespace BolluFlow.Controllers;
 [ApiController]
 [Route("dashboard")]
 [Authorize]
-public class DashboardController(IMediator mediator, IDashboardReadService dashboardReadService) : ControllerBase
+public class DashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet("stock-alerts")]
-    [ProducesResponseType(typeof(IReadOnlyList<StockAlertResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<StockAlertResponse>>> GetStockAlerts([FromQuery] DashboardLimitQuery query, CancellationToken ct)
+    [ProducesResponseType(typeof(List<GetStockAlertsResult>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<GetStockAlertsResult>>> GetStockAlerts([FromQuery] int? limit, CancellationToken ct)
     {
-        var response = await dashboardReadService.GetStockAlertsAsync(query.Limit ?? 10, ct);
-        return Ok(response);
+        var result = await mediator.Send(new GetStockAlertsQuery(limit), ct);
+        return result.ToActionResult();
     }
 
     [HttpGet("orders-by-status")]
-    [ProducesResponseType(typeof(IReadOnlyList<OrdersByStatusResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<OrdersByStatusResponse>>> GetOrdersByStatus(CancellationToken ct)
+    [ProducesResponseType(typeof(List<GetOrdersByStatusResult>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<GetOrdersByStatusResult>>> GetOrdersByStatus(CancellationToken ct)
     {
-        var response = await dashboardReadService.GetOrdersByStatusAsync(ct);
-        return Ok(response);
+        var result = await mediator.Send(new GetOrdersByStatusQuery(), ct);
+        return result.ToActionResult();
     }
 
     [HttpGet("inventory-value-by-type")]
-    [ProducesResponseType(typeof(IReadOnlyList<InventoryValueByTypeResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<InventoryValueByTypeResponse>>> GetInventoryValueByType(CancellationToken ct)
+    [ProducesResponseType(typeof(List<GetInventoryValueByTypeResult>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<GetInventoryValueByTypeResult>>> GetInventoryValueByType(CancellationToken ct)
     {
-        var response = await dashboardReadService.GetInventoryValueByTypeAsync(ct);
-        return Ok(response);
+        var result = await mediator.Send(new GetInventoryValueByTypeQuery(), ct);
+        return result.ToActionResult();
     }
 
     [HttpGet("recent-orders")]
-    [ProducesResponseType(typeof(IReadOnlyList<RecentOrderResponse>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<IReadOnlyList<RecentOrderResponse>>> GetRecentOrders([FromQuery] DashboardRecentOrdersLimitQuery query, CancellationToken ct)
+    [ProducesResponseType(typeof(List<GetRecentOrdersResult>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<GetRecentOrdersResult>>> GetRecentOrders([FromQuery] int? limit, CancellationToken ct)
     {
-        var response = await dashboardReadService.GetRecentOrdersAsync(query.Limit ?? 5, ct);
-        return Ok(response);
+        var result = await mediator.Send(new GetRecentOrdersQuery(limit), ct);
+        return result.ToActionResult();
     }
 
     [HttpGet("low-stock-ingredients")]
