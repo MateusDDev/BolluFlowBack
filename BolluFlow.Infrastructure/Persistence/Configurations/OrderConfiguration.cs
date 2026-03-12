@@ -11,6 +11,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable("tb_order");
         
         builder.HasKey(x => x.Id);
+
+        builder.HasIndex(x => new { x.CustomerId, x.Status, x.CreatedAt });
         
         builder.Property(x => x.Status).HasConversion<string>();
         

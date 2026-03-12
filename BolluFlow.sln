@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BolluFlow.Application", "Bo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BolluFlow.Infrastructure", "BolluFlow.Infrastructure\BolluFlow.Infrastructure.csproj", "{B766E18F-834D-433B-A163-D0DA5A28F973}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BolluFlow.Tests", "BolluFlow.Tests\BolluFlow.Tests.csproj", "{AA0F0936-743F-407E-A76B-CF949247F42B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,10 @@ Global
 		{B766E18F-834D-433B-A163-D0DA5A28F973}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B766E18F-834D-433B-A163-D0DA5A28F973}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B766E18F-834D-433B-A163-D0DA5A28F973}.Release|Any CPU.Build.0 = Release|Any CPU
+
+		{AA0F0936-743F-407E-A76B-CF949247F42B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA0F0936-743F-407E-A76B-CF949247F42B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA0F0936-743F-407E-A76B-CF949247F42B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA0F0936-743F-407E-A76B-CF949247F42B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

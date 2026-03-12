@@ -12,6 +12,8 @@ public class IngredientConfiguration : IEntityTypeConfiguration<Ingredient>
         
         builder.HasKey(x => x.Id);
 
+        builder.HasIndex(x => new { x.UserId, x.MinimumStockQuantity, x.StockQuantity });
+
         builder.Property(x => x.BaseUnit).HasConversion<string>();
     }
 }
