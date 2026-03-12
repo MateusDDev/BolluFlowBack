@@ -15,23 +15,17 @@ public sealed class GetInventoryValueByTypeHandler(ApplicationDbContext db, Curr
         var products = await db.Products
             .AsNoTracking()
             .Where(x => x.UserId == currentUser.Id)
-            .Select(x => x.StockQuantity * x.FinalPrice)
-            .DefaultIfEmpty(0m)
-            .SumAsync(cancellationToken);
+            .SumAsync(x => x.StockQuantity * x.FinalPrice, cancellationToken);
 
         var ingredients = await db.Ingredients
             .AsNoTracking()
             .Where(x => x.UserId == currentUser.Id)
-            .Select(x => x.StockQuantity * x.UnitCost)
-            .DefaultIfEmpty(0m)
-            .SumAsync(cancellationToken);
+            .SumAsync(x => x.StockQuantity * x.UnitCost, cancellationToken);
 
         var supplies = await db.Supplies
             .AsNoTracking()
             .Where(x => x.UserId == currentUser.Id)
-            .Select(x => x.StockQuantity * x.UnitCost)
-            .DefaultIfEmpty(0m)
-            .SumAsync(cancellationToken);
+            .SumAsync(x => x.StockQuantity * x.UnitCost, cancellationToken);
 
         return ResultOf<List<GetInventoryValueByTypeResult>>.Success(
         [

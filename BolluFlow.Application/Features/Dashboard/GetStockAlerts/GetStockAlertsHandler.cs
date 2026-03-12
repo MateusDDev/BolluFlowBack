@@ -14,7 +14,7 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
         var effectiveLimit = Math.Clamp(request.Limit ?? 10, 1, 50);
         const decimal warningFactor = 1.2m;
 
-        var productAlerts = db.Products
+        var productAlerts = await db.Products
             .Where(x => x.UserId == currentUser.Id
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
@@ -26,9 +26,9 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 Category = "Product",
                 x.StockQuantity,
                 MinimumStockQuantity = x.MinimumStockQuantity!.Value
-            });
+            }).ToListAsync(cancellationToken);
 
-        var ingredientAlerts = db.Ingredients
+        var ingredientAlerts = await db.Ingredients
             .Where(x => x.UserId == currentUser.Id
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
@@ -40,9 +40,9 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 Category = "Ingredient",
                 x.StockQuantity,
                 MinimumStockQuantity = x.MinimumStockQuantity!.Value
-            });
+            }).ToListAsync(cancellationToken);
 
-        var supplyAlerts = db.Supplies
+        var supplyAlerts = await db.Supplies
             .Where(x => x.UserId == currentUser.Id
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
@@ -54,13 +54,12 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 Category = "Supply",
                 x.StockQuantity,
                 MinimumStockQuantity = x.MinimumStockQuantity!.Value
-            });
+            }).ToListAsync(cancellationToken);
 
-        var data = await productAlerts
+        var data = productAlerts
             .Concat(ingredientAlerts)
             .Concat(supplyAlerts)
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         var response = data
             .Select(x => new GetStockAlertsResult(

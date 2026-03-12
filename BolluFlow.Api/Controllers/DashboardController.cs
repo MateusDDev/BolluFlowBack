@@ -1,7 +1,4 @@
 using BolluFlow.Application.Features.Dashboard.GetInventoryValueByType;
-using BolluFlow.Application.Features.Dashboard.GetLowStockIngredients;
-using BolluFlow.Application.Features.Dashboard.GetLowStockProducts;
-using BolluFlow.Application.Features.Dashboard.GetLowStockSupplies;
 using BolluFlow.Application.Features.Dashboard.GetOrdersByStatus;
 using BolluFlow.Application.Features.Dashboard.GetRecentOrders;
 using BolluFlow.Application.Features.Dashboard.GetStockAlerts;
@@ -46,27 +43,6 @@ public class DashboardController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<List<GetRecentOrdersResult>>> GetRecentOrders([FromQuery] int? limit, CancellationToken ct)
     {
         var result = await mediator.Send(new GetRecentOrdersQuery(limit), ct);
-        return result.ToActionResult();
-    }
-
-    [HttpGet("low-stock-ingredients")]
-    public async Task<ActionResult<List<GetLowStockIngredientsResult>>> ListLowStockIngredients(CancellationToken ct)
-    {
-        var result = await mediator.Send(new GetLowStockIngredientsQuery(), ct);
-        return result.ToActionResult();
-    }
-
-    [HttpGet("low-stock-supplies")]
-    public async Task<ActionResult<List<GetLowStockSuppliesResult>>> ListLowStockSupplies(CancellationToken ct)
-    {
-        var result = await mediator.Send(new GetLowStockSuppliesQuery(), ct);
-        return result.ToActionResult();
-    }
-
-    [HttpGet("low-stock-products")]
-    public async Task<ActionResult<List<GetLowStockProductsResult>>> ListLowStockProducts(CancellationToken ct)
-    {
-        var result = await mediator.Send(new GetLowStockProductsQuery(), ct);
         return result.ToActionResult();
     }
 }
