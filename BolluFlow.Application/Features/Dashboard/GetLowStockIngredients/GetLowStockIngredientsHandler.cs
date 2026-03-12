@@ -13,7 +13,8 @@ public class GetLowStockIngredientsHandler(ApplicationDbContext db, CurrentUser 
     public async Task<ResultOf<List<GetLowStockIngredientsResult>>> Handle(GetLowStockIngredientsQuery request, CancellationToken cancellationToken)
     {
         var ingredients = await db.Ingredients
-            .Where(x => x.StockQuantity < x.MinimumStockQuantity && currentUser.Id == x.UserId)
+            .Where(x => x.MinimumStockQuantity.HasValue && x.StockQuantity < x.MinimumStockQuantity && currentUser.Id == x.UserId)
+            .OrderBy(x => x.StockQuantity)
             .Take(10)
             .ToListAsync(cancellationToken);
 

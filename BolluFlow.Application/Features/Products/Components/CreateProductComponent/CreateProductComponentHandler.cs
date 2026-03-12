@@ -85,8 +85,12 @@ public class CreateProductComponentHandler(ApplicationDbContext db, CurrentUser 
     {
         if (type == ProductComponentType.Recipe)
         {
-            var recipe = await db.Recipes.FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
-            return recipe is null ? null : (recipe.Name, "unit", recipe.FinalPrice, 0);
+            var recipe = await db.Recipes
+                .Include(x => x.RecipeIngredients)
+                .ThenInclude(x => x.Ingredient)
+                .FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
+
+            return recipe is null ? null : (recipe.Name, "unit", recipe.CalculateUnitCost(), 0);
         }
 
         if (type == ProductComponentType.Ingredient)

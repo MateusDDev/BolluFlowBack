@@ -2,6 +2,7 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,9 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
+
+            if (order.Status != OrderStatus.Ready)
+                return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
 
             var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
             var products = await db.Products.Include(x => x.Components).Where(x => productIds.Contains(x.Id)).ToDictionaryAsync(x => x.Id, cancellationToken);

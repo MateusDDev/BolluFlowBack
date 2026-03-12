@@ -27,6 +27,12 @@ public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<
             var products = await db.Products.AsNoTracking().Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
+            var componentCostsByProduct = await db.ProductComponents
+                .Where(x => productIds.Contains(x.ProductId))
+                .GroupBy(x => x.ProductId)
+                .Select(g => new { ProductId = g.Key, UnitCost = g.Sum(x => x.QuantityUsed * x.UnitPrice) })
+                .ToDictionaryAsync(x => x.ProductId, x => x.UnitCost, cancellationToken);
+
             foreach (var item in request.Items)
             {
                 if (!products.TryGetValue(item.ProductId, out var product))
@@ -35,7 +41,8 @@ public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<
                 if (!product.IsActive)
                     return ResultOf<List<OrderItemModel>>.Unprocessable(ProductErrors.ProductInactive);
 
-                order.AddItem(product.Id, item.Quantity, product.FinalPrice, 0);
+                var unitCost = componentCostsByProduct.GetValueOrDefault(item.ProductId, 0m);
+                order.AddItem(product.Id, item.Quantity, product.FinalPrice, unitCost);
             }
 
             await db.SaveChangesAsync(cancellationToken);

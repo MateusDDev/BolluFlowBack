@@ -1,7 +1,8 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,9 @@ public class FinishOrderHandler(ApplicationDbContext db) : IRequestHandler<Finis
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
+
+            if (order.Status != OrderStatus.InProduction)
+                return Result.Unprocessable(OrderErrors.InvalidFinishTransition);
 
             order.Status = OrderStatus.Ready;
 
