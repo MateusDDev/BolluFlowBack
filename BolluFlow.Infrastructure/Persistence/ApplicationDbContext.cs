@@ -37,6 +37,11 @@ public class ApplicationDbContext : DbContext
     
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
 
+    public DbSet<FinancialEntry> FinancialEntries { get; set; }
+
+    public DbSet<FixedAccount> FixedAccounts { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
