@@ -85,6 +85,9 @@ public class DashboardEndpointsTests(DashboardWebApplicationFactory factory) : I
         using var scope = factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+        db.FinancialEntries.RemoveRange(db.FinancialEntries);
+        db.InventoryPurchaseMovements.RemoveRange(db.InventoryPurchaseMovements);
+        db.FixedAccounts.RemoveRange(db.FixedAccounts);
         db.OrderItems.RemoveRange(db.OrderItems);
         db.Orders.RemoveRange(db.Orders);
         db.Products.RemoveRange(db.Products);

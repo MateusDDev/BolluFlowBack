@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
@@ -10,27 +11,22 @@ using Microsoft.EntityFrameworkCore;
 namespace BolluFlow.Application.Features.Financial.ListSalesEntries;
 
 public class ListSalesEntriesHandler(ApplicationDbContext db, CurrentUser user)
-    : IRequestHandler<ListSalesEntriesQuery, ResultOf<PagedResult<SaleFinancialEntryModel>>>
+    : IRequestHandler<ListSalesEntriesQuery, ResultOf<PagedResult<AutoFinancialEntryModel>>>
 {
-    public async Task<ResultOf<PagedResult<SaleFinancialEntryModel>>> Handle(ListSalesEntriesQuery request, CancellationToken cancellationToken)
+    public async Task<ResultOf<PagedResult<AutoFinancialEntryModel>>> Handle(ListSalesEntriesQuery request, CancellationToken cancellationToken)
     {
         if (request.Page <= 0 || request.PageSize <= 0)
-            return ResultOf<PagedResult<SaleFinancialEntryModel>>.BadRequest(FinancialErrors.InvalidPagination);
+            return ResultOf<PagedResult<AutoFinancialEntryModel>>.BadRequest(FinancialErrors.InvalidPagination);
+
+        if (!FinancialMonth.TryParse(request.Month, out var month))
+            return ResultOf<PagedResult<AutoFinancialEntryModel>>.BadRequest(FinancialErrors.InvalidMonthFormat);
 
         await FinancialSalesEntrySync.EnsureSalesEntries(db, user.Id, cancellationToken);
 
         var query = db.FinancialEntries
-            .Where(x => x.UserId == user.Id && x.IsAutomaticFromSale)
-            .AsQueryable();
-
-        if (request.StartDate is not null)
-            query = query.Where(x => x.Date >= request.StartDate.Value);
-
-        if (request.EndDate is not null)
-            query = query.Where(x => x.Date <= request.EndDate.Value);
+            .Where(x => x.UserId == user.Id && x.Source == FinancialEntrySource.AutoSale && x.Date >= month.Start && x.Date <= month.End);
 
         var totalItems = await query.CountAsync(cancellationToken);
-
         var entries = await query
             .OrderByDescending(x => x.Date)
             .ThenByDescending(x => x.Id)
@@ -38,23 +34,24 @@ public class ListSalesEntriesHandler(ApplicationDbContext db, CurrentUser user)
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        var response = new PagedResult<SaleFinancialEntryModel>
+        return ResultOf<PagedResult<AutoFinancialEntryModel>>.Success(new PagedResult<AutoFinancialEntryModel>
         {
-            Items = entries.Select(x => new SaleFinancialEntryModel
+            Items = entries.Select(x => new AutoFinancialEntryModel
             {
-                Id = $"sale-order-{x.SourceOrderId}",
-                OrderId = x.SourceOrderId ?? 0,
+                Id = $"sale-order-{x.ReferenceId}",
                 Description = x.Description,
+                Type = x.Type,
+                Category = x.Category,
                 Amount = x.Amount,
                 Date = x.Date,
-                Status = x.Status
+                Status = x.Status,
+                Source = x.Source,
+                ReferenceId = x.ReferenceId ?? 0
             }).ToList(),
             Page = request.Page,
             PageSize = request.PageSize,
             TotalItems = totalItems,
             TotalPages = (int)Math.Ceiling(totalItems / (double)request.PageSize)
-        };
-
-        return ResultOf<PagedResult<SaleFinancialEntryModel>>.Success(response);
+        });
     }
 }

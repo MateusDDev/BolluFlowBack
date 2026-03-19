@@ -18,26 +18,26 @@ public static class FinancialSalesEntrySync
         if (deliveredOrders.Count == 0)
             return;
 
-        var sourceOrderIds = deliveredOrders.Select(x => x.Id).ToList();
+        var orderIds = deliveredOrders.Select(x => x.Id).ToList();
 
         var existingOrderIds = await db.FinancialEntries
-            .Where(x => x.UserId == userId && x.SourceOrderId != null && sourceOrderIds.Contains(x.SourceOrderId.Value))
-            .Select(x => x.SourceOrderId!.Value)
+            .Where(x => x.UserId == userId && x.Source == FinancialEntrySource.AutoSale && x.ReferenceId != null && orderIds.Contains(x.ReferenceId.Value))
+            .Select(x => x.ReferenceId!.Value)
             .ToListAsync(cancellationToken);
 
         var missingEntries = deliveredOrders
             .Where(x => !existingOrderIds.Contains(x.Id))
-            .Select(x => FinancialEntry.Create(
+            .Select(x => FinancialEntry.CreateAutomatic(
                 userId,
                 $"Venda pedido #{x.Number} - {x.Customer.Name}",
                 FinancialEntryType.Income,
                 "Vendas",
-                x.Items.Sum(i => i.Quantity * i.UnitPrice),
-                DateOnly.FromDateTime(x.DeliveryDate?.Date ?? x.CreatedAt.Date),
+                decimal.Round(x.Items.Sum(i => i.Quantity * i.UnitPrice), 2, MidpointRounding.AwayFromZero),
+                DateOnly.FromDateTime((x.DeliveryDate ?? x.CreatedAt).Date),
                 FinancialEntryStatus.Paid,
                 false,
                 "Lançamento automático de venda",
-                true,
+                FinancialEntrySource.AutoSale,
                 x.Id))
             .ToList();
 

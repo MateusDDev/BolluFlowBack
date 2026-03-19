@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
@@ -17,8 +18,8 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
         if (entry is null)
             return Result.NotFound(FinancialErrors.EntryNotFound);
 
-        if (entry.IsAutomaticFromSale)
-            return Result.BadRequest(FinancialErrors.CannotDeleteAutomaticSaleEntry);
+        if (entry.Source != FinancialEntrySource.Manual)
+            return Result.BadRequest(FinancialErrors.CannotDeleteAutomaticEntry);
 
         db.FinancialEntries.Remove(entry);
         await db.SaveChangesAsync(cancellationToken);

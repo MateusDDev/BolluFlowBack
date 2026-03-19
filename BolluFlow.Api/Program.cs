@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using BolluFlow.Application.Configuration;
@@ -87,6 +88,16 @@ builder.Services.AddSwaggerGen(options =>
         Title = "BolluFlow API",
         Version = "v1"
     });
+
+    var apiXml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var apiXmlPath = Path.Combine(AppContext.BaseDirectory, apiXml);
+    if (File.Exists(apiXmlPath))
+        options.IncludeXmlComments(apiXmlPath, includeControllerXmlComments: true);
+
+    var applicationXml = $"{typeof(BolluFlow.Application.Abstractions.Result).Assembly.GetName().Name}.xml";
+    var applicationXmlPath = Path.Combine(AppContext.BaseDirectory, applicationXml);
+    if (File.Exists(applicationXmlPath))
+        options.IncludeXmlComments(applicationXmlPath);
     
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -2,6 +2,7 @@ namespace BolluFlow.Application.Models;
 
 public class FinancialOverviewModel
 {
+    public string Month { get; init; } = string.Empty;
     public decimal CurrentBalance { get; init; }
     public decimal TotalIncomesPaid { get; init; }
     public decimal TotalExpensesPaid { get; init; }

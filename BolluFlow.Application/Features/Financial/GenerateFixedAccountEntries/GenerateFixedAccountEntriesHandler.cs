@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
@@ -15,33 +16,36 @@ public class GenerateFixedAccountEntriesHandler(ApplicationDbContext db, Current
 {
     public async Task<ResultOf<List<FinancialEntryModel>>> Handle(GenerateFixedAccountEntriesCommand request, CancellationToken cancellationToken)
     {
-        if (!DateOnly.TryParse($"{request.Month}-01", out var monthDate))
+        if (!FinancialMonth.TryParse(request.Month, out var month))
             return ResultOf<List<FinancialEntryModel>>.BadRequest(FinancialErrors.InvalidMonthFormat);
 
         var accounts = await db.FixedAccounts
             .Where(x => x.UserId == user.Id && x.IsActive)
             .ToListAsync(cancellationToken);
 
-        var startMonth = new DateOnly(monthDate.Year, monthDate.Month, 1);
-        var endMonth = startMonth.AddMonths(1).AddDays(-1);
-
-        var existingDescriptionsInMonth = await db.FinancialEntries
-            .Where(x => x.UserId == user.Id && x.IsFixed && x.Date >= startMonth && x.Date <= endMonth)
-            .Select(x => x.Description)
+        var existingReferenceIds = await db.FinancialEntries
+            .Where(x => x.UserId == user.Id
+                && x.Source == FinancialEntrySource.AutoFixedAccount
+                && x.Date >= month.Start
+                && x.Date <= month.End
+                && x.ReferenceId != null)
+            .Select(x => x.ReferenceId!.Value)
             .ToListAsync(cancellationToken);
 
         var newEntries = accounts
-            .Where(a => !existingDescriptionsInMonth.Contains(a.Description))
-            .Select(account => FinancialEntry.Create(
+            .Where(a => !existingReferenceIds.Contains(a.Id))
+            .Select(account => FinancialEntry.CreateAutomatic(
                 user.Id,
                 account.Description,
                 FinancialEntryType.Expense,
                 account.Category,
                 account.DefaultAmount,
-                new DateOnly(monthDate.Year, monthDate.Month, account.DueDay),
+                new DateOnly(month.Start.Year, month.Start.Month, account.DueDay),
                 FinancialEntryStatus.Pending,
                 true,
-                "Lançamento automático de conta fixa"))
+                "Lançamento automático de conta fixa",
+                FinancialEntrySource.AutoFixedAccount,
+                account.Id))
             .ToList();
 
         if (newEntries.Count > 0)
@@ -50,19 +54,6 @@ public class GenerateFixedAccountEntriesHandler(ApplicationDbContext db, Current
             await db.SaveChangesAsync(cancellationToken);
         }
 
-        return ResultOf<List<FinancialEntryModel>>.Success(newEntries.Select(x => new FinancialEntryModel
-        {
-            Id = x.Id,
-            Description = x.Description,
-            Type = x.Type,
-            Category = x.Category,
-            Amount = x.Amount,
-            Date = x.Date,
-            Status = x.Status,
-            IsFixed = x.IsFixed,
-            Notes = x.Notes,
-            IsAutomaticFromSale = x.IsAutomaticFromSale,
-            SourceOrderId = x.SourceOrderId
-        }).ToList());
+        return ResultOf<List<FinancialEntryModel>>.Success(newEntries.Select(x => x.ToModel()).ToList());
     }
 }

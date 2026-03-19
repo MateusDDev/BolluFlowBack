@@ -18,11 +18,36 @@ public class FinancialEntry
     public FinancialEntryStatus Status { get; private set; }
     public bool IsFixed { get; private set; }
     public string? Notes { get; private set; }
-    public bool IsAutomaticFromSale { get; private set; }
-    public long? SourceOrderId { get; private set; }
+    public FinancialEntrySource Source { get; private set; }
+    public long? ReferenceId { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public static FinancialEntry Create(
+    public static FinancialEntry CreateManual(
+        long userId,
+        string description,
+        FinancialEntryType type,
+        string category,
+        decimal amount,
+        DateOnly date,
+        FinancialEntryStatus status,
+        bool isFixed,
+        string? notes)
+    {
+        return Create(
+            userId,
+            description,
+            type,
+            category,
+            amount,
+            date,
+            status,
+            isFixed,
+            notes,
+            FinancialEntrySource.Manual,
+            null);
+    }
+
+    public static FinancialEntry CreateAutomatic(
         long userId,
         string description,
         FinancialEntryType type,
@@ -32,14 +57,29 @@ public class FinancialEntry
         FinancialEntryStatus status,
         bool isFixed,
         string? notes,
-        bool isAutomaticFromSale = false,
-        long? sourceOrderId = null)
+        FinancialEntrySource source,
+        long referenceId)
     {
-        if (string.IsNullOrWhiteSpace(description))
-            throw new DomainException(FinancialErrors.DescriptionRequired);
+        if (source == FinancialEntrySource.Manual)
+            throw new DomainException(FinancialErrors.InvalidAutomaticSource);
 
-        if (amount <= 0)
-            throw new DomainException(FinancialErrors.AmountMustBePositive);
+        return Create(userId, description, type, category, amount, date, status, isFixed, notes, source, referenceId);
+    }
+
+    private static FinancialEntry Create(
+        long userId,
+        string description,
+        FinancialEntryType type,
+        string category,
+        decimal amount,
+        DateOnly date,
+        FinancialEntryStatus status,
+        bool isFixed,
+        string? notes,
+        FinancialEntrySource source,
+        long? referenceId)
+    {
+        Validate(description, amount, source, referenceId);
 
         return new FinancialEntry
         {
@@ -52,8 +92,8 @@ public class FinancialEntry
             Status = status,
             IsFixed = isFixed,
             Notes = notes,
-            IsAutomaticFromSale = isAutomaticFromSale,
-            SourceOrderId = sourceOrderId,
+            Source = source,
+            ReferenceId = referenceId,
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -68,14 +108,13 @@ public class FinancialEntry
         bool isFixed,
         string? notes)
     {
+        if (Source != FinancialEntrySource.Manual)
+            throw new DomainException(FinancialErrors.AutomaticEntryCannotBeEdited);
+
         if (Type != type)
             throw new DomainException(FinancialErrors.FinancialEntryTypeImmutable);
 
-        if (string.IsNullOrWhiteSpace(description))
-            throw new DomainException(FinancialErrors.DescriptionRequired);
-
-        if (amount <= 0)
-            throw new DomainException(FinancialErrors.AmountMustBePositive);
+        Validate(description, amount, Source, ReferenceId);
 
         Description = description.Trim();
         Category = category.Trim();
@@ -89,5 +128,17 @@ public class FinancialEntry
     public void UpdateStatus(FinancialEntryStatus status)
     {
         Status = status;
+    }
+
+    private static void Validate(string description, decimal amount, FinancialEntrySource source, long? referenceId)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+            throw new DomainException(FinancialErrors.DescriptionRequired);
+
+        if (amount <= 0)
+            throw new DomainException(FinancialErrors.AmountMustBePositive);
+
+        if (source != FinancialEntrySource.Manual && referenceId is null)
+            throw new DomainException(FinancialErrors.ReferenceRequiredForAutomaticEntry);
     }
 }

@@ -5,11 +5,9 @@ using BolluFlow.Domain.Enums;
 namespace BolluFlow.Application.Features.Financial.ListFinancialEntries;
 
 public record ListFinancialEntriesQuery(
-    DateOnly? StartDate,
-    DateOnly? EndDate,
+    string Month,
     FinancialEntryType? Type,
     FinancialEntryStatus? Status,
-    bool? IsFixed,
     int Page = 1,
-    int PageSize = 20
+    int PageSize = 50
 ) : IQuery<ResultOf<PagedResult<FinancialEntryModel>>>;

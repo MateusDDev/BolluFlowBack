@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Auth;
@@ -20,8 +21,20 @@ public class UpdateSupplyHandler(ApplicationDbContext db, CurrentUser user) : IR
             if (supply is null)
                 return ResultOf<SupplyModel>.NotFound(CommonErrors.SupplyNotFound);
 
+            var previousStock = supply.StockQuantity;
+
             supply.Update(request.Body.Name, request.Body.Unit, request.Body.UnitCost, request.Body.StockQuantity, request.Body.MinimumStockQuantity);
             await db.SaveChangesAsync(cancellationToken);
+
+            var quantityAdded = request.Body.StockQuantity - previousStock;
+            await FinancialStockPurchaseSync.RegisterSupplyPurchaseAsync(
+                db,
+                user.Id,
+                supply,
+                quantityAdded > 0 ? quantityAdded : 0,
+                request.Body.UnitCost,
+                cancellationToken);
+
             return ResultOf<SupplyModel>.Success(supply.Adapt<SupplyModel>());
         }
         catch (DomainException e)

@@ -13,6 +13,6 @@ public class FinancialEntryModel
     public FinancialEntryStatus Status { get; init; }
     public bool IsFixed { get; init; }
     public string? Notes { get; init; }
-    public bool IsAutomaticFromSale { get; init; }
-    public long? SourceOrderId { get; init; }
+    public FinancialEntrySource Source { get; init; }
+    public long? ReferenceId { get; init; }
 }

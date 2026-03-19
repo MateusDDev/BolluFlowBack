@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
@@ -16,15 +17,15 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser us
         if (request.Page <= 0 || request.PageSize <= 0)
             return ResultOf<PagedResult<FinancialEntryModel>>.BadRequest(FinancialErrors.InvalidPagination);
 
+        if (!FinancialMonth.TryParse(request.Month, out var month))
+            return ResultOf<PagedResult<FinancialEntryModel>>.BadRequest(FinancialErrors.InvalidMonthFormat);
+
         await FinancialSalesEntrySync.EnsureSalesEntries(db, user.Id, cancellationToken);
+        await FinancialStockPurchaseSync.EnsureFinancialEntries(db, user.Id, cancellationToken);
 
-        var query = db.FinancialEntries.Where(x => x.UserId == user.Id).AsQueryable();
-
-        if (request.StartDate is not null)
-            query = query.Where(x => x.Date >= request.StartDate.Value);
-
-        if (request.EndDate is not null)
-            query = query.Where(x => x.Date <= request.EndDate.Value);
+        var query = db.FinancialEntries
+            .Where(x => x.UserId == user.Id && x.Date >= month.Start && x.Date <= month.End)
+            .AsQueryable();
 
         if (request.Type is not null)
             query = query.Where(x => x.Type == request.Type.Value);
@@ -32,11 +33,7 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser us
         if (request.Status is not null)
             query = query.Where(x => x.Status == request.Status.Value);
 
-        if (request.IsFixed is not null)
-            query = query.Where(x => x.IsFixed == request.IsFixed.Value);
-
         var totalItems = await query.CountAsync(cancellationToken);
-
         var entries = await query
             .OrderByDescending(x => x.Date)
             .ThenByDescending(x => x.Id)
@@ -44,30 +41,13 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser us
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
-        var response = new PagedResult<FinancialEntryModel>
+        return ResultOf<PagedResult<FinancialEntryModel>>.Success(new PagedResult<FinancialEntryModel>
         {
-            Items = entries.Select(ToModel).ToList(),
+            Items = entries.Select(x => x.ToModel()).ToList(),
             Page = request.Page,
             PageSize = request.PageSize,
             TotalItems = totalItems,
             TotalPages = (int)Math.Ceiling(totalItems / (double)request.PageSize)
-        };
-
-        return ResultOf<PagedResult<FinancialEntryModel>>.Success(response);
+        });
     }
-
-    private static FinancialEntryModel ToModel(FinancialEntry entry) => new()
-    {
-        Id = entry.Id,
-        Description = entry.Description,
-        Type = entry.Type,
-        Category = entry.Category,
-        Amount = entry.Amount,
-        Date = entry.Date,
-        Status = entry.Status,
-        IsFixed = entry.IsFixed,
-        Notes = entry.Notes,
-        IsAutomaticFromSale = entry.IsAutomaticFromSale,
-        SourceOrderId = entry.SourceOrderId
-    };
 }

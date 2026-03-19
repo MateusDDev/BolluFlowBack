@@ -5,6 +5,8 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>BolluFlow</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,5 +21,5 @@
         <ProjectReference Include="..\BolluFlow.Domain\BolluFlow.Domain.csproj" />
         <ProjectReference Include="..\BolluFlow.Application\BolluFlow.Application.csproj" />
     </ItemGroup>
-    
+
 </Project>

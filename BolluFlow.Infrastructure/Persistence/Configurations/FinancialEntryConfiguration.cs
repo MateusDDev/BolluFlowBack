@@ -14,11 +14,12 @@ public class FinancialEntryConfiguration : IEntityTypeConfiguration<FinancialEnt
 
         builder.Property(x => x.Type).HasConversion<string>();
         builder.Property(x => x.Status).HasConversion<string>();
+        builder.Property(x => x.Source).HasConversion<string>();
         builder.Property(x => x.Amount).HasColumnType("numeric(18,2)");
 
         builder.HasIndex(x => new { x.UserId, x.Date });
         builder.HasIndex(x => new { x.UserId, x.Status });
         builder.HasIndex(x => new { x.UserId, x.Type });
-        builder.HasIndex(x => new { x.UserId, x.SourceOrderId }).IsUnique().HasFilter("source_order_id IS NOT NULL");
+        builder.HasIndex(x => new { x.UserId, x.Source, x.ReferenceId, x.Date }).IsUnique().HasFilter("reference_id IS NOT NULL");
     }
 }

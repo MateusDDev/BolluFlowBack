@@ -1,4 +1,5 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Infrastructure.Auth;
@@ -7,7 +8,7 @@ using MediatR;
 
 namespace BolluFlow.Application.Features.Ingredients.CreateIngredient;
 
-public class CreateIngredientHandler(ApplicationDbContext db, CurrentUser user) 
+public class CreateIngredientHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<CreateIngredientCommand, ResultOf<CreateIngredientResult>>
 {
     public async Task<ResultOf<CreateIngredientResult>> Handle(CreateIngredientCommand request, CancellationToken cancellationToken)
@@ -21,10 +22,17 @@ public class CreateIngredientHandler(ApplicationDbContext db, CurrentUser user)
                 request.UnitCost,
                 request.StockQuantity,
                 request.MinimumStockQuantity);
-            
-            db.Ingredients.Add(ingredient);
 
+            db.Ingredients.Add(ingredient);
             await db.SaveChangesAsync(cancellationToken);
+
+            await FinancialStockPurchaseSync.RegisterIngredientPurchaseAsync(
+                db,
+                user.Id,
+                ingredient,
+                request.StockQuantity,
+                request.UnitCost,
+                cancellationToken);
 
             return ResultOf<CreateIngredientResult>.Success(new CreateIngredientResult(ingredient.Id));
         }

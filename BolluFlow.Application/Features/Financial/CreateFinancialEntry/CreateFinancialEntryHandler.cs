@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
@@ -15,7 +16,7 @@ public class CreateFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
     {
         try
         {
-            var entry = FinancialEntry.Create(
+            var entry = FinancialEntry.CreateManual(
                 user.Id,
                 request.Description,
                 request.Type,
@@ -29,26 +30,11 @@ public class CreateFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
             db.FinancialEntries.Add(entry);
             await db.SaveChangesAsync(cancellationToken);
 
-            return ResultOf<FinancialEntryModel>.Success(ToModel(entry));
+            return ResultOf<FinancialEntryModel>.Success(entry.ToModel());
         }
         catch (DomainException ex)
         {
             return ResultOf<FinancialEntryModel>.BadRequest(ex.Error);
         }
     }
-
-    private static FinancialEntryModel ToModel(FinancialEntry entry) => new()
-    {
-        Id = entry.Id,
-        Description = entry.Description,
-        Type = entry.Type,
-        Category = entry.Category,
-        Amount = entry.Amount,
-        Date = entry.Date,
-        Status = entry.Status,
-        IsFixed = entry.IsFixed,
-        Notes = entry.Notes,
-        IsAutomaticFromSale = entry.IsAutomaticFromSale,
-        SourceOrderId = entry.SourceOrderId
-    };
 }

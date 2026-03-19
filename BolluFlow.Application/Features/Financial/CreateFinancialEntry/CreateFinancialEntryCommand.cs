@@ -4,6 +4,9 @@ using BolluFlow.Domain.Enums;
 
 namespace BolluFlow.Application.Features.Financial.CreateFinancialEntry;
 
+/// <summary>
+/// Cria um lançamento financeiro manual.
+/// </summary>
 public record CreateFinancialEntryCommand(
     string Description,
     FinancialEntryType Type,
