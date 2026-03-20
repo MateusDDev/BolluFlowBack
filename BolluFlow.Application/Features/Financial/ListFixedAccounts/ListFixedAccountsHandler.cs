@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
@@ -16,27 +17,13 @@ public class ListFixedAccountsHandler(ApplicationDbContext db, CurrentUser user)
         if (request.Page <= 0 || request.PageSize <= 0)
             return ResultOf<PagedResult<FixedAccountModel>>.BadRequest(FinancialErrors.InvalidPagination);
 
-        var query = db.FixedAccounts.Where(x => x.UserId == user.Id).AsQueryable();
+        var query = db.FixedAccounts.Where(x => x.UserId == user.Id).OrderByDescending(x => x.Id);
         var totalItems = await query.CountAsync(cancellationToken);
-
-        var accounts = await query
-            .OrderBy(x => x.Description)
-            .Skip((request.Page - 1) * request.PageSize)
-            .Take(request.PageSize)
-            .Select(x => new FixedAccountModel
-            {
-                Id = x.Id,
-                Description = x.Description,
-                Category = x.Category,
-                DefaultAmount = x.DefaultAmount,
-                DueDay = x.DueDay,
-                IsActive = x.IsActive
-            })
-            .ToListAsync(cancellationToken);
+        var items = await query.Skip((request.Page - 1) * request.PageSize).Take(request.PageSize).ToListAsync(cancellationToken);
 
         return ResultOf<PagedResult<FixedAccountModel>>.Success(new PagedResult<FixedAccountModel>
         {
-            Items = accounts,
+            Items = items.Select(x => x.ToModel()).ToList(),
             Page = request.Page,
             PageSize = request.PageSize,
             TotalItems = totalItems,

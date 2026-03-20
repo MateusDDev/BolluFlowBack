@@ -1,4 +1,4 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 
 namespace BolluFlow.Application.Features.Recipes.UpdateRecipe;
@@ -10,4 +10,5 @@ public record UpdateRecipeCommandBody(
     string Category,
     int? PreparationTime,
     bool IsActive,
-    decimal? FinalPrice);
+    decimal? FinalPrice,
+    string? BaseUnit);

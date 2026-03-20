@@ -29,7 +29,6 @@ public class CreateFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
 
             db.FinancialEntries.Add(entry);
             await db.SaveChangesAsync(cancellationToken);
-
             return ResultOf<FinancialEntryModel>.Success(entry.ToModel());
         }
         catch (DomainException ex)

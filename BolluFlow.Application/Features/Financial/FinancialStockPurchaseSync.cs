@@ -9,40 +9,39 @@ public static class FinancialStockPurchaseSync
 {
     public static async Task EnsureFinancialEntries(ApplicationDbContext db, long userId, CancellationToken cancellationToken)
     {
-        var movementIds = await db.InventoryPurchaseMovements
+        var movements = await db.InventoryPurchaseMovements
             .Where(x => x.UserId == userId)
-            .Select(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        if (movementIds.Count == 0)
+        if (movements.Count == 0)
             return;
 
-        var existingReferenceIds = await db.FinancialEntries
-            .Where(x => x.UserId == userId && x.Source == FinancialEntrySource.AutoStockPurchase && x.ReferenceId != null && movementIds.Contains(x.ReferenceId.Value))
-            .Select(x => x.ReferenceId!.Value)
+        var existingKeys = await db.FinancialEntries
+            .Where(x => x.UserId == userId && x.Source == FinancialEntrySource.AutoStock && x.ReferenceId != null)
+            .Select(x => new { x.ReferenceId, x.Date })
             .ToListAsync(cancellationToken);
 
-        var movementsWithoutEntry = await db.InventoryPurchaseMovements
-            .Where(x => x.UserId == userId && !existingReferenceIds.Contains(x.Id))
-            .ToListAsync(cancellationToken);
+        var missingEntries = movements
+            .Where(movement => !existingKeys.Any(existing => existing.ReferenceId == movement.Id && existing.Date == movement.Date))
+            .Select(movement => FinancialEntry.CreateAutomatic(
+                userId,
+                movement.Description,
+                FinancialEntryType.Expense,
+                movement.Category,
+                movement.TotalAmount,
+                movement.Date,
+                FinancialEntryStatus.Paid,
+                false,
+                "Lançamento automático de compra de estoque",
+                FinancialEntrySource.AutoStock,
+                FinancialReferenceType.StockPurchase,
+                movement.Id))
+            .ToList();
 
-        if (movementsWithoutEntry.Count == 0)
+        if (missingEntries.Count == 0)
             return;
 
-        var entries = movementsWithoutEntry.Select(x => FinancialEntry.CreateAutomatic(
-            userId,
-            x.Description,
-            FinancialEntryType.Expense,
-            x.Category,
-            x.TotalAmount,
-            x.Date,
-            FinancialEntryStatus.Paid,
-            false,
-            "Lançamento automático de compra de estoque",
-            FinancialEntrySource.AutoStockPurchase,
-            x.Id));
-
-        db.FinancialEntries.AddRange(entries);
+        db.FinancialEntries.AddRange(missingEntries);
         await db.SaveChangesAsync(cancellationToken);
     }
 
@@ -75,7 +74,8 @@ public static class FinancialStockPurchaseSync
             FinancialEntryStatus.Paid,
             false,
             "Lançamento automático de compra de estoque",
-            FinancialEntrySource.AutoStockPurchase,
+            FinancialEntrySource.AutoStock,
+            FinancialReferenceType.StockPurchase,
             movement.Id));
 
         await db.SaveChangesAsync(cancellationToken);
@@ -110,7 +110,8 @@ public static class FinancialStockPurchaseSync
             FinancialEntryStatus.Paid,
             false,
             "Lançamento automático de compra de estoque",
-            FinancialEntrySource.AutoStockPurchase,
+            FinancialEntrySource.AutoStock,
+            FinancialReferenceType.StockPurchase,
             movement.Id));
 
         await db.SaveChangesAsync(cancellationToken);

@@ -6,4 +6,6 @@ public record CreateRecipeCommand(
     string Name,
     string Category,
     int? PreparationTime,
-    decimal? FinalPrice) : ICommand<ResultOf<CreateRecipeResult>>;
+    decimal? FinalPrice,
+    string? BaseUnit,
+    decimal? StockQuantity) : ICommand<ResultOf<CreateRecipeResult>>;

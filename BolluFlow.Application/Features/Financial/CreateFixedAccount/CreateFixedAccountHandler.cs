@@ -1,7 +1,9 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
+using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -15,20 +17,14 @@ public class CreateFixedAccountHandler(ApplicationDbContext db, CurrentUser user
     {
         try
         {
-            var account = FixedAccount.Create(user.Id, request.Description, request.Category, request.DefaultAmount, request.DueDay, request.IsActive);
+            if (!FinancialMonth.TryParse(request.StartMonth, out var month))
+                return ResultOf<FixedAccountModel>.BadRequest(FinancialErrors.InvalidMonthFormat);
 
+            var account = FixedAccount.Create(user.Id, request.Description, request.Category, request.Amount, month.Start, request.DefaultStatus);
             db.FixedAccounts.Add(account);
             await db.SaveChangesAsync(cancellationToken);
 
-            return ResultOf<FixedAccountModel>.Success(new FixedAccountModel
-            {
-                Id = account.Id,
-                Description = account.Description,
-                Category = account.Category,
-                DefaultAmount = account.DefaultAmount,
-                DueDay = account.DueDay,
-                IsActive = account.IsActive
-            });
+            return ResultOf<FixedAccountModel>.Success(account.ToModel());
         }
         catch (DomainException ex)
         {

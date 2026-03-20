@@ -12,5 +12,6 @@ public class AutoFinancialEntryModel
     public DateOnly Date { get; init; }
     public FinancialEntryStatus Status { get; init; }
     public FinancialEntrySource Source { get; init; }
+    public FinancialReferenceType ReferenceType { get; init; }
     public long ReferenceId { get; init; }
 }

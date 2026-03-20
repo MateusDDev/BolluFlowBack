@@ -12,18 +12,15 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
 {
     public async Task<Result> Handle(DeleteFinancialEntryCommand request, CancellationToken cancellationToken)
     {
-        var entry = await db.FinancialEntries
-            .FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == request.EntryId, cancellationToken);
-
+        var entry = await db.FinancialEntries.FirstOrDefaultAsync(x => x.UserId == user.Id && x.Id == request.EntryId, cancellationToken);
         if (entry is null)
             return Result.NotFound(FinancialErrors.EntryNotFound);
 
         if (entry.Source != FinancialEntrySource.Manual)
-            return Result.BadRequest(FinancialErrors.CannotDeleteAutomaticEntry);
+            return Result.BadRequest(FinancialErrors.AutomaticEntryCannotBeEdited);
 
         db.FinancialEntries.Remove(entry);
         await db.SaveChangesAsync(cancellationToken);
-
         return Result.NoContent();
     }
 }

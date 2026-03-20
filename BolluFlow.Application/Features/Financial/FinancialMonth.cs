@@ -1,5 +1,3 @@
-using BolluFlow.Domain.Errors;
-
 namespace BolluFlow.Application.Features.Financial;
 
 public readonly record struct FinancialMonth(DateOnly Start, DateOnly End, string Value)
@@ -15,13 +13,5 @@ public readonly record struct FinancialMonth(DateOnly Start, DateOnly End, strin
         var end = start.AddMonths(1).AddDays(-1);
         financialMonth = new FinancialMonth(start, end, start.ToString("yyyy-MM"));
         return true;
-    }
-
-    public static FinancialMonth ParseOrThrow(string month)
-    {
-        if (!TryParse(month, out var parsed))
-            throw new ArgumentException(FinancialErrors.InvalidMonthFormat.Message, nameof(month));
-
-        return parsed;
     }
 }

@@ -29,8 +29,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<ProductComponent> ProductComponents { get; set; }
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
     public DbSet<FinancialEntry> FinancialEntries { get; set; }
+    public DbSet<FinancialEntryExclusion> FinancialEntryExclusions { get; set; }
     public DbSet<FixedAccount> FixedAccounts { get; set; }
     public DbSet<InventoryPurchaseMovement> InventoryPurchaseMovements { get; set; }
+    public DbSet<RecipeConversion> RecipeConversions { get; set; }
+    public DbSet<RecipeStockMovement> RecipeStockMovements { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

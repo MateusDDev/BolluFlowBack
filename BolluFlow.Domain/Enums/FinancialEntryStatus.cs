@@ -1,7 +1,13 @@
+using System.Text.Json.Serialization;
+
 namespace BolluFlow.Domain.Enums;
 
 public enum FinancialEntryStatus
 {
+    [JsonStringEnumMemberName("paid")]
     Paid,
-    Pending
+    [JsonStringEnumMemberName("pending")]
+    Pending,
+    [JsonStringEnumMemberName("excluded")]
+    Excluded
 }

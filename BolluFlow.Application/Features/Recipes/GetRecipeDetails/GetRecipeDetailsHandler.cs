@@ -11,11 +11,7 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
 {
     public async Task<ResultOf<RecipeModel>> Handle(GetRecipeDetailsQuery request, CancellationToken cancellationToken)
     {
-        var recipe = await db.Recipes
-            .Include(x => x.RecipeIngredients)
-            .ThenInclude(x => x.Ingredient)
-            .FirstOrDefaultAsync(x => x.Id == request.RecipeId, cancellationToken);
-
+        var recipe = await db.Recipes.Include(x => x.RecipeIngredients).ThenInclude(x => x.Ingredient).FirstOrDefaultAsync(x => x.Id == request.RecipeId, cancellationToken);
         if (recipe is null)
             return ResultOf<RecipeModel>.BadRequest(CommonErrors.RecipeNotFound);
 
@@ -27,7 +23,9 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
             FinalPrice = recipe.FinalPrice,
-            IsActive = recipe.IsActive
+            IsActive = recipe.IsActive,
+            BaseUnit = recipe.BaseUnit,
+            StockQuantity = recipe.StockQuantity
         });
     }
 }

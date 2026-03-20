@@ -18,27 +18,26 @@ public static class FinancialSalesEntrySync
         if (deliveredOrders.Count == 0)
             return;
 
-        var orderIds = deliveredOrders.Select(x => x.Id).ToList();
-
-        var existingOrderIds = await db.FinancialEntries
-            .Where(x => x.UserId == userId && x.Source == FinancialEntrySource.AutoSale && x.ReferenceId != null && orderIds.Contains(x.ReferenceId.Value))
-            .Select(x => x.ReferenceId!.Value)
+        var existingKeys = await db.FinancialEntries
+            .Where(x => x.UserId == userId && x.Source == FinancialEntrySource.AutoSale && x.ReferenceId != null)
+            .Select(x => new { x.ReferenceId, x.Date })
             .ToListAsync(cancellationToken);
 
         var missingEntries = deliveredOrders
-            .Where(x => !existingOrderIds.Contains(x.Id))
-            .Select(x => FinancialEntry.CreateAutomatic(
+            .Where(order => !existingKeys.Any(existing => existing.ReferenceId == order.Id && existing.Date == DateOnly.FromDateTime((order.DeliveryDate ?? order.CreatedAt).Date)))
+            .Select(order => FinancialEntry.CreateAutomatic(
                 userId,
-                $"Venda pedido #{x.Number} - {x.Customer.Name}",
+                $"Venda pedido #{order.Number} - {order.Customer.Name}",
                 FinancialEntryType.Income,
                 "Vendas",
-                decimal.Round(x.Items.Sum(i => i.Quantity * i.UnitPrice), 2, MidpointRounding.AwayFromZero),
-                DateOnly.FromDateTime((x.DeliveryDate ?? x.CreatedAt).Date),
+                decimal.Round(order.Items.Sum(i => i.Quantity * i.UnitPrice), 2, MidpointRounding.AwayFromZero),
+                DateOnly.FromDateTime((order.DeliveryDate ?? order.CreatedAt).Date),
                 FinancialEntryStatus.Paid,
                 false,
                 "Lançamento automático de venda",
                 FinancialEntrySource.AutoSale,
-                x.Id))
+                FinancialReferenceType.Order,
+                order.Id))
             .ToList();
 
         if (missingEntries.Count == 0)

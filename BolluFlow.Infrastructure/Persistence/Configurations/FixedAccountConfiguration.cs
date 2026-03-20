@@ -9,11 +9,9 @@ public class FixedAccountConfiguration : IEntityTypeConfiguration<FixedAccount>
     public void Configure(EntityTypeBuilder<FixedAccount> builder)
     {
         builder.ToTable("tb_fixed_account");
-
         builder.HasKey(x => x.Id);
-
-        builder.Property(x => x.DefaultAmount).HasColumnType("numeric(18,2)");
-
-        builder.HasIndex(x => new { x.UserId, x.IsActive });
+        builder.Property(x => x.Amount).HasColumnType("numeric(18,2)");
+        builder.Property(x => x.DefaultStatus).HasConversion<string>();
+        builder.HasIndex(x => new { x.UserId, x.StartMonth, x.EndMonth });
     }
 }

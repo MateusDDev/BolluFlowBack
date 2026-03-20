@@ -14,5 +14,6 @@ public class FinancialEntryModel
     public bool IsFixed { get; init; }
     public string? Notes { get; init; }
     public FinancialEntrySource Source { get; init; }
+    public FinancialReferenceType ReferenceType { get; init; }
     public long? ReferenceId { get; init; }
 }

@@ -1,13 +1,16 @@
 using BolluFlow.Application.Features.Financial.CreateFinancialEntry;
 using BolluFlow.Application.Features.Financial.CreateFixedAccount;
 using BolluFlow.Application.Features.Financial.DeleteFinancialEntry;
-using BolluFlow.Application.Features.Financial.GenerateFixedAccountEntries;
+using BolluFlow.Application.Features.Financial.DeleteFixedAccountRange;
+using BolluFlow.Application.Features.Financial.ExcludeFinancialEntry;
 using BolluFlow.Application.Features.Financial.GetFinancialOverview;
 using BolluFlow.Application.Features.Financial.ListAutoStockPurchases;
 using BolluFlow.Application.Features.Financial.ListFinancialEntries;
 using BolluFlow.Application.Features.Financial.ListFixedAccounts;
 using BolluFlow.Application.Features.Financial.ListSalesEntries;
+using BolluFlow.Application.Features.Financial.UpdateFinancialEntry;
 using BolluFlow.Application.Features.Financial.UpdateFinancialEntryStatus;
+using BolluFlow.Application.Features.Financial.UpdateFixedAccount;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Extensions;
@@ -18,185 +21,168 @@ using Microsoft.AspNetCore.Mvc;
 namespace BolluFlow.Controllers;
 
 [ApiController]
-[Route("financial")]
+[Route("api/financeiro")]
 [Authorize]
 public class FinancialController(IMediator mediator) : ControllerBase
 {
     /// <summary>
-    /// Cria um lançamento financeiro manual.
+    /// Lista os lançamentos financeiros do mês selecionado.
+    /// </summary>
+    [HttpGet("lancamentos")]
+    [ProducesResponseType(typeof(PagedResult<FinancialEntryModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedResult<FinancialEntryModel>>> ListLancamentos(
+        [FromQuery] string month,
+        [FromQuery] string? type,
+        [FromQuery] string? source,
+        [FromQuery] string? status,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 50,
+        CancellationToken ct = default)
+    {
+        var result = await mediator.Send(new ListFinancialEntriesQuery(month, type, source, status, page, pageSize), ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Cria um lançamento manual.
     /// </summary>
     /// <remarks>
-    /// Exemplo de payload:
+    /// Exemplo:
     ///
-    ///     POST /financial/entries
+    ///     POST /api/financeiro/lancamentos
     ///     {
-    ///       "description": "Compra de embalagem",
-    ///       "type": "Expense",
+    ///       "description": "Compra emergencial de embalagem",
+    ///       "type": "expense",
     ///       "category": "Insumos",
-    ///       "amount": 189.5,
-    ///       "date": "2026-03-12",
-    ///       "status": "Paid",
-    ///       "isFixed": false,
-    ///       "notes": "Fornecedor XP"
+    ///       "amount": 120.5,
+    ///       "date": "2026-03-19",
+    ///       "status": "paid",
+    ///       "isFixed": false
     ///     }
     /// </remarks>
-    [HttpPost("entries")]
+    [HttpPost("lancamentos")]
     [ProducesResponseType(typeof(FinancialEntryModel), StatusCodes.Status200OK)]
-    public async Task<ActionResult<FinancialEntryModel>> CreateEntry([FromBody] CreateFinancialEntryCommand command, CancellationToken ct)
+    public async Task<ActionResult<FinancialEntryModel>> CreateLancamento([FromBody] CreateFinancialEntryCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Lista lançamentos financeiros do mês informado.
-    /// </summary>
-    [HttpGet("entries")]
-    [ProducesResponseType(typeof(PagedResult<FinancialEntryModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<FinancialEntryModel>>> ListEntries(
-        [FromQuery] string month,
-        [FromQuery] FinancialEntryType? type,
-        [FromQuery] FinancialEntryStatus? status,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
-    {
-        var result = await mediator.Send(new ListFinancialEntriesQuery(month, type, status, page, pageSize), ct);
-        return result.ToActionResult();
-    }
-
-    /// <summary>
-    /// Atualiza o status de um lançamento financeiro.
-    /// </summary>
-    /// <remarks>
-    /// Exemplo de payload:
-    ///
-    ///     PATCH /financial/entries/123/status
-    ///     {
-    ///       "status": "Paid"
-    ///     }
-    /// </remarks>
-    [HttpPatch("entries/{entryId:long}/status")]
+    [HttpPut("lancamentos/{id:long}")]
     [ProducesResponseType(typeof(FinancialEntryModel), StatusCodes.Status200OK)]
-    public async Task<ActionResult<FinancialEntryModel>> UpdateStatus(long entryId, [FromBody] UpdateFinancialEntryStatusBody body, CancellationToken ct)
+    public async Task<ActionResult<FinancialEntryModel>> UpdateLancamento(long id, [FromBody] UpdateFinancialEntryBody body, CancellationToken ct)
     {
-        var result = await mediator.Send(new UpdateFinancialEntryStatusCommand(entryId, body.Status), ct);
+        var result = await mediator.Send(new UpdateFinancialEntryCommand(id, body.Description, body.Type, body.Category, body.Amount, body.Date, body.Status, body.IsFixed, body.Notes), ct);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Exclui um lançamento manual.
-    /// </summary>
-    [HttpDelete("entries/{entryId:long}")]
+    [HttpPatch("lancamentos/{id:long}/status")]
+    [ProducesResponseType(typeof(FinancialEntryModel), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FinancialEntryModel>> UpdateStatus(long id, [FromBody] UpdateFinancialEntryStatusBody body, CancellationToken ct)
+    {
+        var result = await mediator.Send(new UpdateFinancialEntryStatusCommand(id, body.Status), ct);
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("lancamentos/{id:long}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<ActionResult> DeleteEntry(long entryId, CancellationToken ct)
+    public async Task<ActionResult> DeleteLancamento(long id, CancellationToken ct)
     {
-        var result = await mediator.Send(new DeleteFinancialEntryCommand(entryId), ct);
+        var result = await mediator.Send(new DeleteFinancialEntryCommand(id), ct);
         return result.ToActionResult();
     }
 
     /// <summary>
-    /// Lista entradas automáticas de vendas do mês.
+    /// Exclui logicamente um lançamento do extrato preservando a auditoria.
     /// </summary>
-    [HttpGet("entries/auto-sales")]
+    [HttpPost("lancamentos/{id:long}/exclude")]
+    [ProducesResponseType(typeof(FinancialEntryModel), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FinancialEntryModel>> ExcludeLancamento(long id, [FromBody] ExcludeFinancialEntryBody body, CancellationToken ct)
+    {
+        var result = await mediator.Send(new ExcludeFinancialEntryCommand(id, body.Reason, body.PreserveSource), ct);
+        return result.ToActionResult();
+    }
+
+    /// <summary>
+    /// Lista as entradas automáticas originadas por pedidos entregues.
+    /// </summary>
+    [HttpGet("lancamentos/auto-sales")]
     [ProducesResponseType(typeof(PagedResult<AutoFinancialEntryModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<AutoFinancialEntryModel>>> ListAutoSales(
-        [FromQuery] string month,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
+    public async Task<ActionResult<PagedResult<AutoFinancialEntryModel>>> ListAutoSales([FromQuery] string month, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
         var result = await mediator.Send(new ListSalesEntriesQuery(month, page, pageSize), ct);
         return result.ToActionResult();
     }
 
     /// <summary>
-    /// Lista saídas automáticas de compras de estoque do mês.
+    /// Lista as despesas automáticas originadas por compras/reposições de estoque.
     /// </summary>
-    [HttpGet("entries/auto-stock-purchases")]
+    [HttpGet("lancamentos/auto-stock")]
     [ProducesResponseType(typeof(PagedResult<AutoFinancialEntryModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<AutoFinancialEntryModel>>> ListAutoStockPurchases(
-        [FromQuery] string month,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
+    public async Task<ActionResult<PagedResult<AutoFinancialEntryModel>>> ListAutoStock([FromQuery] string month, [FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
         var result = await mediator.Send(new ListAutoStockPurchasesQuery(month, page, pageSize), ct);
         return result.ToActionResult();
     }
 
     /// <summary>
-    /// Retorna o resumo financeiro mensal.
+    /// Retorna o resumo mensal com saldos acumulados até o fim do mês selecionado.
     /// </summary>
-    /// <remarks>
-    /// Exemplo de resposta:
-    ///
-    ///     {
-    ///       "month": "2026-03",
-    ///       "currentBalance": 4200.0,
-    ///       "forecastBalance": 3950.0,
-    ///       "totalIncomesPaid": 9000.0,
-    ///       "totalExpensesPaid": 4800.0,
-    ///       "pendingToReceive": 700.0,
-    ///       "pendingToPay": 950.0,
-    ///       "fixedCostsInMonth": 2100.0
-    ///     }
-    /// </remarks>
-    [HttpGet("overview")]
+    [HttpGet("resumo")]
     [ProducesResponseType(typeof(FinancialOverviewModel), StatusCodes.Status200OK)]
-    public async Task<ActionResult<FinancialOverviewModel>> GetOverview([FromQuery] string month, CancellationToken ct)
+    public async Task<ActionResult<FinancialOverviewModel>> GetResumo([FromQuery] string month, CancellationToken ct)
     {
         var result = await mediator.Send(new GetFinancialOverviewQuery(month), ct);
         return result.ToActionResult();
     }
 
     /// <summary>
-    /// Cria uma conta fixa.
+    /// Cria uma conta fixa recorrente a partir do mês inicial informado.
     /// </summary>
-    /// <remarks>
-    /// Exemplo de payload:
-    ///
-    ///     POST /financial/fixed-accounts
-    ///     {
-    ///       "description": "Conta de luz",
-    ///       "category": "Utilidades",
-    ///       "defaultAmount": 320.0,
-    ///       "dueDay": 10,
-    ///       "isActive": true
-    ///     }
-    /// </remarks>
-    [HttpPost("fixed-accounts")]
+    [HttpPost("contas-fixas")]
     [ProducesResponseType(typeof(FixedAccountModel), StatusCodes.Status200OK)]
-    public async Task<ActionResult<FixedAccountModel>> CreateFixedAccount([FromBody] CreateFixedAccountCommand command, CancellationToken ct)
+    public async Task<ActionResult<FixedAccountModel>> CreateContaFixa([FromBody] CreateFixedAccountCommand command, CancellationToken ct)
     {
         var result = await mediator.Send(command, ct);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Lista contas fixas cadastradas.
-    /// </summary>
-    [HttpGet("fixed-accounts")]
+    [HttpGet("contas-fixas")]
     [ProducesResponseType(typeof(PagedResult<FixedAccountModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<PagedResult<FixedAccountModel>>> ListFixedAccounts(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 50,
-        CancellationToken ct = default)
+    public async Task<ActionResult<PagedResult<FixedAccountModel>>> ListContasFixas([FromQuery] int page = 1, [FromQuery] int pageSize = 50, CancellationToken ct = default)
     {
         var result = await mediator.Send(new ListFixedAccountsQuery(page, pageSize), ct);
         return result.ToActionResult();
     }
 
-    /// <summary>
-    /// Gera os lançamentos mensais pendentes das contas fixas.
-    /// </summary>
-    [HttpPost("fixed-accounts/generate-month")]
-    [ProducesResponseType(typeof(List<FinancialEntryModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<FinancialEntryModel>>> GenerateMonth([FromQuery] string month, CancellationToken ct)
+    [HttpPut("contas-fixas/{id:long}")]
+    [ProducesResponseType(typeof(FixedAccountModel), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FixedAccountModel>> UpdateContaFixa(long id, [FromBody] UpdateFixedAccountBody body, CancellationToken ct)
     {
-        var result = await mediator.Send(new GenerateFixedAccountEntriesCommand(month), ct);
+        var result = await mediator.Send(new UpdateFixedAccountCommand(id, body.Description, body.Category, body.Amount, body.StartMonth, body.DefaultStatus), ct);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("contas-fixas/{id:long}/delete-range")]
+    [ProducesResponseType(typeof(FixedAccountModel), StatusCodes.Status200OK)]
+    public async Task<ActionResult<FixedAccountModel>> DeleteContaFixaRange(long id, [FromBody] DeleteFixedAccountRangeBody body, CancellationToken ct)
+    {
+        var result = await mediator.Send(new DeleteFixedAccountRangeCommand(id, body.Mode, body.Month), ct);
         return result.ToActionResult();
     }
 }
 
+public record UpdateFinancialEntryBody(
+    string Description,
+    FinancialEntryType Type,
+    string Category,
+    decimal Amount,
+    DateOnly Date,
+    FinancialEntryStatus Status,
+    bool IsFixed,
+    string? Notes);
+
 public record UpdateFinancialEntryStatusBody(FinancialEntryStatus Status);
+public record ExcludeFinancialEntryBody(string Reason, bool PreserveSource);
+public record UpdateFixedAccountBody(string Description, string Category, decimal Amount, string StartMonth, FinancialEntryStatus DefaultStatus);
+public record DeleteFixedAccountRangeBody(DeletionMode Mode, string? Month);

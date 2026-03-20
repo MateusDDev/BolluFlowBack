@@ -17,6 +17,19 @@ public static class FinancialMapping
         IsFixed = entry.IsFixed,
         Notes = entry.Notes,
         Source = entry.Source,
+        ReferenceType = entry.ReferenceType,
         ReferenceId = entry.ReferenceId
+    };
+
+    public static FixedAccountModel ToModel(this FixedAccount account) => new()
+    {
+        Id = account.Id,
+        Description = account.Description,
+        Category = account.Category,
+        Amount = account.Amount,
+        StartMonth = account.StartMonth.ToString("yyyy-MM"),
+        EndMonth = account.EndMonth?.ToString("yyyy-MM"),
+        DefaultStatus = account.DefaultStatus,
+        IsDeleted = account.IsDeleted
     };
 }

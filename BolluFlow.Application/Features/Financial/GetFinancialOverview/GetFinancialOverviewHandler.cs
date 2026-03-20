@@ -20,32 +20,41 @@ public class GetFinancialOverviewHandler(ApplicationDbContext db, CurrentUser us
 
         await FinancialSalesEntrySync.EnsureSalesEntries(db, user.Id, cancellationToken);
         await FinancialStockPurchaseSync.EnsureFinancialEntries(db, user.Id, cancellationToken);
+        await FinancialFixedAccountSync.EnsureEntriesForMonth(db, user.Id, month, cancellationToken);
 
-        var entries = await db.FinancialEntries
-            .Where(x => x.UserId == user.Id && x.Date >= month.Start && x.Date <= month.End)
+        var monthlyEntries = await db.FinancialEntries
+            .Where(x => x.UserId == user.Id && x.Status != FinancialEntryStatus.Excluded && x.Date >= month.Start && x.Date <= month.End)
+            .OrderByDescending(x => x.Date)
+            .ThenByDescending(x => x.Id)
             .ToListAsync(cancellationToken);
 
-        var totalIncomesPaid = entries.Where(x => x.Type == FinancialEntryType.Income && x.Status == FinancialEntryStatus.Paid).Sum(x => x.Amount);
-        var totalExpensesPaid = entries.Where(x => x.Type == FinancialEntryType.Expense && x.Status == FinancialEntryStatus.Paid).Sum(x => x.Amount);
-        var pendingToReceive = entries.Where(x => x.Type == FinancialEntryType.Income && x.Status == FinancialEntryStatus.Pending).Sum(x => x.Amount);
-        var pendingToPay = entries.Where(x => x.Type == FinancialEntryType.Expense && x.Status == FinancialEntryStatus.Pending).Sum(x => x.Amount);
-        var fixedCostsInMonth = entries
-            .Where(x => x.IsFixed && x.Type == FinancialEntryType.Expense)
-            .Sum(x => x.Amount);
+        var accumulatedEntries = await db.FinancialEntries
+            .Where(x => x.UserId == user.Id && x.Status != FinancialEntryStatus.Excluded && x.Date <= month.End)
+            .ToListAsync(cancellationToken);
 
-        var currentBalance = totalIncomesPaid - totalExpensesPaid;
-        var forecastBalance = currentBalance + pendingToReceive - pendingToPay;
+        var totalIncomes = monthlyEntries.Where(x => x.Type == FinancialEntryType.Income).Sum(x => x.Amount);
+        var totalExpenses = monthlyEntries.Where(x => x.Type == FinancialEntryType.Expense).Sum(x => x.Amount);
+        var pendingToReceive = monthlyEntries.Where(x => x.Type == FinancialEntryType.Income && x.Status == FinancialEntryStatus.Pending).Sum(x => x.Amount);
+        var pendingToPay = monthlyEntries.Where(x => x.Type == FinancialEntryType.Expense && x.Status == FinancialEntryStatus.Pending).Sum(x => x.Amount);
+        var fixedCostsInMonth = monthlyEntries.Where(x => x.IsFixed && x.Type == FinancialEntryType.Expense).Sum(x => x.Amount);
+
+        var currentBalance = accumulatedEntries.Where(x => x.Type == FinancialEntryType.Income && x.Status == FinancialEntryStatus.Paid).Sum(x => x.Amount)
+            - accumulatedEntries.Where(x => x.Type == FinancialEntryType.Expense && x.Status == FinancialEntryStatus.Paid).Sum(x => x.Amount);
+
+        var forecastBalance = accumulatedEntries.Where(x => x.Type == FinancialEntryType.Income && x.Status != FinancialEntryStatus.Excluded).Sum(x => x.Amount)
+            - accumulatedEntries.Where(x => x.Type == FinancialEntryType.Expense && x.Status != FinancialEntryStatus.Excluded).Sum(x => x.Amount);
 
         return ResultOf<FinancialOverviewModel>.Success(new FinancialOverviewModel
         {
-            Month = month.Value,
-            CurrentBalance = currentBalance,
-            TotalIncomesPaid = totalIncomesPaid,
-            TotalExpensesPaid = totalExpensesPaid,
+            SelectedMonth = month.Value,
+            TotalIncomes = totalIncomes,
+            TotalExpenses = totalExpenses,
             PendingToReceive = pendingToReceive,
             PendingToPay = pendingToPay,
+            CurrentBalance = currentBalance,
             ForecastBalance = forecastBalance,
-            FixedCostsInMonth = fixedCostsInMonth
+            FixedCostsInMonth = fixedCostsInMonth,
+            RecentEntries = monthlyEntries.Take(10).Select(x => x.ToModel()).ToList()
         });
     }
 }

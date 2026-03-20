@@ -11,10 +11,10 @@ public class FinancialEntryConfiguration : IEntityTypeConfiguration<FinancialEnt
         builder.ToTable("tb_financial_entry");
 
         builder.HasKey(x => x.Id);
-
         builder.Property(x => x.Type).HasConversion<string>();
         builder.Property(x => x.Status).HasConversion<string>();
         builder.Property(x => x.Source).HasConversion<string>();
+        builder.Property(x => x.ReferenceType).HasConversion<string>();
         builder.Property(x => x.Amount).HasColumnType("numeric(18,2)");
 
         builder.HasIndex(x => new { x.UserId, x.Date });

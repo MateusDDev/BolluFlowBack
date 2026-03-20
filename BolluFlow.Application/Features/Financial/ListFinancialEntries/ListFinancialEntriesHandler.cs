@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Features.Financial;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
@@ -20,22 +21,31 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser us
         if (!FinancialMonth.TryParse(request.Month, out var month))
             return ResultOf<PagedResult<FinancialEntryModel>>.BadRequest(FinancialErrors.InvalidMonthFormat);
 
+        if (!FinancialFilterParser.TryParseType(request.Type, out var type)
+            || !FinancialFilterParser.TryParseStatus(request.Status, out var status)
+            || !FinancialFilterParser.TryParseSource(request.Source, out var source))
+            return ResultOf<PagedResult<FinancialEntryModel>>.BadRequest(FinancialErrors.InvalidFilter);
+
         await FinancialSalesEntrySync.EnsureSalesEntries(db, user.Id, cancellationToken);
         await FinancialStockPurchaseSync.EnsureFinancialEntries(db, user.Id, cancellationToken);
+        await FinancialFixedAccountSync.EnsureEntriesForMonth(db, user.Id, month, cancellationToken);
 
         var query = db.FinancialEntries
             .Where(x => x.UserId == user.Id && x.Date >= month.Start && x.Date <= month.End)
             .AsQueryable();
 
-        if (request.Type is not null)
-            query = query.Where(x => x.Type == request.Type.Value);
+        query = status is null
+            ? query.Where(x => x.Status != FinancialEntryStatus.Excluded)
+            : query.Where(x => x.Status == status.Value);
 
-        if (request.Status is not null)
-            query = query.Where(x => x.Status == request.Status.Value);
+        if (type is not null)
+            query = query.Where(x => x.Type == type.Value);
+
+        if (source is not null)
+            query = query.Where(x => x.Source == source.Value);
 
         var totalItems = await query.CountAsync(cancellationToken);
-        var entries = await query
-            .OrderByDescending(x => x.Date)
+        var items = await query.OrderByDescending(x => x.Date)
             .ThenByDescending(x => x.Id)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
@@ -43,7 +53,7 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser us
 
         return ResultOf<PagedResult<FinancialEntryModel>>.Success(new PagedResult<FinancialEntryModel>
         {
-            Items = entries.Select(x => x.ToModel()).ToList(),
+            Items = items.Select(x => x.ToModel()).ToList(),
             Page = request.Page,
             PageSize = request.PageSize,
             TotalItems = totalItems,

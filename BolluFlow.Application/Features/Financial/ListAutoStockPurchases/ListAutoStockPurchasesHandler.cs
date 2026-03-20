@@ -24,21 +24,23 @@ public class ListAutoStockPurchasesHandler(ApplicationDbContext db, CurrentUser 
         await FinancialStockPurchaseSync.EnsureFinancialEntries(db, user.Id, cancellationToken);
 
         var query = db.FinancialEntries
-            .Where(x => x.UserId == user.Id && x.Source == FinancialEntrySource.AutoStockPurchase && x.Date >= month.Start && x.Date <= month.End);
+            .Where(x => x.UserId == user.Id
+                && x.Source == FinancialEntrySource.AutoStock
+                && x.Status != FinancialEntryStatus.Excluded
+                && x.Date >= month.Start
+                && x.Date <= month.End);
 
         var totalItems = await query.CountAsync(cancellationToken);
-        var entries = await query
-            .OrderByDescending(x => x.Date)
-            .ThenByDescending(x => x.Id)
+        var items = await query.OrderByDescending(x => x.Date).ThenByDescending(x => x.Id)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync(cancellationToken);
 
         return ResultOf<PagedResult<AutoFinancialEntryModel>>.Success(new PagedResult<AutoFinancialEntryModel>
         {
-            Items = entries.Select(x => new AutoFinancialEntryModel
+            Items = items.Select(x => new AutoFinancialEntryModel
             {
-                Id = $"stock-purchase-{x.ReferenceId}",
+                Id = $"fin-auto-stock-{x.Id}",
                 Description = x.Description,
                 Type = x.Type,
                 Category = x.Category,
@@ -46,6 +48,7 @@ public class ListAutoStockPurchasesHandler(ApplicationDbContext db, CurrentUser 
                 Date = x.Date,
                 Status = x.Status,
                 Source = x.Source,
+                ReferenceType = x.ReferenceType,
                 ReferenceId = x.ReferenceId ?? 0
             }).ToList(),
             Page = request.Page,
