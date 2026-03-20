@@ -88,6 +88,14 @@ public class Ingredient
         StockQuantity += quantity;
     }
 
+    public void ReplenishStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(IngredientErrors.QuantityInvalid);
+
+        StockQuantity += quantity;
+    }
+
     public void AddConversion(string name, decimal quantityInBaseUnit)
     {
         IngredientConversions.Add(IngredientConversion.Create(Id, name, quantityInBaseUnit));

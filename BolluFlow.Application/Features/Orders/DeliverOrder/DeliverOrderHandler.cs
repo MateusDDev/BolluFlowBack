@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+using System.Text;
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
@@ -106,6 +108,32 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
             }
 
             order.Status = OrderStatus.Delivered;
+
+            var orderEntityId = new Guid(MD5.HashData(Encoding.UTF8.GetBytes($"sale:{order.Id}")));
+            var alreadyCreated = await db.FinancialTransactions
+                .AnyAsync(x => x.DeletedAt == null
+                               && x.SourceEntityType == FinancialSourceEntityType.Sale
+                               && x.SourceEntityId == orderEntityId,
+                    cancellationToken);
+
+            if (!alreadyCreated)
+            {
+                var eventDate = DateOnly.FromDateTime(order.DeliveryDate ?? DateTime.UtcNow);
+                var amount = order.Items.Sum(x => x.Quantity * x.UnitPrice);
+                var transaction = FinancialTransaction.Create(
+                    FinancialTransactionType.Income,
+                    FinancialTransactionSourceType.Sale,
+                    $"Sale - Order #{order.Number}",
+                    amount,
+                    eventDate,
+                    FinancialSourceEntityType.Sale,
+                    orderEntityId,
+                    true,
+                    order.Note,
+                    $$"""{"orderId":{{order.Id}},"orderNumber":{{order.Number}}}""");
+
+                db.FinancialTransactions.Add(transaction);
+            }
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

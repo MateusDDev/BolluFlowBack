@@ -34,6 +34,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<SupplyConversion> SupplyConversions { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductComponent> ProductComponents { get; set; }
+    public DbSet<FinancialTransaction> FinancialTransactions { get; set; }
+    public DbSet<FixedCost> FixedCosts { get; set; }
+    public DbSet<Purchase> Purchases { get; set; }
     
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
 
