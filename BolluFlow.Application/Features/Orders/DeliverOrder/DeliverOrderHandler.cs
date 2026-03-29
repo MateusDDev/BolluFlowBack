@@ -88,6 +88,23 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                         return Result.NotFound(CommonErrors.IngredientNotFound);
 
                     ingredient.ConsumeStock(quantity);
+
+                    var movementEventKey = $"order_consumption:ingredient:{ingredientId}:order:{order.Id}";
+                    var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == movementEventKey, cancellationToken);
+
+                    if (existingMovement is null)
+                    {
+                        db.StockMovements.Add(StockMovement.Create(
+                            StockItemType.Ingredient,
+                            ingredientId,
+                            StockMovementType.Consumption,
+                            quantity,
+                            ingredient.UnitCost,
+                            $"Consumo automático do pedido #{order.Number}",
+                            "order",
+                            order.Id,
+                            movementEventKey));
+                    }
                 }
             }
 
@@ -102,10 +119,45 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                         return Result.NotFound(CommonErrors.SupplyNotFound);
 
                     supply.ConsumeStock(quantity);
+
+                    var movementEventKey = $"order_consumption:supply:{supplyId}:order:{order.Id}";
+                    var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == movementEventKey, cancellationToken);
+
+                    if (existingMovement is null)
+                    {
+                        db.StockMovements.Add(StockMovement.Create(
+                            StockItemType.Supply,
+                            supplyId,
+                            StockMovementType.Consumption,
+                            quantity,
+                            supply.UnitCost,
+                            $"Consumo automático do pedido #{order.Number}",
+                            "order",
+                            order.Id,
+                            movementEventKey));
+                    }
                 }
             }
 
             order.Status = OrderStatus.Delivered;
+
+            var financialEventKey = $"order_delivered:{order.Id}";
+            var existingFinancial = await db.FinancialEntries
+                .FirstOrDefaultAsync(x => x.EventKey == financialEventKey, cancellationToken);
+
+            if (existingFinancial is null)
+            {
+                var orderTotal = decimal.Round(order.Items.Sum(x => x.Quantity * x.UnitPrice), 2, MidpointRounding.AwayFromZero);
+
+                db.FinancialEntries.Add(FinancialEntry.Create(
+                    FinancialEntryType.Saida,
+                    orderTotal,
+                    $"Saída automática do pedido #{order.Number}",
+                    FinancialOriginType.Pedido,
+                    order.Id,
+                    "order_delivered",
+                    financialEventKey));
+            }
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
