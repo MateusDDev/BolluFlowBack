@@ -15,6 +15,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(x => new { x.CustomerId, x.Status, x.CreatedAt });
         
         builder.Property(x => x.Status).HasConversion<string>();
+        builder.Property(x => x.PaymentMethod).HasConversion<string>();
         
         builder
             .HasOne<Customer>(x => x.Customer)

@@ -21,6 +21,8 @@ public class Order
     public string? Note { get; set; }
     
     public DateTime? DeliveryDate { get; set; }
+    
+    public PaymentMethod? PaymentMethod { get; set; }
 
     public DateTime CreatedAt { get; private set; }
 
@@ -34,7 +36,12 @@ public class Order
         return item ?? throw new DomainException(OrderErrors.ItemNotFound);
     }
 
-    public static Order Create(long customerId, int number, string? note = null, DateTime? deliveryDate = null)
+    public static Order Create(
+        long customerId,
+        int number,
+        string? note = null,
+        DateTime? deliveryDate = null,
+        PaymentMethod? paymentMethod = null)
     {
         return new Order
         {
@@ -43,17 +50,19 @@ public class Order
             Status = OrderStatus.Pending,
             Note = note,
             DeliveryDate = deliveryDate,
+            PaymentMethod = paymentMethod,
             CreatedAt = DateTime.UtcNow
         };
     }
     
-    public void Update(string? note, DateTime? deliveryDate, long? customerId)
+    public void Update(string? note, DateTime? deliveryDate, long? customerId, PaymentMethod? paymentMethod)
     {
         if (Status != OrderStatus.Delivered)
             DeliveryDate = deliveryDate;
         
         CustomerId = customerId ?? CustomerId;
         Note = note;
+        PaymentMethod = paymentMethod;
     }
 
     public void AddItem(long productId, int quantity, decimal unitPrice, decimal unitCost)

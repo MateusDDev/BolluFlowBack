@@ -1,26 +1,28 @@
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace BolluFlow.Infrastructure.Migrations
 {
-    public partial class RecipeBaseUnit : Migration
+    /// <inheritdoc />
+    public partial class AddPaymentMethodInOrder : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<string>(
-                name: "base_unit",
-                table: "tb_recipe",
+                name: "payment_method",
+                table: "tb_order",
                 type: "text",
-                nullable: false,
-                defaultValue: "Unit");
+                nullable: true);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "base_unit",
-                table: "tb_recipe");
+                name: "payment_method",
+                table: "tb_order");
         }
     }
 }
