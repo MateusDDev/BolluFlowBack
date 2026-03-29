@@ -1,3 +1,4 @@
+using BolluFlow.Application.Features.StockMovements.AdjustStockMovement;
 using BolluFlow.Application.Features.StockMovements.CreateStockMovement;
 using BolluFlow.Application.Features.StockMovements.ListStockMovements;
 using BolluFlow.Application.Models;
@@ -26,11 +27,24 @@ public class StockMovementsController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
+
+    [HttpPost("adjustment")]
+    public async Task<ActionResult<StockAdjustmentModel>> Adjust(
+        [FromBody] AdjustStockMovementCommand command,
+        CancellationToken ct)
+    {
+        var result = await mediator.Send(command, ct);
+
+        if (result.IsSuccessful)
+            return StatusCode(201, result.Value);
+
+        return result.ToActionResult();
+    }
     [HttpGet]
     public async Task<ActionResult<List<StockMovementModel>>> List(
-        [FromQuery(Name = "item_type")] string? itemType,
-        [FromQuery(Name = "item_id")] long? itemId,
-        [FromQuery(Name = "movement_type")] string? movementType,
+        [FromQuery] string? itemType,
+        [FromQuery] long? itemId,
+        [FromQuery] string? movementType,
         [FromQuery] DateTime? startDate,
         [FromQuery] DateTime? endDate,
         CancellationToken ct)

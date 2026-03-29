@@ -65,6 +65,15 @@ public class Supply
         StockQuantity -= quantity;
     }
 
+
+    public void RevertStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(SupplyErrors.StockQuantityInvalid);
+
+        StockQuantity += quantity;
+    }
+
     public void AddConversion(string name, decimal quantityInBaseUnit)
     {
         SupplyConversions.Add(SupplyConversion.Create(Id, name, quantityInBaseUnit));

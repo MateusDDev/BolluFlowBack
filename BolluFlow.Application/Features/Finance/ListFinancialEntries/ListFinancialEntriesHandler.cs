@@ -34,9 +34,11 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db)
                     ? "ingredient_purchase"
                     : x.Origin == FinancialOriginType.SupplyPurchase
                         ? "supply_purchase"
-                        : x.Origin == FinancialOriginType.Manual
-                            ? "manual"
-                            : "order",
+                        : x.Origin == FinancialOriginType.StockAdjustment
+                            ? "stock_adjustment"
+                            : x.Origin == FinancialOriginType.Manual
+                                ? "manual"
+                                : "order",
                 OriginId = x.OriginId,
                 CreatedAt = x.CreatedAt
             })

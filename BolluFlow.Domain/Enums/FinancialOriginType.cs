@@ -5,5 +5,6 @@ public enum FinancialOriginType
     Order,
     IngredientPurchase,
     SupplyPurchase,
-    Manual
+    Manual,
+    StockAdjustment
 }
