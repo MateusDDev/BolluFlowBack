@@ -6,8 +6,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BolluFlow.Infrastructure.Migrations
 {
-    public partial class FinanceStockModule : Migration
+    /// <inheritdoc />
+    public partial class Financial : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -85,10 +87,14 @@ namespace BolluFlow.Infrastructure.Migrations
                 columns: new[] { "movement_type", "created_at" });
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "financial_entries");
-            migrationBuilder.DropTable(name: "stock_movements");
+            migrationBuilder.DropTable(
+                name: "financial_entries");
+
+            migrationBuilder.DropTable(
+                name: "stock_movements");
         }
     }
 }
