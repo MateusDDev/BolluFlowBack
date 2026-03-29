@@ -96,6 +96,69 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.ToTable("tb_delivery_address", (string)null);
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.FinancialEntry", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("EventKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("event_key");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("origin");
+
+                    b.Property<long?>("OriginId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("origin_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_financial_entries");
+
+                    b.HasIndex("EventKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_financial_entries_event_key");
+
+                    b.HasIndex("Origin", "OriginId")
+                        .HasDatabaseName("ix_financial_entries_origin_origin_id");
+
+                    b.HasIndex("Type", "CreatedAt")
+                        .HasDatabaseName("ix_financial_entries_type_created_at");
+
+                    b.ToTable("financial_entries", (string)null);
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>
                 {
                     b.Property<long>("Id")
@@ -450,6 +513,77 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasDatabaseName("ix_tb_recipe_ingredient_ingredient_id");
 
                     b.ToTable("tb_recipe_ingredient", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.StockMovement", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("EventKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("event_key");
+
+                    b.Property<long>("ItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("item_type");
+
+                    b.Property<string>("MovementType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("movement_type");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("quantity");
+
+                    b.Property<decimal>("TotalValue")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("total_value");
+
+                    b.Property<decimal>("UnitCost")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("unit_cost");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_stock_movements");
+
+                    b.HasIndex("EventKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_stock_movements_event_key");
+
+                    b.HasIndex("MovementType", "CreatedAt")
+                        .HasDatabaseName("ix_stock_movements_movement_type_created_at");
+
+                    b.HasIndex("ItemType", "ItemId", "CreatedAt")
+                        .HasDatabaseName("ix_stock_movements_item_type_item_id_created_at");
+
+                    b.ToTable("stock_movements", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Supply", b =>
