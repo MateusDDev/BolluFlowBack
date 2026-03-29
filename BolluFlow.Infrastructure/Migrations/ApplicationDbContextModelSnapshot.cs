@@ -263,6 +263,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("number");
 
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text")

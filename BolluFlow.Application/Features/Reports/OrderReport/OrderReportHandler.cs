@@ -55,74 +55,78 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
             {
                 page.Size(PageSizes.A6);
                 page.Margin(4);
-                
+     
                 page.DefaultTextStyle(t =>
                     t.FontFamily("Courier New")
                      .FontSize(10));
-                
+     
                 page.Content()
                     .Border(0.8f)
                     .BorderColor(Colors.Grey.Darken2)
-                    .Padding(6)
+                    .Padding(8)
                     .Column(main =>
                     {
-                        main.Spacing(6);
-                        
-                        main.Item().Column(col =>
+                        main.Spacing(0);
+     
+                        // ── CABEÇALHO ──────────────────────────────
+                        main.Item().PaddingBottom(6).Column(col =>
                         {
+                            col.Spacing(2);
+     
                             col.Item().AlignCenter()
                                 .Text($"COMANDA #{order.Number}")
                                 .Bold()
                                 .FontSize(14);
-
+     
                             col.Item().AlignCenter()
                                 .Text(order.CustomerName)
-                                .FontSize(10);
-                            
+                                .Bold()
+                                .FontSize(11);
+     
                             col.Item().AlignCenter()
-                                .Text($"📱 {order.CustomerWhatsapp}")
-                                .FontSize(9);
-
-                            col.Item().AlignCenter()
-                                .Text(order.DeliveryDate.HasValue
-                                    ? order.DeliveryDate.Value.ToString("dd/MM/yyyy")
-                                    : "Data de entrega não definida")
+                                .Text(order.CustomerWhatsapp)
                                 .FontSize(9)
                                 .FontColor(Colors.Grey.Darken1);
-
-                            col.Item()
-                                .PaddingTop(2)
-                                .LineHorizontal(0.5f)
-                                .LineColor(Colors.Grey.Lighten1);
+     
+                            if (order.DeliveryDate.HasValue)
+                            {
+                                col.Item().AlignCenter()
+                                    .Text($"Entrega: {order.DeliveryDate.Value.ToString("dd/MM/yyyy")}")
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
+                            }
                         });
-
-                        main.Item().Column(address =>
+     
+                        // ── SEPARADOR ──────────────────────────────
+                        main.Item().PaddingBottom(6)
+                            .LineHorizontal(0.5f)
+                            .LineColor(Colors.Grey.Lighten1);
+     
+                        // ── ENDEREÇO ───────────────────────────────
+                        main.Item().PaddingBottom(6).Column(address =>
                         {
-                            address.Spacing(2);
-
+                            address.Spacing(1);
+     
                             address.Item()
-                                .LineHorizontal(0.5f)
-                                .LineColor(Colors.Grey.Lighten1);
-                            
-                            address.Item()
-                                .Text($"📍 {order.CustomerStreet}, {order.CustomerNumber}")
+                                .Text($"{order.CustomerStreet}, {order.CustomerNumber}")
                                 .FontSize(9);
-                            
+     
                             address.Item()
-                                .PaddingLeft(8)
                                 .Text(order.CustomerNeighborhood)
                                 .FontSize(9)
                                 .FontColor(Colors.Grey.Darken1);
-                            
-                            address.Item()
-                                .LineHorizontal(0.5f)
-                                .LineColor(Colors.Grey.Lighten1);
                         });
-                        
-                        main.Item().Column(col =>
+     
+                        // ── SEPARADOR ──────────────────────────────
+                        main.Item().PaddingBottom(6)
+                            .LineHorizontal(0.5f)
+                            .LineColor(Colors.Grey.Lighten1);
+     
+                        // ── ITENS ──────────────────────────────────
+                        main.Item().PaddingBottom(6).Column(col =>
                         {
-                            col.Spacing(4);
-
+                            col.Spacing(3);
+     
                             foreach (var item in order.Items)
                             {
                                 col.Item().Row(row =>
@@ -130,7 +134,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                                     row.RelativeItem()
                                         .Text(item.ProductName)
                                         .FontSize(10);
-
+     
                                     row.ConstantItem(28)
                                         .AlignRight()
                                         .Text($"x{item.Quantity}")
@@ -138,56 +142,79 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                                         .FontSize(10);
                                 });
                             }
-
-                            col.Item()
-                                .PaddingTop(4)
-                                .LineHorizontal(0.5f)
-                                .LineColor(Colors.Grey.Lighten1);
-                            
-                            col.Item()
-                                .Text($"TOTAL: {order.TotalValue.ToString("C", new CultureInfo("pt-BR"))}")
-                                .Bold()
-                                .FontSize(10);
-
+                        });
+     
+                        // ── SEPARADOR ──────────────────────────────
+                        main.Item().PaddingBottom(6)
+                            .LineHorizontal(0.5f)
+                            .LineColor(Colors.Grey.Lighten1);
+     
+                        // ── TOTAL E PAGAMENTO ──────────────────────
+                        main.Item().PaddingBottom(6).Column(col =>
+                        {
+                            col.Spacing(2);
+     
+                            col.Item().Row(row =>
+                            {
+                                row.RelativeItem()
+                                    .Text("TOTAL")
+                                    .Bold()
+                                    .FontSize(10);
+     
+                                row.AutoItem()
+                                    .Text(order.TotalValue.ToString("C", new CultureInfo("pt-BR")))
+                                    .Bold()
+                                    .FontSize(10);
+                            });
+     
                             if (order.PaymentMethod.HasValue)
                             {
                                 col.Item()
-                                    .Text($"PAGAMENTO: {GetPaymentMethodLabel(order.PaymentMethod.Value)}")
-                                    .FontSize(9);
+                                    .Text($"Pagamento: {GetPaymentMethodLabel(order.PaymentMethod.Value)}")
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
                             }
-
-                            if (!string.IsNullOrWhiteSpace(order.Note))
+                        });
+     
+                        // ── OBSERVAÇÕES (se houver) ─────────────────
+                        if (!string.IsNullOrWhiteSpace(order.Note))
+                        {
+                            main.Item().PaddingBottom(6)
+                                .LineHorizontal(0.5f)
+                                .LineColor(Colors.Grey.Lighten1);
+     
+                            main.Item().PaddingBottom(6).Column(col =>
                             {
-                                col.Item()
-                                    .PaddingTop(4)
-                                    .LineHorizontal(0.5f)
-                                    .LineColor(Colors.Grey.Lighten1);
-
+                                col.Spacing(2);
+     
                                 col.Item()
                                     .Text("OBS:")
                                     .Bold()
                                     .FontSize(9);
-
+     
                                 col.Item()
                                     .Text(order.Note)
-                                    .FontSize(9);
-                            }
-                        });
-                        
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
+                            });
+                        }
+     
+                        // ── QR CODE ────────────────────────────────
                         main.Item().AlignCenter().Column(qr =>
                         {
                             qr.Item()
                                 .PaddingTop(4)
-                                .AlignCenter()
-                                .Text("———")
-                                .FontSize(8);
-
+                                .LineHorizontal(0.5f)
+                                .LineColor(Colors.Grey.Lighten1);
+     
                             var url = $"{_frontUrl}/orders/{order.Id}";
-
+     
                             qr.Item()
-                                .Height(70)
+                                .PaddingTop(6)
+                                .Height(65)
+                                .AlignCenter()
                                 .BarcodeQr(url);
-
+     
                             qr.Item()
                                 .AlignCenter()
                                 .Text("Abrir pedido")
@@ -198,6 +225,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
             });
         }).GeneratePdf();
     }
+
     
     private static string GetPaymentMethodLabel(PaymentMethod paymentMethod)
     {
