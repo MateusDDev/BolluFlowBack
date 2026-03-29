@@ -28,16 +28,16 @@ public class FinanceiroController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet("entries")]
-    public async Task<ActionResult<List<FinancialEntryModel>>> List([FromQuery] string? type, CancellationToken ct)
+    public async Task<ActionResult<List<FinancialEntryModel>>> List([FromQuery] string? type, [FromQuery] int? month, [FromQuery] int? year, CancellationToken ct)
     {
-        var result = await mediator.Send(new ListFinancialEntriesQuery(type), ct);
+        var result = await mediator.Send(new ListFinancialEntriesQuery(type, month, year), ct);
         return result.ToActionResult();
     }
 
     [HttpGet("balance")]
-    public async Task<ActionResult<FinancialBalanceModel>> Balance(CancellationToken ct)
+    public async Task<ActionResult<FinancialBalanceModel>> Balance([FromQuery] int? month, [FromQuery] int? year, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetFinancialBalanceQuery(), ct);
+        var result = await mediator.Send(new GetFinancialBalanceQuery(month, year), ct);
         return result.ToActionResult();
     }
 }
