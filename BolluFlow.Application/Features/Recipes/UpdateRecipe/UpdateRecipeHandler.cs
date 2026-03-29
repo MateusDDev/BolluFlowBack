@@ -1,6 +1,8 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,6 +15,9 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
     {
         var command = request.Body;
 
+        if (!Enum.IsDefined(typeof(BaseUnit), command.BaseUnit))
+            return ResultOf<RecipeModel>.BadRequest(new DomainError("RECIPE_BASE_UNIT_INVALID", "baseUnit inválida"));
+
         var recipe = await db.Recipes
             .Include(x => x.RecipeIngredients)
             .ThenInclude(x => x.Ingredient)
@@ -24,6 +29,7 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
         recipe.Update(
             name: command.Name,
             category: command.Category,
+            baseUnit: command.BaseUnit,
             preparationTime: command.PreparationTime,
             isActive: command.IsActive);
 
@@ -37,9 +43,12 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             Id = recipe.Id,
             Name = recipe.Name,
             Category = recipe.Category,
+            BaseUnit = recipe.BaseUnit,
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
             FinalPrice = recipe.FinalPrice,
+            StockQuantity = recipe.StockQuantity,
+            MinimumStockQuantity = recipe.MinimumStockQuantity,
             IsActive = recipe.IsActive
         });
     }

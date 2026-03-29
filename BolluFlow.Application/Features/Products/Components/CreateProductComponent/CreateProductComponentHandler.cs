@@ -90,7 +90,7 @@ public class CreateProductComponentHandler(ApplicationDbContext db, CurrentUser 
                 .ThenInclude(x => x.Ingredient)
                 .FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
 
-            return recipe is null ? null : (recipe.Name, "unit", recipe.CalculateUnitCost(), 0);
+            return recipe is null ? null : (recipe.Name, recipe.BaseUnit.ToString(), recipe.CalculateUnitCost(), recipe.StockQuantity);
         }
 
         if (type == ProductComponentType.Ingredient)

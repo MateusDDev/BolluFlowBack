@@ -1,4 +1,5 @@
 using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Domain.Services;
 
@@ -18,16 +19,25 @@ public class Recipe
 
     public int? PreparationTime { get; set; }
 
+    public BaseUnit BaseUnit { get; private set; }
+
     public decimal FinalPrice { get; private set; }
+
+    public decimal StockQuantity { get; private set; }
+
+    public decimal? MinimumStockQuantity { get; private set; }
 
     public bool IsActive { get; set; }
 
     public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
 
+    public List<RecipeConversion> RecipeConversions { get; set; } = [];
+
     public static Recipe Create(
         long userId,
         string name,
         string category,
+        BaseUnit baseUnit,
         int? preparationTime = null,
         decimal finalPrice = 0)
     {
@@ -38,7 +48,9 @@ public class Recipe
             UserId = userId,
             Name = name,
             Category = category,
+            BaseUnit = baseUnit,
             FinalPrice = finalPrice,
+            StockQuantity = 0,
             IsActive = true,
             PreparationTime = preparationTime
         };
@@ -47,11 +59,13 @@ public class Recipe
     public void Update(
         string name,
         string category,
+        BaseUnit baseUnit,
         int? preparationTime = null,
         bool isActive = true)
     {
         Name = name;
         Category = category;
+        BaseUnit = baseUnit;
         IsActive = isActive;
         PreparationTime = preparationTime;
     }
@@ -60,6 +74,38 @@ public class Recipe
     {
         ValidateFinalPrice(finalPrice);
         FinalPrice = finalPrice;
+    }
+
+    public void ProduceStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        StockQuantity += quantity;
+    }
+
+    public void ConsumeStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        if (StockQuantity < quantity)
+            throw new DomainException(RecipeErrors.StockInsufficient(Name));
+
+        StockQuantity -= quantity;
+    }
+
+    public void SetMinimumStockQuantity(decimal? minimumStockQuantity)
+    {
+        if (minimumStockQuantity < 0)
+            throw new DomainException(RecipeErrors.MinimumStockQuantityInvalid);
+
+        MinimumStockQuantity = minimumStockQuantity;
+    }
+
+    public void AddConversion(string name, decimal quantityInBaseUnit)
+    {
+        RecipeConversions.Add(RecipeConversion.Create(Id, name, quantityInBaseUnit));
     }
 
     public decimal CalculateUnitCost()

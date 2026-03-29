@@ -107,8 +107,8 @@ public class DashboardEndpointsTests(DashboardWebApplicationFactory factory) : I
 
         db.Products.Add(Product.Create(1, "Bolo", 20, 8, 10));
         db.Products.Add(Product.Create(1, "Torta", 30, 30, 10));
-        db.Ingredients.Add(Ingredient.Create(1, "Farinha", IngredientBaseUnit.Gram, 2, 11, 10));
-        db.Supplies.Add(Supply.Create(1, "Caixa", IngredientBaseUnit.Unit, 1, 4, 10));
+        db.Ingredients.Add(Ingredient.Create(1, "Farinha", BaseUnit.Gram, 2, 11, 10));
+        db.Supplies.Add(Supply.Create(1, "Caixa", BaseUnit.Unit, 1, 4, 10));
 
         await db.SaveChangesAsync();
 

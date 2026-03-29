@@ -9,14 +9,16 @@ public class ResultOf<T>
     public string? ErrorCode { get; }
     public string? ErrorMessage { get; }
     public int StatusCode { get; }
+    public object? Details { get; }
 
-    private ResultOf(bool isSuccessful, T? value = default, DomainError? error = null, int statusCode = 200)
+    private ResultOf(bool isSuccessful, T? value = default, DomainError? error = null, int statusCode = 200, object? details = null)
     {
         IsSuccessful = isSuccessful;
         Value = value;
         ErrorCode = error?.Code;
         ErrorMessage = error?.Message;
         StatusCode = statusCode;
+        Details = details;
     }
 
     public static ResultOf<T> Success(T value) => new(true, value);
@@ -30,6 +32,7 @@ public class ResultOf<T>
     public static ResultOf<T> Conflict(DomainError error) => new(false, default, error, 409);
 
     public static ResultOf<T> Unprocessable(DomainError error) => new(false, default, error, 422);
+    public static ResultOf<T> Unprocessable(DomainError error, object? details) => new(false, default, error, 422, details);
 
     public static ResultOf<T> InternalError(DomainError error) => new(false, default, error, 500);
 }
@@ -40,13 +43,15 @@ public class Result
     public string? ErrorCode { get; }
     public string? ErrorMessage { get; }
     public int StatusCode { get; }
+    public object? Details { get; }
 
-    private Result(bool isSuccessful, DomainError? error, int statusCode = 200)
+    private Result(bool isSuccessful, DomainError? error, int statusCode = 200, object? details = null)
     {
         IsSuccessful = isSuccessful;
         ErrorCode = error?.Code;
         ErrorMessage = error?.Message;
         StatusCode = statusCode;
+        Details = details;
     }
 
     public static Result Success() => new(true, null);
@@ -55,4 +60,5 @@ public class Result
     public static Result BadRequest(DomainError error) => new(false, error, 400);
     public static Result Conflict(DomainError error) => new(false, error, 409);
     public static Result Unprocessable(DomainError error) => new(false, error, 422);
+    public static Result Unprocessable(DomainError error, object? details) => new(false, error, 422, details);
 }
