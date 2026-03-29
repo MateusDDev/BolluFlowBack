@@ -30,7 +30,12 @@ public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
                 .Where(x => x.Customer.UserId == user.Id)
                 .MaxAsync(x => (int?)x.Number, cancellationToken) ?? 0;
             
-            var order = Order.Create(request.CustomerId, lastNumber + 1, request.Note, request.DeliveryDate);
+            var order = Order.Create(
+                request.CustomerId,
+                lastNumber + 1,
+                request.Note,
+                request.DeliveryDate,
+                request.PaymentMethod);
             
             db.Orders.Add(order);
             

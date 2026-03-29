@@ -17,4 +17,6 @@ public class OrderModel
     public DateTime CreatedAt { get; set; }
     
     public DateTime? DeliveryDate { get; set; }
+    
+    public PaymentMethod? PaymentMethod { get; set; }
 }
