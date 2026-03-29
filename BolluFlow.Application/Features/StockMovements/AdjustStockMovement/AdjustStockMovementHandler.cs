@@ -14,9 +14,6 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
 {
     public async Task<ResultOf<StockAdjustmentModel>> Handle(AdjustStockMovementCommand request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<StockItemType>(request.ItemType, true, out var itemType))
-            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_ITEM_TYPE_INVALID", "itemType must be supply or ingredient"));
-
         if (request.Quantity <= 0)
             return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_QUANTITY_INVALID", "quantity must be greater than zero"));
 
@@ -26,17 +23,13 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
         if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Trim().Length < 3)
             return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_ADJUSTMENT_REASON_INVALID", "reason must have at least 3 characters"));
 
-        var direction = request.Direction?.Trim().ToLowerInvariant();
-        if (direction is not ("add" or "remove"))
-            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_ADJUSTMENT_DIRECTION_INVALID", "direction must be add or remove"));
-
         await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
             string itemName;
 
-            if (itemType == StockItemType.Supply)
+            if (request.ItemType == StockItemType.Supply)
             {
                 var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
                 if (supply is null)
@@ -44,7 +37,7 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
 
                 itemName = supply.Name;
 
-                if (direction == "add")
+                if (request.Direction == AdjustmentDirection.Add)
                     supply.RevertStock(request.Quantity);
                 else
                     supply.ConsumeStock(request.Quantity);
@@ -57,14 +50,14 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
 
                 itemName = ingredient.Name;
 
-                if (direction == "add")
+                if (request.Direction == AdjustmentDirection.Add)
                     ingredient.RevertStock(request.Quantity);
                 else
                     ingredient.ConsumeStock(request.Quantity);
             }
 
             var movement = StockMovement.Create(
-                itemType,
+                request.ItemType,
                 request.ItemId,
                 StockMovementType.Adjustment,
                 request.Quantity,
@@ -74,7 +67,7 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
 
             db.StockMovements.Add(movement);
 
-            var isAdd = direction == "add";
+            var isAdd = request.Direction == AdjustmentDirection.Add;
             var entry = FinancialEntry.Create(
                 isAdd ? FinancialEntryType.Expense : FinancialEntryType.Income,
                 movement.TotalValue,
@@ -93,13 +86,13 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
             return ResultOf<StockAdjustmentModel>.Success(new StockAdjustmentModel
             {
                 Id = movement.Id,
-                ItemType = itemType.ToString().ToLowerInvariant(),
+                ItemType = request.ItemType.ToString().ToLowerInvariant(),
                 ItemId = request.ItemId,
                 MovementType = "adjustment",
                 Quantity = movement.Quantity,
                 UnitCost = movement.UnitCost,
                 TotalValue = movement.TotalValue,
-                Direction = direction,
+                Direction = request.Direction.ToString().ToLowerInvariant(),
                 Reason = request.Reason.Trim(),
                 CreatedAt = movement.CreatedAt
             });

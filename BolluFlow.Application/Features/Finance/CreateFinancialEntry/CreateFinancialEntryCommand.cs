@@ -1,11 +1,11 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Enums;
 
 namespace BolluFlow.Application.Features.Finance.CreateFinancialEntry;
 
-public class CreateFinancialEntryCommand : ICommand<ResultOf<FinancialEntryModel>>
-{
-    public string Type { get; set; } = null!;
-    public decimal Amount { get; set; }
-    public string Description { get; set; } = null!;
-}
+public record CreateFinancialEntryCommand(
+    FinancialEntryType Type,
+    decimal Amount,
+    string Description
+) : ICommand<ResultOf<FinancialEntryModel>>;

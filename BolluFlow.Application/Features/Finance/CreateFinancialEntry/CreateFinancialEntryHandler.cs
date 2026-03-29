@@ -18,11 +18,8 @@ public class CreateFinancialEntryHandler(ApplicationDbContext db)
         if (string.IsNullOrWhiteSpace(request.Description))
             return ResultOf<FinancialEntryModel>.BadRequest(new("FINANCIAL_DESCRIPTION_REQUIRED", "description is required"));
 
-        if (!Enum.TryParse<FinancialEntryType>(request.Type, true, out var type))
-            return ResultOf<FinancialEntryModel>.BadRequest(new("FINANCIAL_TYPE_INVALID", "type must be income or expense"));
-
         var entry = FinancialEntry.Create(
-            type,
+            request.Type,
             decimal.Round(request.Amount, 2, MidpointRounding.AwayFromZero),
             request.Description.Trim(),
             FinancialOriginType.Manual,

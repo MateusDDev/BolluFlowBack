@@ -13,11 +13,6 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
 {
     public async Task<ResultOf<StockMovementModel>> Handle(CreateStockMovementCommand request, CancellationToken cancellationToken)
     {
-        if (!Enum.TryParse<StockItemType>(request.ItemType, true, out var itemType))
-            return ResultOf<StockMovementModel>.BadRequest(new("STOCK_ITEM_TYPE_INVALID", "item_type inválido"));
-
-        if (!Enum.TryParse<StockMovementType>(request.MovementType, true, out var movementType))
-            return ResultOf<StockMovementModel>.BadRequest(new("STOCK_MOVEMENT_TYPE_INVALID", "movement_type inválido"));
 
         if (request.Quantity <= 0)
             return ResultOf<StockMovementModel>.BadRequest(new("STOCK_QUANTITY_INVALID", "quantity deve ser maior que zero"));
@@ -36,9 +31,9 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
         }
 
         var movement = StockMovement.Create(
-            itemType,
+            request.ItemType,
             request.ItemId,
-            movementType,
+            request.MovementType,
             request.Quantity,
             request.UnitCost,
             request.Notes,
@@ -47,21 +42,21 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
         db.StockMovements.Add(movement);
         await db.SaveChangesAsync(cancellationToken);
 
-        if (movementType == StockMovementType.Purchase)
+        if (request.MovementType == StockMovementType.Purchase)
         {
             var eventKey = $"stock_purchase:{movement.Id}";
             var existingEntry = await db.FinancialEntries.AsNoTracking().FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
 
             if (existingEntry is null)
             {
-                var origin = itemType == StockItemType.Ingredient
+                var origin = request.ItemType == StockItemType.Ingredient
                     ? FinancialOriginType.IngredientPurchase
                     : FinancialOriginType.SupplyPurchase;
 
                 var entry = FinancialEntry.Create(
                     FinancialEntryType.Expense,
                     movement.TotalValue,
-                    $"Despesa automática de compra de {(itemType == StockItemType.Ingredient ? "ingrediente" : "insumo")} #{movement.ItemId}",
+                    $"Despesa automática de compra de {(request.ItemType == StockItemType.Ingredient ? "ingrediente" : "insumo")} #{movement.ItemId}",
                     origin,
                     movement.ItemId,
                     eventKey);
