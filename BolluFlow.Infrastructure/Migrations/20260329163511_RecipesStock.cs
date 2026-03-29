@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,10 +6,19 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BolluFlow.Infrastructure.Migrations
 {
-    public partial class RecipeStockProduction : Migration
+    /// <inheritdoc />
+    public partial class RecipesStock : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<string>(
+                name: "base_unit",
+                table: "tb_recipe",
+                type: "text",
+                nullable: false,
+                defaultValue: "");
+
             migrationBuilder.AddColumn<decimal>(
                 name: "minimum_stock_quantity",
                 table: "tb_recipe",
@@ -42,7 +51,7 @@ namespace BolluFlow.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_recipe_productions", x => x.id);
                     table.ForeignKey(
-                        name: "fk_recipe_productions_tb_recipe_recipe_id",
+                        name: "fk_recipe_productions_recipes_recipe_id",
                         column: x => x.recipe_id,
                         principalTable: "tb_recipe",
                         principalColumn: "id",
@@ -81,6 +90,7 @@ namespace BolluFlow.Infrastructure.Migrations
                 column: "recipe_id");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -88,6 +98,10 @@ namespace BolluFlow.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "tb_recipe_conversion");
+
+            migrationBuilder.DropColumn(
+                name: "base_unit",
+                table: "tb_recipe");
 
             migrationBuilder.DropColumn(
                 name: "minimum_stock_quantity",
