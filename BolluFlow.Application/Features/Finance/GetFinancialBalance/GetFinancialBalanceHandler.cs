@@ -12,19 +12,19 @@ public class GetFinancialBalanceHandler(ApplicationDbContext db)
 {
     public async Task<ResultOf<FinancialBalanceModel>> Handle(GetFinancialBalanceQuery request, CancellationToken cancellationToken)
     {
-        var totalEntradas = await db.FinancialEntries
-            .Where(x => x.Type == FinancialEntryType.Entrada)
+        var totalIncome = await db.FinancialEntries
+            .Where(x => x.Type == FinancialEntryType.Income)
             .SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
 
-        var totalSaidas = await db.FinancialEntries
-            .Where(x => x.Type == FinancialEntryType.Saida)
+        var totalExpense = await db.FinancialEntries
+            .Where(x => x.Type == FinancialEntryType.Expense)
             .SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
 
         return ResultOf<FinancialBalanceModel>.Success(new FinancialBalanceModel
         {
-            TotalEntradas = totalEntradas,
-            TotalSaidas = totalSaidas,
-            Saldo = totalEntradas - totalSaidas
+            TotalIncome = totalIncome,
+            TotalExpense = totalExpense,
+            Balance = totalIncome - totalExpense
         });
     }
 }

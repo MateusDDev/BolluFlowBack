@@ -41,9 +41,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
             movementType,
             request.Quantity,
             request.UnitCost,
-            request.Description,
-            "stock_entry",
-            request.ItemId,
+            request.Notes,
             request.EventKey);
 
         db.StockMovements.Add(movement);
@@ -52,24 +50,20 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
         if (movementType == StockMovementType.Purchase)
         {
             var eventKey = $"stock_purchase:{movement.Id}";
-
-            var existingEntry = await db.FinancialEntries
-                .AsNoTracking()
-                .FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
+            var existingEntry = await db.FinancialEntries.AsNoTracking().FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
 
             if (existingEntry is null)
             {
-                var origin = itemType == StockItemType.Supply
-                    ? FinancialOriginType.Insumo
-                    : FinancialOriginType.Ingrediente;
+                var origin = itemType == StockItemType.Ingredient
+                    ? FinancialOriginType.IngredientPurchase
+                    : FinancialOriginType.SupplyPurchase;
 
                 var entry = FinancialEntry.Create(
-                    FinancialEntryType.Entrada,
+                    FinancialEntryType.Expense,
                     movement.TotalValue,
-                    $"Entrada automática de compra de {origin.ToString().ToLowerInvariant()} #{movement.ItemId}",
+                    $"Despesa automática de compra de {(itemType == StockItemType.Ingredient ? "ingrediente" : "insumo")} #{movement.ItemId}",
                     origin,
                     movement.ItemId,
-                    "stock_purchase",
                     eventKey);
 
                 db.FinancialEntries.Add(entry);
@@ -89,9 +83,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
         Quantity = movement.Quantity,
         UnitCost = movement.UnitCost,
         TotalValue = movement.TotalValue,
-        Description = movement.Description,
-        ReferenceType = movement.ReferenceType,
-        ReferenceId = movement.ReferenceId,
+        Notes = movement.Notes,
         EventKey = movement.EventKey,
         CreatedAt = movement.CreatedAt
     };

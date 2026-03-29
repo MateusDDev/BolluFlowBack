@@ -2,7 +2,8 @@ namespace BolluFlow.Domain.Enums;
 
 public enum FinancialOriginType
 {
-    Pedido,
-    Insumo,
-    Ingrediente
+    Order,
+    IngredientPurchase,
+    SupplyPurchase,
+    Manual
 }

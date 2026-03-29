@@ -13,9 +13,7 @@ public class StockMovement
     public decimal Quantity { get; private set; }
     public decimal UnitCost { get; private set; }
     public decimal TotalValue { get; private set; }
-    public string? Description { get; private set; }
-    public string? ReferenceType { get; private set; }
-    public long? ReferenceId { get; private set; }
+    public string? Notes { get; private set; }
     public string? EventKey { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
@@ -26,9 +24,7 @@ public class StockMovement
         StockMovementType movementType,
         decimal quantity,
         decimal unitCost,
-        string? description,
-        string? referenceType,
-        long? referenceId,
+        string? notes,
         string? eventKey)
     {
         var now = DateTime.UtcNow;
@@ -41,9 +37,7 @@ public class StockMovement
             Quantity = quantity,
             UnitCost = unitCost,
             TotalValue = decimal.Round(quantity * unitCost, 2, MidpointRounding.AwayFromZero),
-            Description = description,
-            ReferenceType = referenceType,
-            ReferenceId = referenceId,
+            Notes = notes,
             EventKey = eventKey,
             CreatedAt = now,
             UpdatedAt = now

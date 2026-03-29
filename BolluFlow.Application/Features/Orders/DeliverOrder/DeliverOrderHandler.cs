@@ -25,6 +25,9 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
 
+            if (order.Status == OrderStatus.Delivered)
+                return Result.Success();
+
             if (order.Status != OrderStatus.Ready)
                 return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
 
@@ -49,14 +52,10 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                     var total = component.QuantityUsed * item.Quantity;
 
                     if (component.ComponentType == ProductComponentType.Ingredient && component.IngredientId.HasValue)
-                    {
                         ingredientRequirements[component.IngredientId.Value] = ingredientRequirements.GetValueOrDefault(component.IngredientId.Value) + total;
-                    }
 
                     if (component.ComponentType == ProductComponentType.Supply && component.SupplyId.HasValue)
-                    {
                         supplyRequirements[component.SupplyId.Value] = supplyRequirements.GetValueOrDefault(component.SupplyId.Value) + total;
-                    }
 
                     if (component.ComponentType == ProductComponentType.Recipe && component.RecipeId.HasValue)
                     {
@@ -101,8 +100,6 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                             quantity,
                             ingredient.UnitCost,
                             $"Consumo automático do pedido #{order.Number}",
-                            "order",
-                            order.Id,
                             movementEventKey));
                     }
                 }
@@ -132,8 +129,6 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                             quantity,
                             supply.UnitCost,
                             $"Consumo automático do pedido #{order.Number}",
-                            "order",
-                            order.Id,
                             movementEventKey));
                     }
                 }
@@ -142,20 +137,18 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
             order.Status = OrderStatus.Delivered;
 
             var financialEventKey = $"order_delivered:{order.Id}";
-            var existingFinancial = await db.FinancialEntries
-                .FirstOrDefaultAsync(x => x.EventKey == financialEventKey, cancellationToken);
+            var existingFinancial = await db.FinancialEntries.FirstOrDefaultAsync(x => x.EventKey == financialEventKey, cancellationToken);
 
             if (existingFinancial is null)
             {
                 var orderTotal = decimal.Round(order.Items.Sum(x => x.Quantity * x.UnitPrice), 2, MidpointRounding.AwayFromZero);
 
                 db.FinancialEntries.Add(FinancialEntry.Create(
-                    FinancialEntryType.Saida,
+                    FinancialEntryType.Income,
                     orderTotal,
-                    $"Saída automática do pedido #{order.Number}",
-                    FinancialOriginType.Pedido,
+                    $"Receita automática do pedido #{order.Number}",
+                    FinancialOriginType.Order,
                     order.Id,
-                    "order_delivered",
                     financialEventKey));
             }
 

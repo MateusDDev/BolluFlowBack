@@ -15,11 +15,10 @@ public class FinancialEntryConfiguration : IEntityTypeConfiguration<FinancialEnt
         builder.Property(x => x.Type).HasConversion<string>();
         builder.Property(x => x.Origin).HasConversion<string>();
         builder.Property(x => x.Amount).HasPrecision(14, 2);
-        builder.Property(x => x.SourceEvent).HasMaxLength(80);
+        builder.Property(x => x.Description).HasMaxLength(255);
         builder.Property(x => x.EventKey).HasMaxLength(120);
 
-        builder.HasIndex(x => x.CreatedAt);
-        builder.HasIndex(x => x.Type);
+        builder.HasIndex(x => new { x.Type, x.CreatedAt });
         builder.HasIndex(x => new { x.Origin, x.OriginId });
         builder.HasIndex(x => x.EventKey).IsUnique();
     }

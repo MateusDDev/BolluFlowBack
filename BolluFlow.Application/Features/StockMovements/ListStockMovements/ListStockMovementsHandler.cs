@@ -50,9 +50,7 @@ public class ListStockMovementsHandler(ApplicationDbContext db)
                 Quantity = x.Quantity,
                 UnitCost = x.UnitCost,
                 TotalValue = x.TotalValue,
-                Description = x.Description,
-                ReferenceType = x.ReferenceType,
-                ReferenceId = x.ReferenceId,
+                Notes = x.Notes,
                 EventKey = x.EventKey,
                 CreatedAt = x.CreatedAt
             })

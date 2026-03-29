@@ -14,10 +14,10 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db)
     {
         var query = db.FinancialEntries.AsNoTracking().AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(request.Tipo))
+        if (!string.IsNullOrWhiteSpace(request.Type))
         {
-            if (!Enum.TryParse<FinancialEntryType>(request.Tipo, true, out var type))
-                return ResultOf<List<FinancialEntryModel>>.BadRequest(new("FINANCIAL_TYPE_INVALID", "Tipo inválido"));
+            if (!Enum.TryParse<FinancialEntryType>(request.Type, true, out var type))
+                return ResultOf<List<FinancialEntryModel>>.BadRequest(new("FINANCIAL_TYPE_INVALID", "type must be income or expense"));
 
             query = query.Where(x => x.Type == type);
         }
@@ -27,11 +27,17 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db)
             .Select(x => new FinancialEntryModel
             {
                 Id = x.Id,
-                Tipo = x.Type.ToString().ToLower(),
-                Valor = x.Amount,
-                Descricao = x.Description,
-                Origem = x.Origin.ToString().ToLower(),
-                OrigemId = x.OriginId,
+                Type = x.Type == FinancialEntryType.Income ? "income" : "expense",
+                Amount = x.Amount,
+                Description = x.Description,
+                Origin = x.Origin == FinancialOriginType.IngredientPurchase
+                    ? "ingredient_purchase"
+                    : x.Origin == FinancialOriginType.SupplyPurchase
+                        ? "supply_purchase"
+                        : x.Origin == FinancialOriginType.Manual
+                            ? "manual"
+                            : "order",
+                OriginId = x.OriginId,
                 CreatedAt = x.CreatedAt
             })
             .ToListAsync(cancellationToken);

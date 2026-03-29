@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
-using MediatR;
 
 namespace BolluFlow.Application.Features.StockMovements.CreateStockMovement;
 
@@ -22,8 +21,8 @@ public class CreateStockMovementCommand : ICommand<ResultOf<StockMovementModel>>
     [JsonPropertyName("unit_cost")]
     public decimal UnitCost { get; set; }
 
-    [JsonPropertyName("description")]
-    public string? Description { get; set; }
+    [JsonPropertyName("notes")]
+    public string? Notes { get; set; }
 
     [JsonPropertyName("event_key")]
     public string? EventKey { get; set; }

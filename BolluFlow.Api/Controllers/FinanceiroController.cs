@@ -10,11 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 namespace BolluFlow.Api.Controllers;
 
 [ApiController]
-[Route("financeiro")]
+[Route("financial")]
 [Authorize]
 public class FinanceiroController(IMediator mediator) : ControllerBase
 {
-    [HttpPost("lancamentos")]
+    [HttpPost("entries")]
     public async Task<ActionResult<FinancialEntryModel>> Create(
         [FromBody] CreateFinancialEntryCommand command,
         CancellationToken ct)
@@ -27,14 +27,14 @@ public class FinanceiroController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
 
-    [HttpGet("lancamentos")]
-    public async Task<ActionResult<List<FinancialEntryModel>>> List([FromQuery] string? tipo, CancellationToken ct)
+    [HttpGet("entries")]
+    public async Task<ActionResult<List<FinancialEntryModel>>> List([FromQuery] string? type, CancellationToken ct)
     {
-        var result = await mediator.Send(new ListFinancialEntriesQuery(tipo), ct);
+        var result = await mediator.Send(new ListFinancialEntriesQuery(type), ct);
         return result.ToActionResult();
     }
 
-    [HttpGet("saldo")]
+    [HttpGet("balance")]
     public async Task<ActionResult<FinancialBalanceModel>> Balance(CancellationToken ct)
     {
         var result = await mediator.Send(new GetFinancialBalanceQuery(), ct);

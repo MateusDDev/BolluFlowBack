@@ -11,9 +11,8 @@ public class FinancialEntry
     public decimal Amount { get; private set; }
     public string Description { get; private set; } = null!;
     public FinancialOriginType Origin { get; private set; }
-    public long OriginId { get; private set; }
-    public string SourceEvent { get; private set; } = null!;
-    public string EventKey { get; private set; } = null!;
+    public long? OriginId { get; private set; }
+    public string? EventKey { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -22,9 +21,8 @@ public class FinancialEntry
         decimal amount,
         string description,
         FinancialOriginType origin,
-        long originId,
-        string sourceEvent,
-        string eventKey)
+        long? originId,
+        string? eventKey)
     {
         var now = DateTime.UtcNow;
 
@@ -35,7 +33,6 @@ public class FinancialEntry
             Description = description,
             Origin = origin,
             OriginId = originId,
-            SourceEvent = sourceEvent,
             EventKey = eventKey,
             CreatedAt = now,
             UpdatedAt = now

@@ -20,7 +20,6 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
         builder.Property(x => x.TotalValue).HasPrecision(14, 2);
 
         builder.Property(x => x.EventKey).HasMaxLength(120);
-        builder.Property(x => x.ReferenceType).HasMaxLength(40);
 
         builder.HasIndex(x => new { x.ItemType, x.ItemId, x.CreatedAt });
         builder.HasIndex(x => new { x.MovementType, x.CreatedAt });
