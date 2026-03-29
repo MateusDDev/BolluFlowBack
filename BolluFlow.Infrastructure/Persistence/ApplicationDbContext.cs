@@ -30,12 +30,14 @@ public class ApplicationDbContext : DbContext
     public DbSet<Ingredient> Ingredients { get; set; }
     
     public DbSet<IngredientConversion> IngredientConversions { get; set; }
+    public DbSet<RecipeConversion> RecipeConversions { get; set; }
     public DbSet<Supply> Supplies { get; set; }
     public DbSet<SupplyConversion> SupplyConversions { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<ProductComponent> ProductComponents { get; set; }
     
     public DbSet<RecipeIngredient> RecipeIngredients { get; set; }
+    public DbSet<RecipeProduction> RecipeProductions { get; set; }
     public DbSet<StockMovement> StockMovements { get; set; }
     public DbSet<FinancialEntry> FinancialEntries { get; set; }
 

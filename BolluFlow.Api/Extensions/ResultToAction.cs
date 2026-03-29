@@ -18,7 +18,7 @@ public static class ResultToAction
         {
             message = result.ErrorMessage ?? "Erro inesperado",
             code = result.ErrorCode ?? "UNKNOWN_ERROR",
-            details = new { }
+            details = result.Details ?? new { }
         })
         {
             StatusCode = result.StatusCode
@@ -35,7 +35,7 @@ public static class ResultToAction
         {
             message = result.ErrorMessage ?? "Erro inesperado",
             code = result.ErrorCode ?? "UNKNOWN_ERROR",
-            details = new { }
+            details = result.Details ?? new { }
         })
         {
             StatusCode = result.StatusCode

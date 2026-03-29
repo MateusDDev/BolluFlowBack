@@ -40,6 +40,8 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
             FinalPrice = recipe.FinalPrice,
+            StockQuantity = recipe.StockQuantity,
+            MinimumStockQuantity = recipe.MinimumStockQuantity,
             IsActive = recipe.IsActive
         });
     }

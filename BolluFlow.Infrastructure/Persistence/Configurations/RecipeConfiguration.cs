@@ -11,5 +11,12 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         builder.ToTable("tb_recipe");
         
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.StockQuantity)
+            .HasPrecision(14, 4)
+            .HasDefaultValue(0);
+
+        builder.Property(x => x.MinimumStockQuantity)
+            .HasPrecision(14, 4);
     }
 }

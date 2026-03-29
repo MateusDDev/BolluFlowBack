@@ -20,9 +20,15 @@ public class Recipe
 
     public decimal FinalPrice { get; private set; }
 
+    public decimal StockQuantity { get; private set; }
+
+    public decimal? MinimumStockQuantity { get; private set; }
+
     public bool IsActive { get; set; }
 
     public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
+
+    public List<RecipeConversion> RecipeConversions { get; set; } = [];
 
     public static Recipe Create(
         long userId,
@@ -39,6 +45,7 @@ public class Recipe
             Name = name,
             Category = category,
             FinalPrice = finalPrice,
+            StockQuantity = 0,
             IsActive = true,
             PreparationTime = preparationTime
         };
@@ -60,6 +67,38 @@ public class Recipe
     {
         ValidateFinalPrice(finalPrice);
         FinalPrice = finalPrice;
+    }
+
+    public void ProduceStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        StockQuantity += quantity;
+    }
+
+    public void ConsumeStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        if (StockQuantity < quantity)
+            throw new DomainException(RecipeErrors.StockInsufficient(Name));
+
+        StockQuantity -= quantity;
+    }
+
+    public void SetMinimumStockQuantity(decimal? minimumStockQuantity)
+    {
+        if (minimumStockQuantity < 0)
+            throw new DomainException(RecipeErrors.MinimumStockQuantityInvalid);
+
+        MinimumStockQuantity = minimumStockQuantity;
+    }
+
+    public void AddConversion(string name, decimal quantityInBaseUnit)
+    {
+        RecipeConversions.Add(RecipeConversion.Create(Id, name, quantityInBaseUnit));
     }
 
     public decimal CalculateUnitCost()

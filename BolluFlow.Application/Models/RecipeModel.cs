@@ -14,5 +14,9 @@ public class RecipeModel
 
     public decimal FinalPrice { get; set; }
 
+    public decimal StockQuantity { get; set; }
+
+    public decimal? MinimumStockQuantity { get; set; }
+
     public bool IsActive { get; set; }
 }
