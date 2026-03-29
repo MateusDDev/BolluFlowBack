@@ -1,12 +1,14 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Configuration;
 using BolluFlow.Application.Errors;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using System.Globalization;
 
 namespace BolluFlow.Application.Features.Reports.OrderReport;
 
@@ -25,6 +27,12 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                 Number = x.Number,
                 DeliveryDate = x.DeliveryDate,
                 CustomerName = x.Customer.Name,
+                CustomerWhatsapp = x.Customer.Whatsapp,
+                CustomerStreet = x.Customer.DeliveryAddress.Street,
+                CustomerNumber = x.Customer.DeliveryAddress.Number,
+                CustomerNeighborhood = x.Customer.DeliveryAddress.Neighborhood,
+                TotalValue = x.Items.Sum(i => i.Quantity * i.UnitPrice),
+                PaymentMethod = x.PaymentMethod,
                 Items = x.Items.Select(i => new OrderReportResultItem
                 {
                     Quantity = i.Quantity,
@@ -70,6 +78,10 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                             col.Item().AlignCenter()
                                 .Text(order.CustomerName)
                                 .FontSize(10);
+                            
+                            col.Item().AlignCenter()
+                                .Text($"📱 {order.CustomerWhatsapp}")
+                                .FontSize(9);
 
                             col.Item().AlignCenter()
                                 .Text(order.DeliveryDate.HasValue
@@ -80,6 +92,29 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
 
                             col.Item()
                                 .PaddingTop(2)
+                                .LineHorizontal(0.5f)
+                                .LineColor(Colors.Grey.Lighten1);
+                        });
+
+                        main.Item().Column(address =>
+                        {
+                            address.Spacing(2);
+
+                            address.Item()
+                                .LineHorizontal(0.5f)
+                                .LineColor(Colors.Grey.Lighten1);
+                            
+                            address.Item()
+                                .Text($"📍 {order.CustomerStreet}, {order.CustomerNumber}")
+                                .FontSize(9);
+                            
+                            address.Item()
+                                .PaddingLeft(8)
+                                .Text(order.CustomerNeighborhood)
+                                .FontSize(9)
+                                .FontColor(Colors.Grey.Darken1);
+                            
+                            address.Item()
                                 .LineHorizontal(0.5f)
                                 .LineColor(Colors.Grey.Lighten1);
                         });
@@ -102,6 +137,23 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                                         .Bold()
                                         .FontSize(10);
                                 });
+                            }
+
+                            col.Item()
+                                .PaddingTop(4)
+                                .LineHorizontal(0.5f)
+                                .LineColor(Colors.Grey.Lighten1);
+                            
+                            col.Item()
+                                .Text($"TOTAL: {order.TotalValue.ToString("C", new CultureInfo("pt-BR"))}")
+                                .Bold()
+                                .FontSize(10);
+
+                            if (order.PaymentMethod.HasValue)
+                            {
+                                col.Item()
+                                    .Text($"PAGAMENTO: {GetPaymentMethodLabel(order.PaymentMethod.Value)}")
+                                    .FontSize(9);
                             }
 
                             if (!string.IsNullOrWhiteSpace(order.Note))
@@ -145,5 +197,17 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                     });
             });
         }).GeneratePdf();
+    }
+    
+    private static string GetPaymentMethodLabel(PaymentMethod paymentMethod)
+    {
+        return paymentMethod switch
+        {
+            PaymentMethod.Cash => "Dinheiro",
+            PaymentMethod.Pix => "Pix",
+            PaymentMethod.CreditCard => "Cartão de crédito",
+            PaymentMethod.DebitCard => "Cartão de débito",
+            _ => paymentMethod.ToString()
+        };
     }
 }
