@@ -1,4 +1,5 @@
 using BolluFlow.Domain.Abstractions;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Domain.Services;
 
@@ -18,6 +19,8 @@ public class Recipe
 
     public int? PreparationTime { get; set; }
 
+    public BaseUnit BaseUnit { get; private set; }
+
     public decimal FinalPrice { get; private set; }
 
     public decimal StockQuantity { get; private set; }
@@ -34,6 +37,7 @@ public class Recipe
         long userId,
         string name,
         string category,
+        BaseUnit baseUnit,
         int? preparationTime = null,
         decimal finalPrice = 0)
     {
@@ -44,6 +48,7 @@ public class Recipe
             UserId = userId,
             Name = name,
             Category = category,
+            BaseUnit = baseUnit,
             FinalPrice = finalPrice,
             StockQuantity = 0,
             IsActive = true,
@@ -54,11 +59,13 @@ public class Recipe
     public void Update(
         string name,
         string category,
+        BaseUnit baseUnit,
         int? preparationTime = null,
         bool isActive = true)
     {
         Name = name;
         Category = category;
+        BaseUnit = baseUnit;
         IsActive = isActive;
         PreparationTime = preparationTime;
     }

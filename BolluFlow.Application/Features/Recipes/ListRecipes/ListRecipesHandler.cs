@@ -22,6 +22,7 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
                 Id = x.Id,
                 Name = x.Name,
                 Category = x.Category,
+                BaseUnit = x.BaseUnit,
                 PreparationTime = x.PreparationTime,
                 UnitCost = x.CalculateUnitCost(),
                 FinalPrice = x.FinalPrice,

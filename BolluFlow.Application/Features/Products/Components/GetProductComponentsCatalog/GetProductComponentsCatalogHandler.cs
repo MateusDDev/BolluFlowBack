@@ -18,7 +18,7 @@ public class GetProductComponentsCatalogHandler(ApplicationDbContext db, Current
             return ResultOf<List<ProductComponentCatalogItemModel>>.NotFound(CommonErrors.ProductNotFound);
 
         var recipes = await db.Recipes.Where(x => x.UserId == user.Id)
-            .Select(x => new ProductComponentCatalogItemModel { Id = x.Id, Name = x.Name, BaseUnit = "unit", SourceType = "Recipe" })
+            .Select(x => new ProductComponentCatalogItemModel { Id = x.Id, Name = x.Name, BaseUnit = x.BaseUnit.ToString(), SourceType = "Recipe" })
             .ToListAsync(cancellationToken);
 
         var ingredients = await db.Ingredients.Where(x => x.UserId == user.Id)

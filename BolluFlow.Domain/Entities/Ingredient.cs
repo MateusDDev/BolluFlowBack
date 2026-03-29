@@ -11,7 +11,7 @@ public class Ingredient
     public long Id { get; private set; }
     public long UserId { get; private set; }
     public string Name { get; private set; } = null!;
-    public IngredientBaseUnit BaseUnit { get; private set; }
+    public BaseUnit BaseUnit { get; private set; }
     public decimal UnitCost { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
@@ -21,7 +21,7 @@ public class Ingredient
     public static Ingredient Create(
         long userId,
         string name,
-        IngredientBaseUnit unit,
+        BaseUnit unit,
         decimal unitPrice,
         decimal stockQuantity,
         decimal? minimumStockQuantity)
@@ -31,7 +31,7 @@ public class Ingredient
 
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
-        
+
         if (stockQuantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
@@ -47,8 +47,8 @@ public class Ingredient
     }
 
     public void Update(
-        string name, 
-        IngredientBaseUnit unit, 
+        string name,
+        BaseUnit unit,
         decimal unitPrice,
         decimal stockQuantity,
         decimal? minimumStockQuantity)
@@ -58,7 +58,7 @@ public class Ingredient
 
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
-        
+
         if (stockQuantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
@@ -68,18 +68,18 @@ public class Ingredient
         StockQuantity = stockQuantity;
         MinimumStockQuantity = minimumStockQuantity;
     }
-    
+
     public void ConsumeStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
-        if (StockQuantity < quantity) 
+        if (StockQuantity < quantity)
             throw new DomainException(IngredientErrors.StockInsufficient(Name));
-        
+
         StockQuantity -= quantity;
     }
-    
+
     public void RevertStock(decimal quantity)
     {
         if (quantity <= 0)

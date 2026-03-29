@@ -24,6 +24,7 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
             Id = recipe.Id,
             Name = recipe.Name,
             Category = recipe.Category,
+            BaseUnit = recipe.BaseUnit,
             PreparationTime = recipe.PreparationTime,
             UnitCost = recipe.CalculateUnitCost(),
             FinalPrice = recipe.FinalPrice,

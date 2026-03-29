@@ -8,7 +8,7 @@ public record UpdateIngredientCommand(long Id, UpdateIngredientCommandBody Body)
 
 public record UpdateIngredientCommandBody(
     string Name,
-    IngredientBaseUnit Unit, 
-    decimal UnitCost, 
-    decimal StockQuantity, 
+    BaseUnit Unit,
+    decimal UnitCost,
+    decimal StockQuantity,
     decimal? MinimumStockQuantity);

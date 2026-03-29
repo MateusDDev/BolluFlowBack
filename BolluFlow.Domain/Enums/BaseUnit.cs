@@ -1,6 +1,6 @@
 ﻿namespace BolluFlow.Domain.Enums;
 
-public enum IngredientBaseUnit
+public enum BaseUnit
 {
     Unit,
     Gram,

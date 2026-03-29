@@ -12,6 +12,8 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
         
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.BaseUnit).HasConversion<string>();
+
         builder.Property(x => x.StockQuantity)
             .HasPrecision(14, 4)
             .HasDefaultValue(0);
