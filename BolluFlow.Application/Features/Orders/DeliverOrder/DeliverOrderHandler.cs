@@ -146,7 +146,7 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
                 db.FinancialEntries.Add(FinancialEntry.Create(
                     FinancialEntryType.Income,
                     orderTotal,
-                    $"Receita automática do pedido #{order.Number}",
+                    $"Venda - Pedido #{order.Number}",
                     FinancialOriginType.Order,
                     order.Id,
                     financialEventKey));

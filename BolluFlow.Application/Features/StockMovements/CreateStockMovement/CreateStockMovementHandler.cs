@@ -30,6 +30,8 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
                 return ResultOf<StockMovementModel>.Success(ToModel(existingByEvent));
         }
 
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
         var movement = StockMovement.Create(
             request.ItemType,
             request.ItemId,
@@ -44,6 +46,33 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
 
         if (request.MovementType == StockMovementType.Purchase)
         {
+            var itemName = $"#{request.ItemId}";
+
+            if (request.ItemType == StockItemType.Ingredient)
+            {
+                var ingredient = await db.Ingredients
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+
+                if (ingredient is not null)
+                {
+                    ingredient.RevertStock(movement.Quantity);
+                    itemName = ingredient.Name;
+                }
+            }
+            else if (request.ItemType == StockItemType.Supply)
+            {
+                var supply = await db.Supplies
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+
+                if (supply is not null)
+                {
+                    supply.RevertStock(movement.Quantity);
+                    itemName = supply.Name;
+                }
+            }
+
+            await db.SaveChangesAsync(cancellationToken);
+
             var eventKey = $"stock_purchase:{movement.Id}";
             var existingEntry = await db.FinancialEntries.AsNoTracking().FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
 
@@ -56,7 +85,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
                 var entry = FinancialEntry.Create(
                     FinancialEntryType.Expense,
                     movement.TotalValue,
-                    $"Despesa automática de compra de {(request.ItemType == StockItemType.Ingredient ? "ingrediente" : "insumo")} #{movement.ItemId}",
+                    $"Compra - {itemName}",
                     origin,
                     movement.ItemId,
                     eventKey);
@@ -65,6 +94,8 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
                 await db.SaveChangesAsync(cancellationToken);
             }
         }
+
+        await tx.CommitAsync(cancellationToken);
 
         return ResultOf<StockMovementModel>.Success(ToModel(movement));
     }
