@@ -45,7 +45,7 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db) : IRequestHand
                         if (ingredient is null)
                             return Result.BadRequest(new DomainError("INGREDIENT_NOT_FOUND", "Ingrediente relacionado à movimentação não encontrado."));
 
-                        ingredient.RevertStock(movement.Quantity);
+                        ingredient.ConsumeStock(movement.Quantity);
                     }
                     else
                     {
@@ -53,7 +53,7 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db) : IRequestHand
                         if (supply is null)
                             return Result.BadRequest(new DomainError("SUPPLY_NOT_FOUND", "Insumo relacionado à movimentação não encontrado."));
 
-                        supply.RevertStock(movement.Quantity);
+                        supply.ConsumeStock(movement.Quantity);
                     }
 
                     db.StockMovements.Remove(movement);
