@@ -75,6 +75,14 @@ public class Product
         StockQuantity -= quantity;
     }
 
+    public void AddStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(ProductErrors.StockQuantityInvalid);
+
+        StockQuantity += quantity;
+    }
+
     private static void Validate(string name, decimal stockQuantity, decimal? minimumStockQuantity)
     {
         if (string.IsNullOrWhiteSpace(name))

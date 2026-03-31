@@ -6,4 +6,4 @@ namespace BolluFlow.Application.Features.Supplies.UpdateSupply;
 
 public record UpdateSupplyCommand(long Id, UpdateSupplyCommandBody Body) : ICommand<ResultOf<SupplyModel>>;
 
-public record UpdateSupplyCommandBody(string Name, BaseUnit Unit, decimal UnitCost, decimal StockQuantity, decimal? MinimumStockQuantity);
+public record UpdateSupplyCommandBody(string Name, BaseUnit Unit, decimal UnitCost, decimal? MinimumStockQuantity);
