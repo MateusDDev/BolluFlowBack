@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,10 +6,16 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace BolluFlow.Infrastructure.Migrations
 {
-    public partial class ProductProductions : Migration
+    /// <inheritdoc />
+    public partial class ProductsProduction : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "stock_quantity",
+                table: "tb_product_component");
+
             migrationBuilder.CreateTable(
                 name: "product_productions",
                 columns: table => new
@@ -25,7 +31,7 @@ namespace BolluFlow.Infrastructure.Migrations
                 {
                     table.PrimaryKey("pk_product_productions", x => x.id);
                     table.ForeignKey(
-                        name: "fk_product_productions_tb_product_product_id",
+                        name: "fk_product_productions_products_product_id",
                         column: x => x.product_id,
                         principalTable: "tb_product",
                         principalColumn: "id",
@@ -38,10 +44,18 @@ namespace BolluFlow.Infrastructure.Migrations
                 column: "product_id");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "product_productions");
+
+            migrationBuilder.AddColumn<decimal>(
+                name: "stock_quantity",
+                table: "tb_product_component",
+                type: "numeric",
+                nullable: false,
+                defaultValue: 0m);
         }
     }
 }

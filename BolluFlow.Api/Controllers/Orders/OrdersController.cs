@@ -30,7 +30,7 @@ public class OrdersController(IMediator mediator) : ControllerBase
     [HttpPost("{orderId:long}/cancel")]
     public async Task<ActionResult> CancelOrder(
         [FromRoute] long orderId, 
-        [FromQuery] bool revertStock = false,
+        [FromQuery] bool revertStock,
         CancellationToken ct)
     {
         var command = new CancelOrderCommand(orderId, revertStock);
