@@ -32,7 +32,7 @@ public class Ingredient
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
 
-        if (stockQuantity <= 0)
+        if (stockQuantity < 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
         return new Ingredient

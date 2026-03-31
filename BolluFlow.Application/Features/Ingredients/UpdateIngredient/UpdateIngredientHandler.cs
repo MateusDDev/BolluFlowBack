@@ -27,7 +27,7 @@ public class UpdateIngredientHandler(ApplicationDbContext db) : IRequestHandler<
                 command.Name, 
                 command.Unit, 
                 command.UnitCost, 
-                command.StockQuantity, 
+                ingredient.StockQuantity, 
                 command.MinimumStockQuantity);
 
             await db.SaveChangesAsync(cancellationToken);

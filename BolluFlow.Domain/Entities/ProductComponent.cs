@@ -21,10 +21,9 @@ public class ProductComponent
     public string Name { get; private set; } = null!;
     public string BaseUnit { get; private set; } = null!;
     public decimal UnitPrice { get; private set; }
-    public decimal StockQuantity { get; private set; }
     public decimal QuantityUsed { get; private set; }
 
-    public static ProductComponent Create(long productId, ProductComponentType componentType, long sourceId, string name, string baseUnit, decimal unitPrice, decimal stockQuantity, decimal quantityUsed)
+    public static ProductComponent Create(long productId, ProductComponentType componentType, long sourceId, string name, string baseUnit, decimal unitPrice, decimal quantityUsed)
     {
         if (quantityUsed <= 0)
             throw new DomainException(ProductComponentErrors.InvalidQuantity);
@@ -39,12 +38,11 @@ public class ProductComponent
             Name = name,
             BaseUnit = baseUnit,
             UnitPrice = unitPrice,
-            StockQuantity = stockQuantity,
             QuantityUsed = quantityUsed
         };
     }
 
-    public void Update(decimal quantityUsed, string name, string baseUnit, decimal unitPrice, decimal stockQuantity)
+    public void Update(decimal quantityUsed, string name, string baseUnit, decimal unitPrice)
     {
         if (quantityUsed <= 0)
             throw new DomainException(ProductComponentErrors.InvalidQuantity);
@@ -53,6 +51,5 @@ public class ProductComponent
         Name = name;
         BaseUnit = baseUnit;
         UnitPrice = unitPrice;
-        StockQuantity = stockQuantity;
     }
 }

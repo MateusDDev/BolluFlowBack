@@ -20,7 +20,7 @@ public class UpdateSupplyHandler(ApplicationDbContext db, CurrentUser user) : IR
             if (supply is null)
                 return ResultOf<SupplyModel>.NotFound(CommonErrors.SupplyNotFound);
 
-            supply.Update(request.Body.Name, request.Body.Unit, request.Body.UnitCost, request.Body.StockQuantity, request.Body.MinimumStockQuantity);
+            supply.Update(request.Body.Name, request.Body.Unit, request.Body.UnitCost, supply.StockQuantity, request.Body.MinimumStockQuantity);
             await db.SaveChangesAsync(cancellationToken);
             return ResultOf<SupplyModel>.Success(supply.Adapt<SupplyModel>());
         }

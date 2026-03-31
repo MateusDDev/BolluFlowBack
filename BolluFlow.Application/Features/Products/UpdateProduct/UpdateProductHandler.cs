@@ -23,7 +23,7 @@ public class UpdateProductHandler(ApplicationDbContext db, CurrentUser user) : I
             product.Update(
                 request.Body.Name ?? product.Name,
                 request.Body.SalePrice ?? product.SalePrice,
-                request.Body.StockQuantity ?? product.StockQuantity,
+                product.StockQuantity,
                 request.Body.MinimumStockQuantity ?? product.MinimumStockQuantity,
                 request.Body.IsActive);
 

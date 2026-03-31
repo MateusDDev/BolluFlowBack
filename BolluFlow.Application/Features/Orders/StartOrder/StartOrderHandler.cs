@@ -1,4 +1,4 @@
-﻿using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
@@ -13,6 +13,8 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
 {
     public async Task<Result> Handle(StartOrderCommand request, CancellationToken cancellationToken)
     {
+        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+
         try
         {
             var order = await db.Orders
@@ -30,66 +32,48 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
 
             var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
             var products = await db.Products
-                .Include(x => x.Components)
                 .Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-            foreach (var item in order.Items)
-            {
-                if (!products.TryGetValue(item.ProductId, out var product))
-                    return Result.NotFound(CommonErrors.ProductNotFound);
-
-                if (product.StockQuantity < item.Quantity)
-                    return Result.Unprocessable(ProductErrors.StockInsufficient(product.Name));
-
-                foreach (var component in product.Components)
+            var insufficientProducts = order.Items
+                .Select(item => new
                 {
-                    var total = component.QuantityUsed * item.Quantity;
+                    Item = item,
+                    Product = products.GetValueOrDefault(item.ProductId)
+                })
+                .Where(x => x.Product is null || x.Product.StockQuantity < x.Item.Quantity)
+                .Select(x => new
+                {
+                    productId = x.Item.ProductId,
+                    productName = x.Product?.Name ?? "Produto não encontrado",
+                    required = x.Item.Quantity,
+                    available = x.Product?.StockQuantity ?? 0
+                })
+                .ToList();
 
-                    if (component.ComponentType == ProductComponentType.Ingredient && component.IngredientId.HasValue)
-                    {
-                        var ingredient = await db.Ingredients.FirstOrDefaultAsync(x => x.Id == component.IngredientId.Value, cancellationToken);
-                        if (ingredient is null)
-                            return Result.NotFound(CommonErrors.IngredientNotFound);
-
-                        if (ingredient.StockQuantity < total)
-                            return Result.Unprocessable(IngredientErrors.StockInsufficient(ingredient.Name));
-                    }
-
-                    if (component.ComponentType == ProductComponentType.Supply && component.SupplyId.HasValue)
-                    {
-                        var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == component.SupplyId.Value, cancellationToken);
-                        if (supply is null)
-                            return Result.NotFound(CommonErrors.SupplyNotFound);
-
-                        if (supply.StockQuantity < total)
-                            return Result.Unprocessable(SupplyErrors.StockInsufficient(supply.Name));
-                    }
-
-                    if (component.ComponentType == ProductComponentType.Recipe && component.RecipeId.HasValue)
-                    {
-                        var recipeIngredients = await db.RecipeIngredients.Include(x => x.Ingredient)
-                            .Where(x => x.RecipeId == component.RecipeId.Value)
-                            .ToListAsync(cancellationToken);
-
-                        foreach (var recipeIngredient in recipeIngredients)
-                        {
-                            var required = recipeIngredient.QuantityUsed * total;
-                            if (recipeIngredient.Ingredient.StockQuantity < required)
-                                return Result.Unprocessable(IngredientErrors.StockInsufficient(recipeIngredient.Ingredient.Name));
-                        }
-                    }
-                }
+            if (insufficientProducts.Count > 0)
+            {
+                return Result.Unprocessable(
+                    new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para iniciar a produção do pedido"),
+                    new { insufficientProducts });
             }
 
             order.Status = OrderStatus.InProduction;
 
+            foreach (var item in order.Items)
+            {
+                var product = products[item.ProductId];
+                product.ConsumeStock(item.Quantity);
+            }
+
             await db.SaveChangesAsync(cancellationToken);
+            await tx.CommitAsync(cancellationToken);
 
             return Result.Success();
         }
         catch (DomainException e)
         {
+            await tx.RollbackAsync(cancellationToken);
             return Result.BadRequest(e.Error);
         }
     }

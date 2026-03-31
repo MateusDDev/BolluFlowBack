@@ -1,8 +1,8 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,8 +14,26 @@ public class GetProductComponentsHandler(ApplicationDbContext db, CurrentUser us
     {
         var items = await db.ProductComponents
             .Where(x => x.ProductId == request.ProductId && x.Product.UserId == user.Id)
+            .Select(x => new ProductComponentModel
+            {
+                Id = x.Id,
+                ProductId = x.ProductId,
+                ComponentType = x.ComponentType,
+                RecipeId = x.RecipeId,
+                IngredientId = x.IngredientId,
+                SupplyId = x.SupplyId,
+                Name = x.Name,
+                BaseUnit = x.BaseUnit,
+                UnitPrice = x.UnitPrice,
+                QuantityUsed = x.QuantityUsed,
+                StockQuantity = x.ComponentType == ProductComponentType.Recipe
+                    ? x.Recipe!.StockQuantity
+                    : x.ComponentType == ProductComponentType.Ingredient
+                        ? x.Ingredient!.StockQuantity
+                        : x.Supply!.StockQuantity
+            })
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<ProductComponentModel>>.Success(items.Adapt<List<ProductComponentModel>>());
+        return ResultOf<List<ProductComponentModel>>.Success(items);
     }
 }

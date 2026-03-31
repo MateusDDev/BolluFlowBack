@@ -425,10 +425,6 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("recipe_id");
 
-                    b.Property<decimal>("StockQuantity")
-                        .HasColumnType("numeric")
-                        .HasColumnName("stock_quantity");
-
                     b.Property<long?>("SupplyId")
                         .HasColumnType("bigint")
                         .HasColumnName("supply_id");
@@ -453,6 +449,42 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasDatabaseName("ix_tb_product_component_supply_id");
 
                     b.ToTable("tb_product_component", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.ProductProduction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_product_productions");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_product_productions_product_id");
+
+                    b.ToTable("product_productions", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Recipe", b =>
@@ -878,6 +910,18 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Navigation("Recipe");
 
                     b.Navigation("Supply");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.ProductProduction", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_product_productions_products_product_id");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.RecipeConversion", b =>

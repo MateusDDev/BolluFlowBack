@@ -23,7 +23,7 @@ public class UpdateProductComponentHandler(ApplicationDbContext db, CurrentUser 
             if (component is null)
                 return Result.NotFound(CommonErrors.ProductComponentNotFound);
 
-            component.Update(request.Body.QuantityUsed, component.Name, component.BaseUnit, component.UnitPrice, component.StockQuantity);
+            component.Update(request.Body.QuantityUsed, component.Name, component.BaseUnit, component.UnitPrice);
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
             return Result.Success();

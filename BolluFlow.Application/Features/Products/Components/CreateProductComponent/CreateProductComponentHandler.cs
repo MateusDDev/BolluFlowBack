@@ -50,7 +50,7 @@ public class CreateProductComponentHandler(ApplicationDbContext db, CurrentUser 
                 return Result.NotFound(new DomainError("COMPONENT_SOURCE_NOT_FOUND", "Origem do componente não encontrada"));
 
             db.ProductComponents.Add(ProductComponent.Create(request.ProductId, componentType, sourceId, source.Value.Name,
-                source.Value.BaseUnit, source.Value.UnitPrice, source.Value.StockQuantity, request.Body.QuantityUsed));
+                source.Value.BaseUnit, source.Value.UnitPrice, request.Body.QuantityUsed));
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
@@ -81,7 +81,7 @@ public class CreateProductComponentHandler(ApplicationDbContext db, CurrentUser 
         };
     }
 
-    private async Task<(string Name, string BaseUnit, decimal UnitPrice, decimal StockQuantity)?> LoadSource(ProductComponentType type, long sourceId, CancellationToken ct)
+    private async Task<(string Name, string BaseUnit, decimal UnitPrice)?> LoadSource(ProductComponentType type, long sourceId, CancellationToken ct)
     {
         if (type == ProductComponentType.Recipe)
         {
@@ -90,16 +90,16 @@ public class CreateProductComponentHandler(ApplicationDbContext db, CurrentUser 
                 .ThenInclude(x => x.Ingredient)
                 .FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
 
-            return recipe is null ? null : (recipe.Name, recipe.BaseUnit.ToString(), recipe.CalculateUnitCost(), recipe.StockQuantity);
+            return recipe is null ? null : (recipe.Name, recipe.BaseUnit.ToString(), recipe.CalculateUnitCost());
         }
 
         if (type == ProductComponentType.Ingredient)
         {
             var ingredient = await db.Ingredients.FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
-            return ingredient is null ? null : (ingredient.Name, ingredient.BaseUnit.ToString(), ingredient.UnitCost, ingredient.StockQuantity);
+            return ingredient is null ? null : (ingredient.Name, ingredient.BaseUnit.ToString(), ingredient.UnitCost);
         }
 
         var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == sourceId && x.UserId == user.Id, ct);
-        return supply is null ? null : (supply.Name, supply.BaseUnit.ToString(), supply.UnitCost, supply.StockQuantity);
+        return supply is null ? null : (supply.Name, supply.BaseUnit.ToString(), supply.UnitCost);
     }
 }
