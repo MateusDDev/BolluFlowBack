@@ -357,7 +357,7 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("final_price");
 
-                    b.Property<decimal>("IndirectCostPercentage")
+                    b.Property<decimal?>("IndirectCostPercentage")
                         .HasColumnType("numeric")
                         .HasColumnName("indirect_cost_percentage");
 
@@ -816,6 +816,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("email");
 
+                    b.Property<decimal?>("IndirectCostRate")
+                        .HasColumnType("numeric(5,2)")
+                        .HasColumnName("indirect_cost_rate");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
@@ -829,6 +833,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("text")
                         .HasColumnName("profile_image_url");
+
+                    b.Property<string>("WhatsappMessageTemplate")
+                        .HasColumnType("text")
+                        .HasColumnName("whatsapp_message_template");
 
                     b.HasKey("Id")
                         .HasName("pk_tb_user");

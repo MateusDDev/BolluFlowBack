@@ -34,10 +34,9 @@ public class User
         if (name is not null)
             Name = name;
 
-        if (whatsappMessageTemplate is not null)
-            WhatsappMessageTemplate = whatsappMessageTemplate;
-
         if (indirectCostRate.HasValue)
             IndirectCostRate = indirectCostRate.Value;
+        
+        WhatsappMessageTemplate = whatsappMessageTemplate;
     }
 }
