@@ -13,7 +13,7 @@ public class Product
     public decimal? SalePrice { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
-    public decimal IndirectCostPercentage { get; private set; }
+    public decimal? IndirectCostPercentage { get; private set; }
     public decimal MarkupPercentage { get; private set; }
     public decimal FinalPrice { get; private set; }
     public decimal? DiscountPercentage { get; private set; }
@@ -32,7 +32,7 @@ public class Product
             SalePrice = salePrice,
             StockQuantity = stockQuantity,
             MinimumStockQuantity = minimumStockQuantity,
-            IndirectCostPercentage = 0,
+            IndirectCostPercentage = null,
             MarkupPercentage = 0,
             FinalPrice = salePrice ?? 0,
             DiscountPercentage = null,
@@ -51,7 +51,7 @@ public class Product
         IsActive = isActive ?? IsActive;
     }
 
-    public void UpdatePricing(decimal indirectCostPercentage, decimal markupPercentage, decimal finalPrice, decimal? discountPercentage)
+    public void UpdatePricing(decimal? indirectCostPercentage, decimal markupPercentage, decimal finalPrice, decimal? discountPercentage)
     {
         if (finalPrice < 0)
             throw new DomainException(ProductErrors.FinalPriceInvalid);
