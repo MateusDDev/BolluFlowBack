@@ -16,6 +16,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         
         builder.Property(x => x.Status).HasConversion<string>();
         builder.Property(x => x.PaymentMethod).HasConversion<string>();
+        builder.Property(x => x.DiscountType).HasConversion<string>();
+        builder.Property(x => x.ShippingFee).HasDefaultValue(0);
         
         builder
             .HasOne<Customer>(x => x.Customer)

@@ -30,6 +30,26 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_financial_entries",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    type = table.Column<string>(type: "text", nullable: false),
+                    amount = table.Column<decimal>(type: "numeric(14,2)", precision: 14, scale: 2, nullable: false),
+                    description = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    origin = table.Column<string>(type: "text", nullable: false),
+                    origin_id = table.Column<long>(type: "bigint", nullable: true),
+                    event_key = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_financial_entries", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_ingredient",
                 columns: table => new
                 {
@@ -79,12 +99,37 @@ namespace BolluFlow.Infrastructure.Migrations
                     name = table.Column<string>(type: "text", nullable: false),
                     category = table.Column<string>(type: "text", nullable: false),
                     preparation_time = table.Column<int>(type: "integer", nullable: true),
+                    base_unit = table.Column<string>(type: "text", nullable: false),
                     final_price = table.Column<decimal>(type: "numeric", nullable: false),
+                    stock_quantity = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false, defaultValue: 0m),
+                    minimum_stock_quantity = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: true),
                     is_active = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_tb_recipe", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tb_stock_movements",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    item_type = table.Column<string>(type: "text", nullable: false),
+                    item_id = table.Column<long>(type: "bigint", nullable: false),
+                    movement_type = table.Column<string>(type: "text", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false),
+                    unit_cost = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false),
+                    total_value = table.Column<decimal>(type: "numeric(14,2)", precision: 14, scale: 2, nullable: false),
+                    notes = table.Column<string>(type: "text", nullable: true),
+                    event_key = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_stock_movements", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -155,6 +200,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     status = table.Column<string>(type: "text", nullable: false),
                     note = table.Column<string>(type: "text", nullable: true),
                     delivery_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    payment_method = table.Column<string>(type: "text", nullable: true),
+                    discount = table.Column<decimal>(type: "numeric", nullable: true),
+                    discount_type = table.Column<string>(type: "text", nullable: true),
+                    shipping_fee = table.Column<decimal>(type: "numeric", nullable: false, defaultValue: 0m),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
@@ -190,6 +239,49 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_product_productions",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    product_id = table.Column<long>(type: "bigint", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false),
+                    notes = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_product_productions", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_product_productions_tb_product_product_id",
+                        column: x => x.product_id,
+                        principalTable: "tb_product",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "tb_recipe_conversion",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    recipe_id = table.Column<long>(type: "bigint", nullable: false),
+                    name = table.Column<string>(type: "text", nullable: false),
+                    quantity_in_base_unit = table.Column<decimal>(type: "numeric", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_recipe_conversion", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_recipe_conversion_tb_recipe_recipe_id",
+                        column: x => x.recipe_id,
+                        principalTable: "tb_recipe",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_recipe_ingredient",
                 columns: table => new
                 {
@@ -215,6 +307,28 @@ namespace BolluFlow.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "tb_recipe_productions",
+                columns: table => new
+                {
+                    id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    recipe_id = table.Column<long>(type: "bigint", nullable: false),
+                    quantity = table.Column<decimal>(type: "numeric(14,4)", precision: 14, scale: 4, nullable: false),
+                    notes = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_tb_recipe_productions", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_tb_recipe_productions_tb_recipe_recipe_id",
+                        column: x => x.recipe_id,
+                        principalTable: "tb_recipe",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "tb_product_component",
                 columns: table => new
                 {
@@ -228,7 +342,6 @@ namespace BolluFlow.Infrastructure.Migrations
                     name = table.Column<string>(type: "text", nullable: false),
                     base_unit = table.Column<string>(type: "text", nullable: false),
                     unit_price = table.Column<decimal>(type: "numeric", nullable: false),
-                    stock_quantity = table.Column<decimal>(type: "numeric", nullable: false),
                     quantity_used = table.Column<decimal>(type: "numeric", nullable: false)
                 },
                 constraints: table =>
@@ -314,14 +427,35 @@ namespace BolluFlow.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_tb_financial_entries_event_key",
+                table: "tb_financial_entries",
+                column: "event_key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_financial_entries_origin_origin_id",
+                table: "tb_financial_entries",
+                columns: new[] { "origin", "origin_id" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_financial_entries_type_created_at",
+                table: "tb_financial_entries",
+                columns: new[] { "type", "created_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_ingredient_user_id_minimum_stock_quantity_stock_quantity",
+                table: "tb_ingredient",
+                columns: new[] { "user_id", "minimum_stock_quantity", "stock_quantity" });
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tb_ingredient_conversion_ingredient_id",
                 table: "tb_ingredient_conversion",
                 column: "ingredient_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_tb_order_customer_id",
+                name: "ix_tb_order_customer_id_status_created_at",
                 table: "tb_order",
-                column: "customer_id");
+                columns: new[] { "customer_id", "status", "created_at" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_tb_order_item_order_id",
@@ -338,6 +472,11 @@ namespace BolluFlow.Infrastructure.Migrations
                 name: "ix_tb_order_item_product_id",
                 table: "tb_order_item",
                 column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_product_user_id_minimum_stock_quantity_stock_quantity",
+                table: "tb_product",
+                columns: new[] { "user_id", "minimum_stock_quantity", "stock_quantity" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_tb_product_component_ingredient_id",
@@ -360,14 +499,50 @@ namespace BolluFlow.Infrastructure.Migrations
                 column: "supply_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_tb_product_productions_product_id",
+                table: "tb_product_productions",
+                column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_recipe_conversion_recipe_id",
+                table: "tb_recipe_conversion",
+                column: "recipe_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tb_recipe_ingredient_ingredient_id",
                 table: "tb_recipe_ingredient",
                 column: "ingredient_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_tb_recipe_productions_recipe_id",
+                table: "tb_recipe_productions",
+                column: "recipe_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_stock_movements_event_key",
+                table: "tb_stock_movements",
+                column: "event_key",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_stock_movements_item_type_item_id_created_at",
+                table: "tb_stock_movements",
+                columns: new[] { "item_type", "item_id", "created_at" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_stock_movements_movement_type_created_at",
+                table: "tb_stock_movements",
+                columns: new[] { "movement_type", "created_at" });
+
+            migrationBuilder.CreateIndex(
                 name: "ix_tb_supply_name",
                 table: "tb_supply",
                 column: "name");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_tb_supply_user_id_minimum_stock_quantity_stock_quantity",
+                table: "tb_supply",
+                columns: new[] { "user_id", "minimum_stock_quantity", "stock_quantity" });
 
             migrationBuilder.CreateIndex(
                 name: "ix_tb_supply_conversion_supply_id",
@@ -382,6 +557,9 @@ namespace BolluFlow.Infrastructure.Migrations
                 name: "tb_delivery_address");
 
             migrationBuilder.DropTable(
+                name: "tb_financial_entries");
+
+            migrationBuilder.DropTable(
                 name: "tb_ingredient_conversion");
 
             migrationBuilder.DropTable(
@@ -391,7 +569,19 @@ namespace BolluFlow.Infrastructure.Migrations
                 name: "tb_product_component");
 
             migrationBuilder.DropTable(
+                name: "tb_product_productions");
+
+            migrationBuilder.DropTable(
+                name: "tb_recipe_conversion");
+
+            migrationBuilder.DropTable(
                 name: "tb_recipe_ingredient");
+
+            migrationBuilder.DropTable(
+                name: "tb_recipe_productions");
+
+            migrationBuilder.DropTable(
+                name: "tb_stock_movements");
 
             migrationBuilder.DropTable(
                 name: "tb_supply_conversion");

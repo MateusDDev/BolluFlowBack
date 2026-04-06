@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BolluFlow.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260329163511_RecipesStock")]
-    partial class RecipesStock
+    [Migration("20260406001450_Core")]
+    partial class Core
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -147,19 +147,19 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id")
-                        .HasName("pk_financial_entries");
+                        .HasName("pk_tb_financial_entries");
 
                     b.HasIndex("EventKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_financial_entries_event_key");
+                        .HasDatabaseName("ix_tb_financial_entries_event_key");
 
                     b.HasIndex("Origin", "OriginId")
-                        .HasDatabaseName("ix_financial_entries_origin_origin_id");
+                        .HasDatabaseName("ix_tb_financial_entries_origin_origin_id");
 
                     b.HasIndex("Type", "CreatedAt")
-                        .HasDatabaseName("ix_financial_entries_type_created_at");
+                        .HasDatabaseName("ix_tb_financial_entries_type_created_at");
 
-                    b.ToTable("financial_entries", (string)null);
+                    b.ToTable("tb_financial_entries", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>
@@ -258,6 +258,14 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("delivery_date");
 
+                    b.Property<decimal?>("Discount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount");
+
+                    b.Property<string>("DiscountType")
+                        .HasColumnType("text")
+                        .HasColumnName("discount_type");
+
                     b.Property<string>("Note")
                         .HasColumnType("text")
                         .HasColumnName("note");
@@ -265,6 +273,16 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<int>("Number")
                         .HasColumnType("integer")
                         .HasColumnName("number");
+
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("text")
+                        .HasColumnName("payment_method");
+
+                    b.Property<decimal>("ShippingFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("shipping_fee");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -424,10 +442,6 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("recipe_id");
 
-                    b.Property<decimal>("StockQuantity")
-                        .HasColumnType("numeric")
-                        .HasColumnName("stock_quantity");
-
                     b.Property<long?>("SupplyId")
                         .HasColumnType("bigint")
                         .HasColumnName("supply_id");
@@ -452,6 +466,42 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasDatabaseName("ix_tb_product_component_supply_id");
 
                     b.ToTable("tb_product_component", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.ProductProduction", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("notes");
+
+                    b.Property<long>("ProductId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("product_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_product_productions");
+
+                    b.HasIndex("ProductId")
+                        .HasDatabaseName("ix_tb_product_productions_product_id");
+
+                    b.ToTable("tb_product_productions", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Recipe", b =>
@@ -594,12 +644,12 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnName("recipe_id");
 
                     b.HasKey("Id")
-                        .HasName("pk_recipe_productions");
+                        .HasName("pk_tb_recipe_productions");
 
                     b.HasIndex("RecipeId")
-                        .HasDatabaseName("ix_recipe_productions_recipe_id");
+                        .HasDatabaseName("ix_tb_recipe_productions_recipe_id");
 
-                    b.ToTable("recipe_productions", (string)null);
+                    b.ToTable("tb_recipe_productions", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.StockMovement", b =>
@@ -658,19 +708,19 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnName("updated_at");
 
                     b.HasKey("Id")
-                        .HasName("pk_stock_movements");
+                        .HasName("pk_tb_stock_movements");
 
                     b.HasIndex("EventKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_stock_movements_event_key");
+                        .HasDatabaseName("ix_tb_stock_movements_event_key");
 
                     b.HasIndex("MovementType", "CreatedAt")
-                        .HasDatabaseName("ix_stock_movements_movement_type_created_at");
+                        .HasDatabaseName("ix_tb_stock_movements_movement_type_created_at");
 
                     b.HasIndex("ItemType", "ItemId", "CreatedAt")
-                        .HasDatabaseName("ix_stock_movements_item_type_item_id_created_at");
+                        .HasDatabaseName("ix_tb_stock_movements_item_type_item_id_created_at");
 
-                    b.ToTable("stock_movements", (string)null);
+                    b.ToTable("tb_stock_movements", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Supply", b =>
@@ -879,6 +929,18 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Navigation("Supply");
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.ProductProduction", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_product_productions_tb_product_product_id");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.RecipeConversion", b =>
                 {
                     b.HasOne("BolluFlow.Domain.Entities.Recipe", "Recipe")
@@ -919,7 +981,7 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasForeignKey("RecipeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("fk_recipe_productions_recipes_recipe_id");
+                        .HasConstraintName("fk_tb_recipe_productions_tb_recipe_recipe_id");
 
                     b.Navigation("Recipe");
                 });

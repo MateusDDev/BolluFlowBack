@@ -12,11 +12,37 @@ public class ListOrdersHandler(ApplicationDbContext db, CurrentUser user) : IReq
 {
     public async Task<ResultOf<List<OrderModel>>> Handle(ListOrdersQuery request, CancellationToken cancellationToken)
     {
-        var recipes = await db.Orders
+        var orders = await db.Orders
             .Include(x => x.Customer)
+            .ThenInclude(x => x.DeliveryAddress)
+            .Include(x => x.Items)
             .Where(x => x.Customer.UserId == user.Id)
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<OrderModel>>.Success(recipes.Adapt<List<OrderModel>>());
+        var response = orders.Select(order =>
+        {
+            var subtotal = order.CalculateSubtotal();
+            var discountValue = order.CalculateDiscount(subtotal);
+
+            return new OrderModel
+            {
+                Id = order.Id,
+                Number = order.Number,
+                Customer = order.Customer.Adapt<CustomerModel>(),
+                Status = order.Status,
+                Note = order.Note,
+                CreatedAt = order.CreatedAt,
+                DeliveryDate = order.DeliveryDate,
+                PaymentMethod = order.PaymentMethod,
+                Subtotal = subtotal,
+                Discount = order.Discount,
+                DiscountType = order.DiscountType,
+                DiscountValue = discountValue,
+                ShippingFee = order.ShippingFee,
+                Total = subtotal - discountValue + order.ShippingFee
+            };
+        }).ToList();
+
+        return ResultOf<List<OrderModel>>.Success(response);
     }
 }

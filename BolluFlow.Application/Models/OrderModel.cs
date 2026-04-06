@@ -19,4 +19,16 @@ public class OrderModel
     public DateTime? DeliveryDate { get; set; }
     
     public PaymentMethod? PaymentMethod { get; set; }
+
+    public decimal Subtotal { get; set; }
+
+    public decimal? Discount { get; set; }
+
+    public DiscountType? DiscountType { get; set; }
+
+    public decimal DiscountValue { get; set; }
+
+    public decimal ShippingFee { get; set; }
+
+    public decimal Total { get; set; }
 }

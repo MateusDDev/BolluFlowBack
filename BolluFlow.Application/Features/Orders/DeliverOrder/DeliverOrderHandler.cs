@@ -141,7 +141,7 @@ public class DeliverOrderHandler(ApplicationDbContext db) : IRequestHandler<Deli
 
             if (existingFinancial is null)
             {
-                var orderTotal = decimal.Round(order.Items.Sum(x => x.Quantity * x.UnitPrice), 2, MidpointRounding.AwayFromZero);
+                var orderTotal = decimal.Round(order.CalculateTotal(), 2, MidpointRounding.AwayFromZero);
 
                 db.FinancialEntries.Add(FinancialEntry.Create(
                     FinancialEntryType.Income,

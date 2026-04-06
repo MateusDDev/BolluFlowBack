@@ -31,7 +31,13 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                 CustomerStreet = x.Customer.DeliveryAddress.Street,
                 CustomerNumber = x.Customer.DeliveryAddress.Number,
                 CustomerNeighborhood = x.Customer.DeliveryAddress.Neighborhood,
-                TotalValue = x.Items.Sum(i => i.Quantity * i.UnitPrice),
+                TotalValue = x.Items.Sum(i => i.Quantity * i.UnitPrice)
+                    - ((x.Discount == null || x.DiscountType == null)
+                        ? 0
+                        : x.DiscountType == DiscountType.Percentage
+                            ? x.Items.Sum(i => i.Quantity * i.UnitPrice) * (x.Discount.Value / 100)
+                            : x.Discount.Value)
+                    + x.ShippingFee,
                 PaymentMethod = x.PaymentMethod,
                 Items = x.Items.Select(i => new OrderReportResultItem
                 {

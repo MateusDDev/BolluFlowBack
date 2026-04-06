@@ -18,4 +18,19 @@ public class OrderErrors
 
     public static readonly DomainError InvalidDeliverTransition =
         new("ORDER_INVALID_DELIVER_TRANSITION", "A ordem só pode ser entregue quando estiver pronta");
+
+    public static readonly DomainError InvalidDiscount =
+        new("ORDER_INVALID_DISCOUNT", "Desconto deve ser maior ou igual a zero");
+
+    public static readonly DomainError DiscountTypeRequired =
+        new("ORDER_DISCOUNT_TYPE_REQUIRED", "Tipo de desconto é obrigatório quando desconto é informado");
+
+    public static readonly DomainError InvalidShippingFee =
+        new("ORDER_INVALID_SHIPPING_FEE", "Frete deve ser maior ou igual a zero");
+
+    public static readonly DomainError InvalidPercentageDiscount =
+        new("ORDER_INVALID_PERCENTAGE_DISCOUNT", "Desconto percentual deve estar entre 0 e 100");
+
+    public static readonly DomainError NegativeTotalNotAllowed =
+        new("ORDER_NEGATIVE_TOTAL", "O total do pedido não pode ser negativo");
 }

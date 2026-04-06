@@ -8,7 +8,7 @@ public class StockMovementConfiguration : IEntityTypeConfiguration<StockMovement
 {
     public void Configure(EntityTypeBuilder<StockMovement> builder)
     {
-        builder.ToTable("stock_movements");
+        builder.ToTable("tb_stock_movements");
 
         builder.HasKey(x => x.Id);
 
