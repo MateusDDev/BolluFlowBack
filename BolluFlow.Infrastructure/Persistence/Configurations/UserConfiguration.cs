@@ -11,5 +11,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("tb_user");
         
         builder.HasKey(x => x.Id);
+
+        builder.Property(x => x.WhatsappMessageTemplate)
+            .HasColumnType("text")
+            .IsRequired(false);
+
+        builder.Property(x => x.IndirectCostRate)
+            .HasColumnType("numeric(5,2)")
+            .IsRequired(false);
     }
 }

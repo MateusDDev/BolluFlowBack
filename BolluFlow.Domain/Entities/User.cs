@@ -9,6 +9,8 @@ public class User
     public string Password { get; private set; } = null!;
     public string Name { get; private set; } = null!;
     public string? ProfileImageUrl { get; private set; }
+    public string? WhatsappMessageTemplate { get; private set; }
+    public decimal? IndirectCostRate { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
     public static User Create(
@@ -25,5 +27,17 @@ public class User
             ProfileImageUrl = profileImageUrl,
             CreatedAt = DateTime.UtcNow
         };
+    }
+
+    public void UpdateProfile(string? name, string? whatsappMessageTemplate, decimal? indirectCostRate)
+    {
+        if (name is not null)
+            Name = name;
+
+        if (whatsappMessageTemplate is not null)
+            WhatsappMessageTemplate = whatsappMessageTemplate;
+
+        if (indirectCostRate.HasValue)
+            IndirectCostRate = indirectCostRate.Value;
     }
 }
