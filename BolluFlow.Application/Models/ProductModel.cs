@@ -7,7 +7,7 @@ public class ProductModel
     public decimal? SalePrice { get; set; }
     public decimal StockQuantity { get; set; }
     public decimal? MinimumStockQuantity { get; set; }
-    public decimal IndirectCostPercentage { get; set; }
+    public decimal? IndirectCostPercentage { get; set; }
     public decimal MarkupPercentage { get; set; }
     public decimal FinalPrice { get; set; }
     public decimal? DiscountPercentage { get; set; }
