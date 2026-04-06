@@ -8,7 +8,7 @@ public class RecipeProductionConfiguration : IEntityTypeConfiguration<RecipeProd
 {
     public void Configure(EntityTypeBuilder<RecipeProduction> builder)
     {
-        builder.ToTable("recipe_productions");
+        builder.ToTable("tb_recipe_productions");
 
         builder.HasKey(x => x.Id);
 

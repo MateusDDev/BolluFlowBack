@@ -8,7 +8,7 @@ public class FinancialEntryConfiguration : IEntityTypeConfiguration<FinancialEnt
 {
     public void Configure(EntityTypeBuilder<FinancialEntry> builder)
     {
-        builder.ToTable("financial_entries");
+        builder.ToTable("tb_financial_entries");
 
         builder.HasKey(x => x.Id);
 
