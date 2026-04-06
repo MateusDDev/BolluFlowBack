@@ -251,6 +251,14 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("customer_id");
 
+                    b.Property<decimal?>("Discount")
+                        .HasColumnType("numeric")
+                        .HasColumnName("discount");
+
+                    b.Property<string>("DiscountType")
+                        .HasColumnType("text")
+                        .HasColumnName("discount_type");
+
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("delivery_date");
@@ -271,6 +279,12 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("status");
+
+                    b.Property<decimal>("ShippingFee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric")
+                        .HasColumnName("shipping_fee")
+                        .HasDefaultValue(0m);
 
                     b.HasKey("Id")
                         .HasName("pk_tb_order");

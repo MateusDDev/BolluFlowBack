@@ -6,4 +6,11 @@ namespace BolluFlow.Application.Features.Orders.UpdateOrder;
 
 public record UpdateOrderCommand(long OrderId, UpdateOrderCommandBody Body) : ICommand<ResultOf<OrderModel>>;
 
-public record UpdateOrderCommandBody(string? Note, DateTime? DeliveryDate, long? CustomerId, PaymentMethod? PaymentMethod);
+public record UpdateOrderCommandBody(
+    string? Note,
+    DateTime? DeliveryDate,
+    long? CustomerId,
+    PaymentMethod? PaymentMethod,
+    decimal? Discount,
+    DiscountType? DiscountType,
+    decimal? ShippingFee);
