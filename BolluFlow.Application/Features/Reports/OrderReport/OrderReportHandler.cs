@@ -1,5 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Configuration;
+using BolluFlow.Application.Features.Reports;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
@@ -176,7 +177,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                             if (order.PaymentMethod.HasValue)
                             {
                                 col.Item()
-                                    .Text($"Pagamento: {GetPaymentMethodLabel(order.PaymentMethod.Value)}")
+                                    .Text($"Pagamento: {ReportLabels.GetPaymentMethodLabel(order.PaymentMethod.Value)}")
                                     .FontSize(9)
                                     .FontColor(Colors.Grey.Darken1);
                             }
@@ -230,18 +231,5 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                     });
             });
         }).GeneratePdf();
-    }
-
-    
-    private static string GetPaymentMethodLabel(PaymentMethod paymentMethod)
-    {
-        return paymentMethod switch
-        {
-            PaymentMethod.Cash => "Dinheiro",
-            PaymentMethod.Pix => "Pix",
-            PaymentMethod.CreditCard => "Cartão de crédito",
-            PaymentMethod.DebitCard => "Cartão de débito",
-            _ => paymentMethod.ToString()
-        };
     }
 }
