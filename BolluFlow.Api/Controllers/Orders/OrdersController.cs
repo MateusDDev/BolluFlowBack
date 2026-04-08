@@ -7,6 +7,7 @@ using BolluFlow.Application.Features.Orders.ListOrders;
 using BolluFlow.Application.Features.Orders.ReopenOrder;
 using BolluFlow.Application.Features.Orders.StartOrder;
 using BolluFlow.Application.Features.Orders.UpdateOrder;
+using BolluFlow.Application.Features.Reports.CustomerOrderReport;
 using BolluFlow.Application.Models;
 using BolluFlow.Extensions;
 using MediatR;
@@ -103,6 +104,16 @@ public class OrdersController(IMediator mediator) : ControllerBase
         return result.ToActionResult();
     }
     
+    [HttpGet("{orderId:long}/report/customer")]
+    public async Task<IActionResult> GetCustomerOrderReport([FromRoute] long orderId, CancellationToken ct)
+    {
+        var query = new CustomerOrderReportQuery(orderId);
+
+        var result = await mediator.Send(query, ct);
+
+        return result.ToPdfResult();
+    }
+
     [HttpGet]
     public async Task<ActionResult<List<OrderModel>>> ListOrders(CancellationToken ct)
     {
