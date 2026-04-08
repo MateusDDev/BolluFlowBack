@@ -7,4 +7,6 @@ public class FinancialBalanceModel
     public decimal TotalIncome { get; set; }
     public decimal TotalExpenses { get; set; }
     public decimal Balance { get; set; }
+    public decimal PendingOrdersTotal { get; set; }
+    public decimal ProjectedBalance { get; set; }
 }
