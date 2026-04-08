@@ -8,6 +8,8 @@ public class Customer
     
     public long UserId { get; private set; }
     
+    public User User { get; set; }
+    
     public string Name { get; set; }
     
     public string Whatsapp { get; set; }
