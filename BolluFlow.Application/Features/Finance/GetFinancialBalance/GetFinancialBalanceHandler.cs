@@ -1,13 +1,14 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Finance.GetFinancialBalance;
 
-public class GetFinancialBalanceHandler(ApplicationDbContext db)
+public class GetFinancialBalanceHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<GetFinancialBalanceQuery, ResultOf<FinancialBalanceModel>>
 {
     public async Task<ResultOf<FinancialBalanceModel>> Handle(GetFinancialBalanceQuery request, CancellationToken cancellationToken)
@@ -60,13 +61,36 @@ public class GetFinancialBalanceHandler(ApplicationDbContext db)
                 .SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
         }
 
+        var pendingOrdersTotal = await db.Orders
+            .AsNoTracking()
+            .Where(x => x.Customer.UserId == user.Id && x.Status != OrderStatus.Canceled && x.Status != OrderStatus.Delivered)
+            .Select(x => new
+            {
+                Subtotal = x.Items.Sum(i => i.Quantity * i.UnitPrice),
+                x.Discount,
+                x.DiscountType,
+                x.ShippingFee
+            })
+            .Select(x => x.Subtotal
+                         - (x.Discount.HasValue && x.DiscountType.HasValue
+                             ? (x.DiscountType == DiscountType.Percentage
+                                 ? x.Subtotal * (x.Discount.Value / 100)
+                                 : x.Discount.Value)
+                             : 0)
+                         + x.ShippingFee)
+            .SumAsync(cancellationToken);
+
+        var balance = totalIncome - totalExpenses;
+
         return ResultOf<FinancialBalanceModel>.Success(new FinancialBalanceModel
         {
             MonthIncome = monthIncome,
             MonthExpenses = monthExpenses,
             TotalIncome = totalIncome,
             TotalExpenses = totalExpenses,
-            Balance = totalIncome - totalExpenses
+            Balance = balance,
+            PendingOrdersTotal = pendingOrdersTotal,
+            ProjectedBalance = balance + pendingOrdersTotal
         });
     }
 }
