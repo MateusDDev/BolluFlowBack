@@ -56,6 +56,9 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasKey("Id")
                         .HasName("pk_tb_customer");
 
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_tb_customer_user_id");
+
                     b.ToTable("tb_customer", (string)null);
                 });
 
@@ -842,6 +845,18 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasName("pk_tb_user");
 
                     b.ToTable("tb_user", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_customer_users_user_id");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.DeliveryAddress", b =>
