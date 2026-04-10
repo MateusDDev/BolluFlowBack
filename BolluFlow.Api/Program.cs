@@ -140,5 +140,4 @@ if (!app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
-
 app.Run();

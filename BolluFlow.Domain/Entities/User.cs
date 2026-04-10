@@ -5,6 +5,7 @@ public class User
     private User() { }
 
     public long Id { get; private set; }
+    public bool IsActive { get; private set; } = true;
     public string Email { get; private set; } = null!;
     public string Password { get; private set; } = null!;
     public string Name { get; private set; } = null!;
@@ -21,6 +22,7 @@ public class User
     {
         return new User
         {
+            IsActive = true,
             Name = name,
             Email = email,
             Password = hashedPassword,

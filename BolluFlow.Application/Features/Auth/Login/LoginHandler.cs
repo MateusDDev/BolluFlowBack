@@ -21,9 +21,9 @@ public class LoginHandler(
         CancellationToken cancellationToken)
     {
         var user = await db.Users
-            .FirstOrDefaultAsync(x => x.Email == request.Email, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Email == request.Email && x.IsActive, cancellationToken);
 
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return ResultOf<UserModel>.Unauthorized(CommonErrors.UserNotFound);
 
         var token = jwtHelper.GenerateToken(user);
@@ -40,7 +40,7 @@ public class LoginHandler(
                 SameSite = isDevelopment
                     ? SameSiteMode.Lax
                     : SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddHours(2)
+                Expires = DateTimeOffset.UtcNow.AddHours(4)
             });
 
         var result = user.Adapt<UserModel>();
