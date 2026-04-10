@@ -823,6 +823,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric(5,2)")
                         .HasColumnName("indirect_cost_rate");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text")
