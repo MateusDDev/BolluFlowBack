@@ -3,13 +3,14 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.StockMovements.AdjustStockMovement;
 
-public class AdjustStockMovementHandler(ApplicationDbContext db)
+public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<AdjustStockMovementCommand, ResultOf<StockAdjustmentModel>>
 {
     public async Task<ResultOf<StockAdjustmentModel>> Handle(AdjustStockMovementCommand request, CancellationToken cancellationToken)
@@ -69,6 +70,7 @@ public class AdjustStockMovementHandler(ApplicationDbContext db)
 
             var isAdd = request.Direction == AdjustmentDirection.Add;
             var entry = FinancialEntry.Create(
+                user.Id,
                 isAdd ? FinancialEntryType.Expense : FinancialEntryType.Income,
                 movement.TotalValue,
                 isAdd

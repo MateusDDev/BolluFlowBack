@@ -18,8 +18,8 @@ public class FinancialEntryConfiguration : IEntityTypeConfiguration<FinancialEnt
         builder.Property(x => x.Description).HasMaxLength(255);
         builder.Property(x => x.EventKey).HasMaxLength(120);
 
-        builder.HasIndex(x => new { x.Type, x.CreatedAt });
-        builder.HasIndex(x => new { x.Origin, x.OriginId });
-        builder.HasIndex(x => x.EventKey).IsUnique();
+        builder.HasIndex(x => new { x.UserId, x.Type, x.CreatedAt });
+        builder.HasIndex(x => new { x.UserId, x.Origin, x.OriginId });
+        builder.HasIndex(x => new { x.UserId, x.EventKey }).IsUnique();
     }
 }

@@ -2,13 +2,14 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.StockMovements.CreateStockMovement;
 
-public class CreateStockMovementHandler(ApplicationDbContext db)
+public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<CreateStockMovementCommand, ResultOf<StockMovementModel>>
 {
     public async Task<ResultOf<StockMovementModel>> Handle(CreateStockMovementCommand request, CancellationToken cancellationToken)
@@ -74,7 +75,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
             await db.SaveChangesAsync(cancellationToken);
 
             var eventKey = $"stock_purchase:{movement.Id}";
-            var existingEntry = await db.FinancialEntries.AsNoTracking().FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
+            var existingEntry = await db.FinancialEntries.AsNoTracking().FirstOrDefaultAsync(x => x.UserId == user.Id && x.EventKey == eventKey, cancellationToken);
 
             if (existingEntry is null)
             {
@@ -83,6 +84,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db)
                     : FinancialOriginType.SupplyPurchase;
 
                 var entry = FinancialEntry.Create(
+                    user.Id,
                     FinancialEntryType.Expense,
                     movement.TotalValue,
                     $"Compra - {itemName}",

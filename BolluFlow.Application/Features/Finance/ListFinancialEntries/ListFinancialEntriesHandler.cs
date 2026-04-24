@@ -1,13 +1,14 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Finance.ListFinancialEntries;
 
-public class ListFinancialEntriesHandler(ApplicationDbContext db)
+public class ListFinancialEntriesHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<ListFinancialEntriesQuery, ResultOf<List<FinancialEntryModel>>>
 {
     public async Task<ResultOf<List<FinancialEntryModel>>> Handle(ListFinancialEntriesQuery request, CancellationToken cancellationToken)
@@ -21,7 +22,10 @@ public class ListFinancialEntriesHandler(ApplicationDbContext db)
         if (request.Year is < 2000 or > 2100)
             return ResultOf<List<FinancialEntryModel>>.BadRequest(new("FINANCIAL_YEAR_INVALID", "year must be between 2000 and 2100"));
 
-        var query = db.FinancialEntries.AsNoTracking().AsQueryable();
+        var query = db.FinancialEntries
+            .AsNoTracking()
+            .Where(x => x.UserId == user.Id)
+            .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(request.Type))
         {

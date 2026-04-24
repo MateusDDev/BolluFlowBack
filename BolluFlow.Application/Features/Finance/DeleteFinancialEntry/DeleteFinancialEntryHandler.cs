@@ -1,17 +1,20 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Finance.DeleteFinancialEntry;
 
-public class DeleteFinancialEntryHandler(ApplicationDbContext db) : IRequestHandler<DeleteFinancialEntryCommand, Result>
+public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<DeleteFinancialEntryCommand, Result>
 {
     public async Task<Result> Handle(DeleteFinancialEntryCommand request, CancellationToken cancellationToken)
     {
-        var entry = await db.FinancialEntries.FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
+        var entry = await db.FinancialEntries
+            .FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == user.Id, cancellationToken);
+
         if (entry is null)
             return Result.NotFound(new DomainError("FINANCIAL_ENTRY_NOT_FOUND", "Lançamento financeiro não encontrado"));
 

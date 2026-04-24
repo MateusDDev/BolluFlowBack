@@ -2,12 +2,13 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 
 namespace BolluFlow.Application.Features.Finance.CreateFinancialEntry;
 
-public class CreateFinancialEntryHandler(ApplicationDbContext db)
+public class CreateFinancialEntryHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<CreateFinancialEntryCommand, ResultOf<FinancialEntryModel>>
 {
     public async Task<ResultOf<FinancialEntryModel>> Handle(CreateFinancialEntryCommand request, CancellationToken cancellationToken)
@@ -19,6 +20,7 @@ public class CreateFinancialEntryHandler(ApplicationDbContext db)
             return ResultOf<FinancialEntryModel>.BadRequest(new("FINANCIAL_DESCRIPTION_REQUIRED", "description is required"));
 
         var entry = FinancialEntry.Create(
+            user.Id,
             request.Type,
             decimal.Round(request.Amount, 2, MidpointRounding.AwayFromZero),
             request.Description.Trim(),
