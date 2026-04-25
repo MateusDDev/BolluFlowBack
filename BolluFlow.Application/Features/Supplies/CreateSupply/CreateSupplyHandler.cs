@@ -40,11 +40,12 @@ public class CreateSupplyHandler(ApplicationDbContext db, CurrentUser user)
 
                     db.StockMovements.Add(movement);
 
-                    var existingEntry = await db.FinancialEntries.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
+                    var existingEntry = await db.FinancialEntries.FirstOrDefaultAsync(x => x.UserId == user.Id && x.EventKey == eventKey, cancellationToken);
 
                     if (existingEntry is null)
                     {
                         db.FinancialEntries.Add(FinancialEntry.Create(
+                            user.Id,
                             FinancialEntryType.Expense,
                             movement.TotalValue,
                             $"Estoque inicial - {supply.Name}",

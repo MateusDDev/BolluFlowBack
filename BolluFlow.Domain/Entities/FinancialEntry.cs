@@ -7,6 +7,7 @@ public class FinancialEntry
     private FinancialEntry() { }
 
     public long Id { get; private set; }
+    public long UserId { get; private set; }
     public FinancialEntryType Type { get; private set; }
     public decimal Amount { get; private set; }
     public string Description { get; private set; } = null!;
@@ -17,6 +18,7 @@ public class FinancialEntry
     public DateTime UpdatedAt { get; private set; }
 
     public static FinancialEntry Create(
+        long userId,
         FinancialEntryType type,
         decimal amount,
         string description,
@@ -28,6 +30,7 @@ public class FinancialEntry
 
         return new FinancialEntry
         {
+            UserId = userId,
             Type = type,
             Amount = amount,
             Description = description,

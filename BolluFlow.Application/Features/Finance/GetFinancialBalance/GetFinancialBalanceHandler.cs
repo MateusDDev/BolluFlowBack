@@ -22,7 +22,7 @@ public class GetFinancialBalanceHandler(ApplicationDbContext db, CurrentUser use
         if (request.Year is < 2000 or > 2100)
             return ResultOf<FinancialBalanceModel>.BadRequest(new("FINANCIAL_YEAR_INVALID", "year must be between 2000 and 2100"));
 
-        var baseQuery = db.FinancialEntries.AsNoTracking();
+        var baseQuery = db.FinancialEntries.AsNoTracking().Where(x => x.UserId == user.Id);
 
         decimal monthIncome = 0;
         decimal monthExpenses = 0;

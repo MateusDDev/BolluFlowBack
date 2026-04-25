@@ -146,18 +146,22 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
 
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_tb_financial_entries");
 
-                    b.HasIndex("EventKey")
+                    b.HasIndex("UserId", "EventKey")
                         .IsUnique()
-                        .HasDatabaseName("ix_tb_financial_entries_event_key");
+                        .HasDatabaseName("ix_tb_financial_entries_user_id_event_key");
 
-                    b.HasIndex("Origin", "OriginId")
-                        .HasDatabaseName("ix_tb_financial_entries_origin_origin_id");
+                    b.HasIndex("UserId", "Origin", "OriginId")
+                        .HasDatabaseName("ix_tb_financial_entries_user_id_origin_origin_id");
 
-                    b.HasIndex("Type", "CreatedAt")
-                        .HasDatabaseName("ix_tb_financial_entries_type_created_at");
+                    b.HasIndex("UserId", "Type", "CreatedAt")
+                        .HasDatabaseName("ix_tb_financial_entries_user_id_type_created_at");
 
                     b.ToTable("tb_financial_entries", (string)null);
                 });
@@ -849,6 +853,47 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasName("pk_tb_user");
 
                     b.ToTable("tb_user", (string)null);
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.UserStockUnitPreference", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("ConversionId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("conversion_id");
+
+                    b.Property<long>("ItemId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("item_id");
+
+                    b.Property<string>("ItemType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("item_type");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_stock_unit_preferences");
+
+                    b.HasIndex("UserId", "ItemType", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_user_stock_unit_preferences_user_id_item_type_item_id");
+
+                    b.ToTable("user_stock_unit_preferences", (string)null);
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>

@@ -62,6 +62,9 @@ public class DashboardEndpointsTests(DashboardWebApplicationFactory factory) : I
         Assert.NotNull(stockAlerts);
         Assert.Equal(2, stockAlerts!.Count);
         Assert.Equal("Critical", stockAlerts[0].Severity);
+        Assert.All(stockAlerts, x => Assert.False(string.IsNullOrWhiteSpace(x.BaseUnit)));
+        Assert.Equal("Unit", stockAlerts.Single(x => x.Category == "Product").BaseUnit);
+        Assert.Equal("Gram", stockAlerts.Single(x => x.Category == "Ingredient").BaseUnit);
         Assert.True(stockAlerts[0].StockCoveragePercent <= stockAlerts[1].StockCoveragePercent || stockAlerts[1].Severity == "Warning");
 
         Assert.NotNull(ordersByStatus);
