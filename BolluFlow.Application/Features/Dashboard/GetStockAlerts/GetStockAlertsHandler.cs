@@ -25,7 +25,8 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 x.Name,
                 Category = "Product",
                 x.StockQuantity,
-                MinimumStockQuantity = x.MinimumStockQuantity!.Value
+                MinimumStockQuantity = x.MinimumStockQuantity!.Value,
+                BaseUnit = "Unit"
             }).ToListAsync(cancellationToken);
 
         var ingredientAlerts = await db.Ingredients
@@ -39,7 +40,8 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 x.Name,
                 Category = "Ingredient",
                 x.StockQuantity,
-                MinimumStockQuantity = x.MinimumStockQuantity!.Value
+                MinimumStockQuantity = x.MinimumStockQuantity!.Value,
+                BaseUnit = x.BaseUnit.ToString()
             }).ToListAsync(cancellationToken);
 
         var supplyAlerts = await db.Supplies
@@ -53,7 +55,8 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 x.Name,
                 Category = "Supply",
                 x.StockQuantity,
-                MinimumStockQuantity = x.MinimumStockQuantity!.Value
+                MinimumStockQuantity = x.MinimumStockQuantity!.Value,
+                BaseUnit = x.BaseUnit.ToString()
             }).ToListAsync(cancellationToken);
 
         var data = productAlerts
@@ -69,7 +72,8 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
                 x.StockQuantity,
                 x.MinimumStockQuantity,
                 DashboardCalculations.GetCoveragePercent(x.StockQuantity, x.MinimumStockQuantity),
-                DashboardCalculations.GetSeverity(x.StockQuantity, x.MinimumStockQuantity)))
+                DashboardCalculations.GetSeverity(x.StockQuantity, x.MinimumStockQuantity),
+                x.BaseUnit))
             .OrderBy(x => x.Severity == "Critical" ? 0 : 1)
             .ThenBy(x => x.StockCoveragePercent)
             .ThenBy(x => x.Name)

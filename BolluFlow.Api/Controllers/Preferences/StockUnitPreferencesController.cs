@@ -1,6 +1,7 @@
 using BolluFlow.Application.Features.Preferences.StockUnit.GetStockUnitPreference;
 using BolluFlow.Application.Features.Preferences.StockUnit.SaveStockUnitPreference;
 using BolluFlow.Application.Models;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +15,7 @@ namespace BolluFlow.Api.Controllers.Preferences;
 public class StockUnitPreferencesController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<StockUnitPreferenceModel>> Get([FromQuery] string itemType, [FromQuery] long itemId, CancellationToken ct)
+    public async Task<ActionResult<StockUnitPreferenceModel>> Get([FromQuery] StockItemType itemType, [FromQuery] long itemId, CancellationToken ct)
     {
         var result = await mediator.Send(new GetStockUnitPreferenceQuery(itemType, itemId), ct);
         return result.ToActionResult();

@@ -7,4 +7,5 @@ public sealed record GetStockAlertsResult(
     decimal StockQuantity,
     decimal MinimumStockQuantity,
     decimal StockCoveragePercent,
-    string Severity);
+    string Severity,
+    string BaseUnit);

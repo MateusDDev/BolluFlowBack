@@ -1,3 +1,5 @@
+using BolluFlow.Domain.Enums;
+
 namespace BolluFlow.Application.Features.Preferences.StockUnit.SaveStockUnitPreference;
 
-public record SaveStockUnitPreferenceBody(string ItemType, long ItemId, long? ConversionId);
+public record SaveStockUnitPreferenceBody(StockItemType ItemType, long ItemId, long? ConversionId);

@@ -13,6 +13,7 @@ public class UserStockUnitPreferenceConfiguration : IEntityTypeConfiguration<Use
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.ItemType)
+            .HasConversion<string>()
             .HasMaxLength(20)
             .IsRequired();
 

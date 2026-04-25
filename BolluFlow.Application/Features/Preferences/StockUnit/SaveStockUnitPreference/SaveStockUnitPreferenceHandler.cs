@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Entities;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -15,15 +16,10 @@ public class SaveStockUnitPreferenceHandler(ApplicationDbContext db, CurrentUser
     {
         var body = request.Body;
 
-        if (!IsValidItemType(body.ItemType))
-            return ResultOf<StockUnitPreferenceModel>.BadRequest(new("STOCK_UNIT_PREFERENCE_ITEM_TYPE_INVALID", "itemType must be ingredient or supply"));
-
         if (body.ItemId <= 0)
             return ResultOf<StockUnitPreferenceModel>.BadRequest(new("STOCK_UNIT_PREFERENCE_ITEM_ID_INVALID", "itemId must be greater than zero"));
 
-        var normalizedItemType = body.ItemType.Trim().ToLowerInvariant();
-
-        var itemExists = normalizedItemType == "ingredient"
+        var itemExists = body.ItemType == StockItemType.Ingredient
             ? await db.Ingredients.AnyAsync(x => x.Id == body.ItemId && x.UserId == user.Id, cancellationToken)
             : await db.Supplies.AnyAsync(x => x.Id == body.ItemId && x.UserId == user.Id, cancellationToken);
 
@@ -32,7 +28,7 @@ public class SaveStockUnitPreferenceHandler(ApplicationDbContext db, CurrentUser
 
         if (body.ConversionId.HasValue)
         {
-            var conversionExists = normalizedItemType == "ingredient"
+            var conversionExists = body.ItemType == StockItemType.Ingredient
                 ? await db.IngredientConversions.AnyAsync(x => x.Id == body.ConversionId.Value && x.IngredientId == body.ItemId, cancellationToken)
                 : await db.SupplyConversions.AnyAsync(x => x.Id == body.ConversionId.Value && x.SupplyId == body.ItemId, cancellationToken);
 
@@ -41,11 +37,11 @@ public class SaveStockUnitPreferenceHandler(ApplicationDbContext db, CurrentUser
         }
 
         var preference = await db.UserStockUnitPreferences
-            .FirstOrDefaultAsync(x => x.UserId == user.Id && x.ItemType == normalizedItemType && x.ItemId == body.ItemId, cancellationToken);
+            .FirstOrDefaultAsync(x => x.UserId == user.Id && x.ItemType == body.ItemType && x.ItemId == body.ItemId, cancellationToken);
 
         if (preference is null)
         {
-            preference = UserStockUnitPreference.Create(user.Id, normalizedItemType, body.ItemId, body.ConversionId);
+            preference = UserStockUnitPreference.Create(user.Id, body.ItemType, body.ItemId, body.ConversionId);
             db.UserStockUnitPreferences.Add(preference);
         }
         else
@@ -57,18 +53,9 @@ public class SaveStockUnitPreferenceHandler(ApplicationDbContext db, CurrentUser
 
         return ResultOf<StockUnitPreferenceModel>.Success(new StockUnitPreferenceModel
         {
-            ItemType = normalizedItemType,
+            ItemType = body.ItemType,
             ItemId = body.ItemId,
             ConversionId = preference.ConversionId
         });
-    }
-
-    private static bool IsValidItemType(string itemType)
-    {
-        if (string.IsNullOrWhiteSpace(itemType))
-            return false;
-
-        var normalized = itemType.Trim().ToLowerInvariant();
-        return normalized is "ingredient" or "supply";
     }
 }
