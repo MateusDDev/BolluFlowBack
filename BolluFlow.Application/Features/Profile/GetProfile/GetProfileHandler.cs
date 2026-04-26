@@ -24,7 +24,8 @@ public class GetProfileHandler(ApplicationDbContext db, CurrentUser currentUser)
         {
             Name = user.Name,
             WhatsappMessageTemplate = user.WhatsappMessageTemplate,
-            IndirectCostRate = user.IndirectCostRate
+            IndirectCostRate = user.IndirectCostRate,
+            SkipStockCheck = user.SkipStockCheck
         };
 
         return ResultOf<ProfileModel>.Success(model);

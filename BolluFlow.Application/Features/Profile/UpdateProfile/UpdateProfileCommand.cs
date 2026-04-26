@@ -12,4 +12,5 @@ public record UpdateProfileCommandBody(
     /// {customerName}, {orderNumber}, {items}, {total}, {paymentMethod}, {deliveryDate}, {address}
     /// </summary>
     string? WhatsappMessageTemplate,
-    decimal? IndirectCostRate);
+    decimal? IndirectCostRate,
+    bool? SkipStockCheck);

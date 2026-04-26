@@ -29,28 +29,36 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
             if (recipe is null)
                 return ResultOf<RecipeProductionModel>.NotFound(CommonErrors.RecipeNotFound);
 
-            var insufficientIngredients = recipe.RecipeIngredients
-                .Select(x => new
-                {
-                    Ingredient = x.Ingredient,
-                    Required = x.QuantityUsed * request.Body.Quantity
-                })
-                .Where(x => x.Ingredient.StockQuantity < x.Required)
-                .Select(x => new
-                {
-                    ingredientId = x.Ingredient.Id,
-                    ingredientName = x.Ingredient.Name,
-                    required = x.Required,
-                    available = x.Ingredient.StockQuantity,
-                    unit = x.Ingredient.BaseUnit.ToString().ToLowerInvariant()
-                })
-                .ToList();
+            var skipStockCheck = await db.Users
+                .Where(x => x.Id == recipe.UserId)
+                .Select(x => x.SkipStockCheck)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (insufficientIngredients.Count > 0)
+            if (!skipStockCheck)
             {
-                return ResultOf<RecipeProductionModel>.Unprocessable(
-                    new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para produzir esta receita"),
-                    new { insufficientIngredients });
+                var insufficientIngredients = recipe.RecipeIngredients
+                    .Select(x => new
+                    {
+                        Ingredient = x.Ingredient,
+                        Required = x.QuantityUsed * request.Body.Quantity
+                    })
+                    .Where(x => x.Ingredient.StockQuantity < x.Required)
+                    .Select(x => new
+                    {
+                        ingredientId = x.Ingredient.Id,
+                        ingredientName = x.Ingredient.Name,
+                        required = x.Required,
+                        available = x.Ingredient.StockQuantity,
+                        unit = x.Ingredient.BaseUnit.ToString().ToLowerInvariant()
+                    })
+                    .ToList();
+
+                if (insufficientIngredients.Count > 0)
+                {
+                    return ResultOf<RecipeProductionModel>.Unprocessable(
+                        new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para produzir esta receita"),
+                        new { insufficientIngredients });
+                }
             }
 
             var production = RecipeProduction.Create(request.RecipeId, request.Body.Quantity, request.Body.Notes?.Trim());
@@ -59,33 +67,36 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
 
             var debits = new List<RecipeProductionDebitModel>();
 
-            foreach (var recipeIngredient in recipe.RecipeIngredients)
+            if (!skipStockCheck)
             {
-                var quantityToDebit = recipeIngredient.QuantityUsed * request.Body.Quantity;
-                recipeIngredient.Ingredient.ConsumeStock(quantityToDebit);
-
-                var eventKey = $"recipe_production:{production.Id}:ingredient:{recipeIngredient.IngredientId}";
-                var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
-
-                if (existingMovement is null)
+                foreach (var recipeIngredient in recipe.RecipeIngredients)
                 {
-                    db.StockMovements.Add(StockMovement.Create(
-                        StockItemType.Ingredient,
-                        recipeIngredient.IngredientId,
-                        StockMovementType.Consumption,
-                        quantityToDebit,
-                        0,
-                        $"Consumo - Produção de {recipe.Name}",
-                        eventKey));
+                    var quantityToDebit = recipeIngredient.QuantityUsed * request.Body.Quantity;
+                    recipeIngredient.Ingredient.ConsumeStock(quantityToDebit);
+
+                    var eventKey = $"recipe_production:{production.Id}:ingredient:{recipeIngredient.IngredientId}";
+                    var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
+
+                    if (existingMovement is null)
+                    {
+                        db.StockMovements.Add(StockMovement.Create(
+                            StockItemType.Ingredient,
+                            recipeIngredient.IngredientId,
+                            StockMovementType.Consumption,
+                            quantityToDebit,
+                            0,
+                            $"Consumo - Produção de {recipe.Name}",
+                            eventKey));
+                    }
+
+                    debits.Add(new RecipeProductionDebitModel
+                    {
+                        IngredientId = recipeIngredient.IngredientId,
+                        IngredientName = recipeIngredient.Ingredient.Name,
+                        QuantityDebited = quantityToDebit,
+                        Unit = recipeIngredient.Ingredient.BaseUnit.ToString().ToLowerInvariant()
+                    });
                 }
-
-                debits.Add(new RecipeProductionDebitModel
-                {
-                    IngredientId = recipeIngredient.IngredientId,
-                    IngredientName = recipeIngredient.Ingredient.Name,
-                    QuantityDebited = quantityToDebit,
-                    Unit = recipeIngredient.Ingredient.BaseUnit.ToString().ToLowerInvariant()
-                });
             }
 
             recipe.ProduceStock(request.Body.Quantity);

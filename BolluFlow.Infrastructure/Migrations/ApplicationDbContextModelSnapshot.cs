@@ -845,6 +845,12 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("profile_image_url");
 
+                    b.Property<bool>("SkipStockCheck")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("skip_stock_check");
+
                     b.Property<string>("WhatsappMessageTemplate")
                         .HasColumnType("text")
                         .HasColumnName("whatsapp_message_template");
