@@ -43,29 +43,37 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
                 })
                 .ToList();
 
-            var insufficientComponents = requiredByComponent
-                .Select(x => new
-                {
-                    x.Component,
-                    x.Required,
-                    Availability = GetAvailability(x.Component)
-                })
-                .Where(x => x.Availability is null || x.Availability.Value.Available < x.Required)
-                .Select(x => new
-                {
-                    componentType = x.Component.ComponentType.ToString().ToLowerInvariant(),
-                    componentId = x.Availability?.Id ?? x.Component.RecipeId ?? x.Component.IngredientId ?? x.Component.SupplyId ?? 0,
-                    componentName = x.Availability?.Name ?? x.Component.Name,
-                    required = x.Required,
-                    available = x.Availability?.Available ?? 0
-                })
-                .ToList();
+            var skipStockCheck = await db.Users
+                .Where(x => x.Id == product.UserId)
+                .Select(x => x.SkipStockCheck)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (insufficientComponents.Count > 0)
+            if (!skipStockCheck)
             {
-                return ResultOf<ProductProductionModel>.Unprocessable(
-                    new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para produzir este produto"),
-                    new { insufficientComponents });
+                var insufficientComponents = requiredByComponent
+                    .Select(x => new
+                    {
+                        x.Component,
+                        x.Required,
+                        Availability = GetAvailability(x.Component)
+                    })
+                    .Where(x => x.Availability is null || x.Availability.Value.Available < x.Required)
+                    .Select(x => new
+                    {
+                        componentType = x.Component.ComponentType.ToString().ToLowerInvariant(),
+                        componentId = x.Availability?.Id ?? x.Component.RecipeId ?? x.Component.IngredientId ?? x.Component.SupplyId ?? 0,
+                        componentName = x.Availability?.Name ?? x.Component.Name,
+                        required = x.Required,
+                        available = x.Availability?.Available ?? 0
+                    })
+                    .ToList();
+
+                if (insufficientComponents.Count > 0)
+                {
+                    return ResultOf<ProductProductionModel>.Unprocessable(
+                        new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para produzir este produto"),
+                        new { insufficientComponents });
+                }
             }
 
             var production = ProductProduction.Create(request.ProductId, request.Body.Quantity, request.Body.Notes?.Trim());
@@ -74,51 +82,54 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
 
             var debits = new List<ProductProductionDebitModel>();
 
-            foreach (var componentData in requiredByComponent)
+            if (!skipStockCheck)
             {
-                var component = componentData.Component;
-                var quantityToDebit = componentData.Required;
-
-                if (component.ComponentType == ProductComponentType.Ingredient && component.Ingredient is not null)
+                foreach (var componentData in requiredByComponent)
                 {
-                    component.Ingredient.ConsumeStock(quantityToDebit);
-                    debits.Add(new ProductProductionDebitModel
-                    {
-                        ComponentType = "ingredient",
-                        ComponentId = component.Ingredient.Id,
-                        ComponentName = component.Ingredient.Name,
-                        QuantityDebited = quantityToDebit
-                    });
-                    continue;
-                }
+                    var component = componentData.Component;
+                    var quantityToDebit = componentData.Required;
 
-                if (component.ComponentType == ProductComponentType.Supply && component.Supply is not null)
-                {
-                    component.Supply.ConsumeStock(quantityToDebit);
-                    debits.Add(new ProductProductionDebitModel
+                    if (component.ComponentType == ProductComponentType.Ingredient && component.Ingredient is not null)
                     {
-                        ComponentType = "supply",
-                        ComponentId = component.Supply.Id,
-                        ComponentName = component.Supply.Name,
-                        QuantityDebited = quantityToDebit
-                    });
-                    continue;
-                }
+                        component.Ingredient.ConsumeStock(quantityToDebit);
+                        debits.Add(new ProductProductionDebitModel
+                        {
+                            ComponentType = "ingredient",
+                            ComponentId = component.Ingredient.Id,
+                            ComponentName = component.Ingredient.Name,
+                            QuantityDebited = quantityToDebit
+                        });
+                        continue;
+                    }
 
-                if (component.ComponentType == ProductComponentType.Recipe && component.Recipe is not null)
-                {
-                    component.Recipe.ConsumeStock(quantityToDebit);
-                    debits.Add(new ProductProductionDebitModel
+                    if (component.ComponentType == ProductComponentType.Supply && component.Supply is not null)
                     {
-                        ComponentType = "recipe",
-                        ComponentId = component.Recipe.Id,
-                        ComponentName = component.Recipe.Name,
-                        QuantityDebited = quantityToDebit
-                    });
-                    continue;
-                }
+                        component.Supply.ConsumeStock(quantityToDebit);
+                        debits.Add(new ProductProductionDebitModel
+                        {
+                            ComponentType = "supply",
+                            ComponentId = component.Supply.Id,
+                            ComponentName = component.Supply.Name,
+                            QuantityDebited = quantityToDebit
+                        });
+                        continue;
+                    }
 
-                throw new DomainException(new DomainError("PRODUCT_COMPONENT_INVALID", "Componente do produto inválido para produção"));
+                    if (component.ComponentType == ProductComponentType.Recipe && component.Recipe is not null)
+                    {
+                        component.Recipe.ConsumeStock(quantityToDebit);
+                        debits.Add(new ProductProductionDebitModel
+                        {
+                            ComponentType = "recipe",
+                            ComponentId = component.Recipe.Id,
+                            ComponentName = component.Recipe.Name,
+                            QuantityDebited = quantityToDebit
+                        });
+                        continue;
+                    }
+
+                    throw new DomainException(new DomainError("PRODUCT_COMPONENT_INVALID", "Componente do produto inválido para produção"));
+                }
             }
 
             product.AddStock(request.Body.Quantity);
