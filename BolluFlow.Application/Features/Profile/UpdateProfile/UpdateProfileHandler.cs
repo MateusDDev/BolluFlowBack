@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
@@ -15,8 +16,9 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
     public async Task<ResultOf<ProfileModel>> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
         var body = request.Body;
+        var trimmedName = body.Name?.Trim();
 
-        if (body.Name is not null && body.Name.Trim().Length < 2)
+        if (trimmedName is not null && trimmedName.Length < 2)
             return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_NAME_INVALID", "name deve ter no mínimo 2 caracteres"));
 
         if (body.IndirectCostRate is < 0 or > 100)
@@ -28,8 +30,31 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
         if (user is null)
             return ResultOf<ProfileModel>.NotFound(CommonErrors.UserNotFound);
 
+        if (body.Slug is not null)
+        {
+            if (string.IsNullOrWhiteSpace(body.Slug))
+            {
+                user.SetSlug(null);
+            }
+            else
+            {
+                var normalizedSlug = SlugService.Generate(body.Slug);
+
+                if (normalizedSlug is null)
+                    return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_SLUG_INVALID", "slug inválido"));
+
+                var slugIsTaken = await db.Users
+                    .AnyAsync(x => x.Id != user.Id && x.Slug == normalizedSlug, cancellationToken);
+
+                if (slugIsTaken)
+                    return ResultOf<ProfileModel>.Conflict(new DomainError("PROFILE_SLUG_ALREADY_EXISTS", "slug já está em uso"));
+
+                user.SetSlug(normalizedSlug);
+            }
+        }
+
         user.UpdateProfile(
-            body.Name?.Trim(),
+            trimmedName,
             body.WhatsappMessageTemplate,
             body.IndirectCostRate,
             body.SkipStockCheck);
@@ -39,6 +64,7 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
         var model = new ProfileModel
         {
             Name = user.Name,
+            Slug = user.Slug,
             WhatsappMessageTemplate = user.WhatsappMessageTemplate,
             IndirectCostRate = user.IndirectCostRate,
             SkipStockCheck = user.SkipStockCheck

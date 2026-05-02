@@ -12,6 +12,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Slug)
+            .HasColumnType("varchar(255)")
+            .IsRequired(false);
+
+        builder.HasIndex(x => x.Slug)
+            .IsUnique();
+
+        builder.Property(x => x.Whatsapp)
+            .HasColumnType("text")
+            .IsRequired(false);
+
         builder.Property(x => x.WhatsappMessageTemplate)
             .HasColumnType("text")
             .IsRequired(false);

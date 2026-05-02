@@ -9,6 +9,8 @@ public class User
     public string Email { get; private set; } = null!;
     public string Password { get; private set; } = null!;
     public string Name { get; private set; } = null!;
+    public string? Slug { get; private set; }
+    public string? Whatsapp { get; private set; }
     public string? ProfileImageUrl { get; private set; }
     public string? WhatsappMessageTemplate { get; private set; }
     public decimal? IndirectCostRate { get; private set; }
@@ -19,7 +21,8 @@ public class User
         string name,
         string email,
         string hashedPassword,
-        string? profileImageUrl)
+        string? profileImageUrl,
+        string? slug = null)
     {
         return new User
         {
@@ -27,6 +30,7 @@ public class User
             Name = name,
             Email = email,
             Password = hashedPassword,
+            Slug = slug,
             ProfileImageUrl = profileImageUrl,
             CreatedAt = DateTime.UtcNow
         };
@@ -44,5 +48,10 @@ public class User
             SkipStockCheck = skipStockCheck.Value;
 
         WhatsappMessageTemplate = whatsappMessageTemplate;
+    }
+
+    public void SetSlug(string? slug)
+    {
+        Slug = slug;
     }
 }

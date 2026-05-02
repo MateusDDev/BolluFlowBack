@@ -10,6 +10,7 @@ public class Product
     public long Id { get; private set; }
     public long UserId { get; private set; }
     public string Name { get; private set; } = null!;
+    public string? Category { get; private set; }
     public decimal? SalePrice { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
@@ -21,7 +22,7 @@ public class Product
 
     public List<ProductComponent> Components { get; private set; } = [];
 
-    public static Product Create(long userId, string name, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity)
+    public static Product Create(long userId, string name, string? category, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity)
     {
         Validate(name, stockQuantity, minimumStockQuantity);
 
@@ -29,6 +30,7 @@ public class Product
         {
             UserId = userId,
             Name = name,
+            Category = NormalizeCategory(category),
             SalePrice = salePrice,
             StockQuantity = stockQuantity,
             MinimumStockQuantity = minimumStockQuantity,
@@ -40,11 +42,12 @@ public class Product
         };
     }
 
-    public void Update(string name, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity, bool? isActive)
+    public void Update(string name, string? category, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity, bool? isActive)
     {
         Validate(name, stockQuantity, minimumStockQuantity);
 
         Name = name;
+        Category = NormalizeCategory(category);
         SalePrice = salePrice;
         StockQuantity = stockQuantity;
         MinimumStockQuantity = minimumStockQuantity;
@@ -91,5 +94,10 @@ public class Product
             throw new DomainException(ProductErrors.StockQuantityInvalid);
         if (minimumStockQuantity < 0)
             throw new DomainException(ProductErrors.MinimumStockQuantityInvalid);
+    }
+
+    private static string? NormalizeCategory(string? category)
+    {
+        return string.IsNullOrWhiteSpace(category) ? null : category.Trim();
     }
 }

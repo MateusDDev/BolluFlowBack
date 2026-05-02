@@ -38,4 +38,19 @@ public class Customer
             Birthday = birthday
         };
     }
+
+    public void Update(string name, DeliveryAddress deliveryAddress, string? preferences = null, DateTime? birthday = null)
+    {
+        Name = name;
+        Preferences = preferences;
+        Birthday = birthday;
+
+        if (DeliveryAddress is null)
+        {
+            DeliveryAddress = deliveryAddress;
+            return;
+        }
+
+        DeliveryAddress.Update(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood);
+    }
 }

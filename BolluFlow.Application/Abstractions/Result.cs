@@ -22,6 +22,7 @@ public class ResultOf<T>
     }
 
     public static ResultOf<T> Success(T value) => new(true, value);
+    public static ResultOf<T> Created(T value) => new(true, value, null, 201);
 
     public static ResultOf<T> BadRequest(DomainError error) => new(false, default, error, 400);
 

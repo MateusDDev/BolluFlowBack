@@ -25,4 +25,11 @@ public class DeliveryAddress
             Neighborhood = neighborhood
         };
     }
+
+    public void Update(string street, int number, string neighborhood)
+    {
+        Street = street;
+        Number = number;
+        Neighborhood = neighborhood;
+    }
 }

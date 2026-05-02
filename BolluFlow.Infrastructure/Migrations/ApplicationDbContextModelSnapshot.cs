@@ -356,6 +356,10 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("Category")
+                        .HasColumnType("text")
+                        .HasColumnName("category");
+
                     b.Property<decimal?>("DiscountPercentage")
                         .HasColumnType("numeric")
                         .HasColumnName("discount_percentage");
@@ -851,12 +855,24 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("skip_stock_check");
 
+                    b.Property<string>("Slug")
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("slug");
+
+                    b.Property<string>("Whatsapp")
+                        .HasColumnType("text")
+                        .HasColumnName("whatsapp");
+
                     b.Property<string>("WhatsappMessageTemplate")
                         .HasColumnType("text")
                         .HasColumnName("whatsapp_message_template");
 
                     b.HasKey("Id")
                         .HasName("pk_tb_user");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tb_user_slug");
 
                     b.ToTable("tb_user", (string)null);
                 });
