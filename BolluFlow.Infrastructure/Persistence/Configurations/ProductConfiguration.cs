@@ -11,6 +11,10 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.ToTable("tb_product");
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.Category)
+            .HasColumnType("text")
+            .IsRequired(false);
+
         builder.HasIndex(x => new { x.UserId, x.MinimumStockQuantity, x.StockQuantity });
     }
 }

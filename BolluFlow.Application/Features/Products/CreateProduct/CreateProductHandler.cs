@@ -13,7 +13,7 @@ public class CreateProductHandler(ApplicationDbContext db, CurrentUser user) : I
     {
         try
         {
-            var product = Product.Create(user.Id, request.Name, request.SalePrice, request.StockQuantity, request.MinimumStockQuantity);
+            var product = Product.Create(user.Id, request.Name, request.Category, request.SalePrice, request.StockQuantity, request.MinimumStockQuantity);
             db.Products.Add(product);
             await db.SaveChangesAsync(cancellationToken);
             return ResultOf<CreateProductResult>.Success(new CreateProductResult(product.Id));

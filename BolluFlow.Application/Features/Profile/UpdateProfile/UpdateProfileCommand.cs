@@ -7,6 +7,7 @@ public record UpdateProfileCommand(UpdateProfileCommandBody Body) : ICommand<Res
 
 public record UpdateProfileCommandBody(
     string? Name,
+    string? Slug,
     /// <summary>
     /// Variáveis suportadas no template:
     /// {customerName}, {orderNumber}, {items}, {total}, {paymentMethod}, {deliveryDate}, {address}

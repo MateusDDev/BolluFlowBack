@@ -22,6 +22,7 @@ public class UpdateProductHandler(ApplicationDbContext db, CurrentUser user) : I
 
             product.Update(
                 request.Body.Name ?? product.Name,
+                request.Body.Category ?? product.Category,
                 request.Body.SalePrice ?? product.SalePrice,
                 product.StockQuantity,
                 request.Body.MinimumStockQuantity ?? product.MinimumStockQuantity,

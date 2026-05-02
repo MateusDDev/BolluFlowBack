@@ -3,6 +3,7 @@ namespace BolluFlow.Application.Models;
 public class ProfileModel
 {
     public string Name { get; set; } = null!;
+    public string? Slug { get; set; }
 
     /// <summary>
     /// Variáveis suportadas no template:

@@ -23,6 +23,7 @@ public class GetProfileHandler(ApplicationDbContext db, CurrentUser currentUser)
         var model = new ProfileModel
         {
             Name = user.Name,
+            Slug = user.Slug,
             WhatsappMessageTemplate = user.WhatsappMessageTemplate,
             IndirectCostRate = user.IndirectCostRate,
             SkipStockCheck = user.SkipStockCheck
