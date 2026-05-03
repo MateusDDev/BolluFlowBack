@@ -56,8 +56,7 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
         user.UpdateProfile(
             trimmedName,
             body.WhatsappMessageTemplate,
-            body.IndirectCostRate,
-            body.SkipStockCheck);
+            body.IndirectCostRate);
 
         await db.SaveChangesAsync(cancellationToken);
 
@@ -66,8 +65,7 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
             Name = user.Name,
             Slug = user.Slug,
             WhatsappMessageTemplate = user.WhatsappMessageTemplate,
-            IndirectCostRate = user.IndirectCostRate,
-            SkipStockCheck = user.SkipStockCheck
+            IndirectCostRate = user.IndirectCostRate
         };
 
         return ResultOf<ProfileModel>.Success(model);

@@ -19,7 +19,6 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .Include(x => x.Customer)
                 .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 
             if (order is null)
@@ -36,46 +35,35 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
                 .Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-            var skipStockCheck = await db.Users
-                .Where(x => x.Id == order.Customer.UserId)
-                .Select(x => x.SkipStockCheck)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (!skipStockCheck)
-            {
-                var insufficientProducts = order.Items
-                    .Select(item => new
-                    {
-                        Item = item,
-                        Product = products.GetValueOrDefault(item.ProductId)
-                    })
-                    .Where(x => x.Product is null || x.Product.StockQuantity < x.Item.Quantity)
-                    .Select(x => new
-                    {
-                        productId = x.Item.ProductId,
-                        productName = x.Product?.Name ?? "Produto não encontrado",
-                        required = x.Item.Quantity,
-                        available = x.Product?.StockQuantity ?? 0
-                    })
-                    .ToList();
-
-                if (insufficientProducts.Count > 0)
+            var insufficientProducts = order.Items
+                .Select(item => new
                 {
-                    return Result.Unprocessable(
-                        new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para iniciar a produção do pedido"),
-                        new { insufficientProducts });
-                }
+                    Item = item,
+                    Product = products.GetValueOrDefault(item.ProductId)
+                })
+                .Where(x => x.Product is null || x.Product.StockQuantity < x.Item.Quantity)
+                .Select(x => new
+                {
+                    productId = x.Item.ProductId,
+                    productName = x.Product?.Name ?? "Produto não encontrado",
+                    required = x.Item.Quantity,
+                    available = x.Product?.StockQuantity ?? 0
+                })
+                .ToList();
+
+            if (insufficientProducts.Count > 0)
+            {
+                return Result.Unprocessable(
+                    new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para iniciar a produção do pedido"),
+                    new { insufficientProducts });
             }
 
             order.Status = OrderStatus.InProduction;
 
-            if (!skipStockCheck)
+            foreach (var item in order.Items)
             {
-                foreach (var item in order.Items)
-                {
-                    var product = products[item.ProductId];
-                    product.ConsumeStock(item.Quantity);
-                }
+                var product = products[item.ProductId];
+                product.ConsumeStock(item.Quantity);
             }
 
             await db.SaveChangesAsync(cancellationToken);

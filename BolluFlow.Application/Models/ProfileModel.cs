@@ -12,6 +12,4 @@ public class ProfileModel
     public string? WhatsappMessageTemplate { get; set; }
 
     public decimal? IndirectCostRate { get; set; }
-
-    public bool SkipStockCheck { get; set; }
 }

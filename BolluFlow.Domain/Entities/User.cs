@@ -14,7 +14,6 @@ public class User
     public string? ProfileImageUrl { get; private set; }
     public string? WhatsappMessageTemplate { get; private set; }
     public decimal? IndirectCostRate { get; private set; }
-    public bool SkipStockCheck { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
     public static User Create(
@@ -36,17 +35,14 @@ public class User
         };
     }
 
-    public void UpdateProfile(string? name, string? whatsappMessageTemplate, decimal? indirectCostRate, bool? skipStockCheck)
+    public void UpdateProfile(string? name, string? whatsappMessageTemplate, decimal? indirectCostRate)
     {
         if (name is not null)
             Name = name;
 
         if (indirectCostRate.HasValue)
             IndirectCostRate = indirectCostRate.Value;
-
-        if (skipStockCheck.HasValue)
-            SkipStockCheck = skipStockCheck.Value;
-
+        
         WhatsappMessageTemplate = whatsappMessageTemplate;
     }
 
