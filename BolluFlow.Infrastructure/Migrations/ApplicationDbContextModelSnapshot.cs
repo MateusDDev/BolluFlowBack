@@ -368,6 +368,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("final_price");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("image_url");
+
                     b.Property<decimal?>("IndirectCostPercentage")
                         .HasColumnType("numeric")
                         .HasColumnName("indirect_cost_percentage");

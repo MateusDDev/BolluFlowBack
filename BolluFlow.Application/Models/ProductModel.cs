@@ -12,5 +12,6 @@ public class ProductModel
     public decimal MarkupPercentage { get; set; }
     public decimal FinalPrice { get; set; }
     public decimal? DiscountPercentage { get; set; }
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
 }

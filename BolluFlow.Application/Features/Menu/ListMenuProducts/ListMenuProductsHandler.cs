@@ -34,7 +34,8 @@ public class ListMenuProductsHandler(ApplicationDbContext db) : IRequestHandler<
                 Name = x.Name,
                 FinalPrice = x.FinalPrice,
                 Category = x.Category,
-                IsAvailable = owner.SkipStockCheck || x.StockQuantity > 0
+                IsAvailable = owner.SkipStockCheck || x.StockQuantity > 0,
+                ImageUrl = x.ImageUrl
             })
             .ToListAsync(cancellationToken);
 

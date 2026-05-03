@@ -28,6 +28,13 @@ public class UpdateProductHandler(ApplicationDbContext db, CurrentUser user) : I
                 request.Body.MinimumStockQuantity ?? product.MinimumStockQuantity,
                 request.Body.IsActive);
 
+            if (request.Body.ImageUrl.IsSet)
+            {
+                product.UpdateImage(string.IsNullOrWhiteSpace(request.Body.ImageUrl.Value) 
+                    ? null 
+                    : request.Body.ImageUrl.Value);
+            }
+
             await db.SaveChangesAsync(cancellationToken);
             return ResultOf<ProductModel>.Success(product.Adapt<ProductModel>());
         }
