@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Infrastructure.Persistence;
@@ -81,10 +82,25 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
             lastOrderNumber + 1,
             string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim());
 
+        var componentCosts = await db.ProductComponents
+            .AsNoTracking()
+            .Include(x => x.Recipe)
+            .ThenInclude(x => x!.RecipeIngredients)
+            .ThenInclude(x => x.Ingredient)
+            .Where(x => requestedProductIds.Contains(x.ProductId))
+            .ToListAsync(cancellationToken);
+
+        var componentCostsByProduct = componentCosts
+            .GroupBy(x => x.ProductId)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Sum(ProductComponentCostService.CalculateComponentCost));
+
         foreach (var item in items)
         {
             var product = products[item.ProductId];
-            order.AddItem(product.Id, item.Quantity, product.FinalPrice, product.SalePrice ?? 0m);
+            var unitCost = componentCostsByProduct.GetValueOrDefault(item.ProductId, 0m);
+            order.AddItem(product.Id, item.Quantity, product.FinalPrice, unitCost);
         }
 
         db.Orders.Add(order);

@@ -30,6 +30,7 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             name: command.Name,
             category: command.Category,
             baseUnit: command.BaseUnit,
+            yield: command.Yield,
             preparationTime: command.PreparationTime,
             isActive: command.IsActive);
 
@@ -45,7 +46,9 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             Category = recipe.Category,
             BaseUnit = recipe.BaseUnit,
             PreparationTime = recipe.PreparationTime,
+            Yield = recipe.Yield,
             UnitCost = recipe.CalculateUnitCost(),
+            CostPerBaseUnit = recipe.CostPerBaseUnit,
             FinalPrice = recipe.FinalPrice,
             StockQuantity = recipe.StockQuantity,
             MinimumStockQuantity = recipe.MinimumStockQuantity,

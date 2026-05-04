@@ -15,6 +15,14 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnType("text")
             .IsRequired(false);
 
+        builder.Property(x => x.Description)
+            .HasColumnType("text")
+            .IsRequired(false);
+
+        builder.Property(x => x.ImageUrl)
+            .HasColumnType("text")
+            .IsRequired(false);
+
         builder.HasIndex(x => new { x.UserId, x.MinimumStockQuantity, x.StockQuantity });
     }
 }

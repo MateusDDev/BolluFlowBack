@@ -24,6 +24,7 @@ public class CreateRecipeHandler(ApplicationDbContext db, CurrentUser user) : IR
                 name: request.Name,
                 category: request.Category,
                 baseUnit: request.BaseUnit,
+                yield: request.Yield,
                 preparationTime: request.PreparationTime,
                 finalPrice: request.FinalPrice ?? 0);
 

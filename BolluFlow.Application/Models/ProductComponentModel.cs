@@ -15,4 +15,6 @@ public class ProductComponentModel
     public decimal UnitPrice { get; set; }
     public decimal StockQuantity { get; set; }
     public decimal QuantityUsed { get; set; }
+    public decimal? Yield { get; set; }
+    public decimal? CostPerBaseUnit { get; set; }
 }

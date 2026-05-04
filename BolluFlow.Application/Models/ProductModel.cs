@@ -5,6 +5,7 @@ public class ProductModel
     public long Id { get; set; }
     public string Name { get; set; } = null!;
     public string? Category { get; set; }
+    public string? Description { get; set; }
     public decimal? SalePrice { get; set; }
     public decimal StockQuantity { get; set; }
     public decimal? MinimumStockQuantity { get; set; }
@@ -12,5 +13,6 @@ public class ProductModel
     public decimal MarkupPercentage { get; set; }
     public decimal FinalPrice { get; set; }
     public decimal? DiscountPercentage { get; set; }
+    public string? ImageUrl { get; set; }
     public bool IsActive { get; set; }
 }

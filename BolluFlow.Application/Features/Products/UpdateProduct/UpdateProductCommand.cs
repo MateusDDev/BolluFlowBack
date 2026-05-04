@@ -5,4 +5,14 @@ namespace BolluFlow.Application.Features.Products.UpdateProduct;
 
 public record UpdateProductCommand(long Id, UpdateProductCommandBody Body) : ICommand<ResultOf<ProductModel>>;
 
-public record UpdateProductCommandBody(string? Name, string? Category, decimal? SalePrice, decimal? MinimumStockQuantity, bool? IsActive);
+public class UpdateProductCommandBody
+{
+    public string? Name { get; init; }
+    public string? Category { get; init; }
+    public OptionalField<string?> Description { get; init; }
+    public decimal? SalePrice { get; init; }
+    public decimal? MinimumStockQuantity { get; init; }
+    public bool? IsActive { get; init; }
+
+    public OptionalField<string?> ImageUrl { get; init; }
+}

@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Persistence;
@@ -27,11 +28,19 @@ public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<
             var products = await db.Products.AsNoTracking().Where(x => productIds.Contains(x.Id))
                 .ToDictionaryAsync(x => x.Id, cancellationToken);
 
-            var componentCostsByProduct = await db.ProductComponents
+            var components = await db.ProductComponents
+                .AsNoTracking()
+                .Include(x => x.Recipe)
+                .ThenInclude(x => x!.RecipeIngredients)
+                .ThenInclude(x => x.Ingredient)
                 .Where(x => productIds.Contains(x.ProductId))
+                .ToListAsync(cancellationToken);
+
+            var componentCostsByProduct = components
                 .GroupBy(x => x.ProductId)
-                .Select(g => new { ProductId = g.Key, UnitCost = g.Sum(x => x.QuantityUsed * x.UnitPrice) })
-                .ToDictionaryAsync(x => x.ProductId, x => x.UnitCost, cancellationToken);
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Sum(ProductComponentCostService.CalculateComponentCost));
 
             foreach (var item in request.Items)
             {

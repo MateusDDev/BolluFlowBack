@@ -30,9 +30,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IndirectCostRate)
             .HasColumnType("numeric(5,2)")
             .IsRequired(false);
-
-        builder.Property(x => x.SkipStockCheck)
-            .HasDefaultValue(false)
-            .IsRequired();
     }
 }

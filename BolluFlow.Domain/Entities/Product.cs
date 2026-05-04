@@ -11,6 +11,7 @@ public class Product
     public long UserId { get; private set; }
     public string Name { get; private set; } = null!;
     public string? Category { get; private set; }
+    public string? Description { get; private set; }
     public decimal? SalePrice { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
@@ -18,11 +19,22 @@ public class Product
     public decimal MarkupPercentage { get; private set; }
     public decimal FinalPrice { get; private set; }
     public decimal? DiscountPercentage { get; private set; }
+    public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; }
 
     public List<ProductComponent> Components { get; private set; } = [];
 
     public static Product Create(long userId, string name, string? category, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity)
+    {
+        return Create(userId, name, category, null, salePrice, stockQuantity, minimumStockQuantity);
+    }
+
+    public static Product Create(long userId, string name, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity)
+    {
+        return Create(userId, name, null, null, salePrice, stockQuantity, minimumStockQuantity);
+    }
+
+    public static Product Create(long userId, string name, string? category, string? description, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity)
     {
         Validate(name, stockQuantity, minimumStockQuantity);
 
@@ -31,6 +43,7 @@ public class Product
             UserId = userId,
             Name = name,
             Category = NormalizeCategory(category),
+            Description = NormalizeDescription(description),
             SalePrice = salePrice,
             StockQuantity = stockQuantity,
             MinimumStockQuantity = minimumStockQuantity,
@@ -38,16 +51,18 @@ public class Product
             MarkupPercentage = 0,
             FinalPrice = salePrice ?? 0,
             DiscountPercentage = null,
+            ImageUrl = null,
             IsActive = true
         };
     }
 
-    public void Update(string name, string? category, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity, bool? isActive)
+    public void Update(string name, string? category, string? description, decimal? salePrice, decimal stockQuantity, decimal? minimumStockQuantity, bool? isActive)
     {
         Validate(name, stockQuantity, minimumStockQuantity);
 
         Name = name;
         Category = NormalizeCategory(category);
+        Description = NormalizeDescription(description);
         SalePrice = salePrice;
         StockQuantity = stockQuantity;
         MinimumStockQuantity = minimumStockQuantity;
@@ -68,6 +83,11 @@ public class Product
         MarkupPercentage = markupPercentage;
         FinalPrice = finalPrice;
         DiscountPercentage = discountPercentage;
+    }
+
+    public void UpdateImage(string? imageUrl)
+    {
+        ImageUrl = imageUrl;
     }
 
     public void ConsumeStock(decimal quantity)
@@ -99,5 +119,10 @@ public class Product
     private static string? NormalizeCategory(string? category)
     {
         return string.IsNullOrWhiteSpace(category) ? null : category.Trim();
+    }
+
+    private static string? NormalizeDescription(string? description)
+    {
+        return string.IsNullOrWhiteSpace(description) ? null : description.Trim();
     }
 }

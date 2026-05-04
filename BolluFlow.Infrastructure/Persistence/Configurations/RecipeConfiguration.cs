@@ -14,6 +14,11 @@ public class RecipeConfiguration : IEntityTypeConfiguration<Recipe>
 
         builder.Property(x => x.BaseUnit).HasConversion<string>();
 
+        builder.Property(x => x.Yield)
+            .HasPrecision(14, 4);
+
+        builder.Ignore(x => x.CostPerBaseUnit);
+
         builder.Property(x => x.StockQuantity)
             .HasPrecision(14, 4)
             .HasDefaultValue(0);
