@@ -16,8 +16,7 @@ public class ListMenuProductsHandler(ApplicationDbContext db) : IRequestHandler<
             .Where(x => x.IsActive && x.Slug == request.Slug)
             .Select(x => new
             {
-                x.Id,
-                x.SkipStockCheck
+                x.Id
             })
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -32,9 +31,10 @@ public class ListMenuProductsHandler(ApplicationDbContext db) : IRequestHandler<
             {
                 Id = x.Id,
                 Name = x.Name,
+                Description = x.Description,
                 FinalPrice = x.FinalPrice,
                 Category = x.Category,
-                IsAvailable = owner.SkipStockCheck || x.StockQuantity > 0,
+                IsAvailable = x.StockQuantity > 0,
                 ImageUrl = x.ImageUrl
             })
             .ToListAsync(cancellationToken);

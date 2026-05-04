@@ -360,6 +360,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("category");
 
+                    b.Property<string>("Description")
+                        .HasColumnType("text")
+                        .HasColumnName("description");
+
                     b.Property<decimal?>("DiscountPercentage")
                         .HasColumnType("numeric")
                         .HasColumnName("discount_percentage");
@@ -567,6 +571,11 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
+
+                    b.Property<decimal?>("Yield")
+                        .HasPrecision(14, 4)
+                        .HasColumnType("numeric(14,4)")
+                        .HasColumnName("yield");
 
                     b.HasKey("Id")
                         .HasName("pk_tb_recipe");
@@ -852,12 +861,6 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("text")
                         .HasColumnName("profile_image_url");
-
-                    b.Property<bool>("SkipStockCheck")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("skip_stock_check");
 
                     b.Property<string>("Slug")
                         .HasColumnType("varchar(255)")

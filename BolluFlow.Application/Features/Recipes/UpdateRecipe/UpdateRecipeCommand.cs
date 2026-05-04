@@ -10,6 +10,7 @@ public record UpdateRecipeCommandBody(
     string Name,
     string Category,
     BaseUnit BaseUnit,
+    decimal? Yield,
     int? PreparationTime,
     bool IsActive,
     decimal? FinalPrice);

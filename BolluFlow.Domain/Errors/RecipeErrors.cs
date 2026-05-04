@@ -13,6 +13,9 @@ public class RecipeErrors
     public static readonly DomainError MinimumStockQuantityInvalid =
         new("RECIPE_MINIMUM_STOCK_QUANTITY_INVALID", "Estoque mínimo da receita inválido");
 
+    public static readonly DomainError YieldInvalid =
+        new("RECIPE_YIELD_INVALID", "Rendimento da receita inválido");
+
     public static DomainError StockInsufficient(string recipeName) =>
         new("RECIPE_STOCK_INSUFFICIENT", $"Estoque insuficiente para a receita {recipeName}");
 }

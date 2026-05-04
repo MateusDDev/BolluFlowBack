@@ -9,6 +9,7 @@ public class UpdateProductCommandBody
 {
     public string? Name { get; init; }
     public string? Category { get; init; }
+    public OptionalField<string?> Description { get; init; }
     public decimal? SalePrice { get; init; }
     public decimal? MinimumStockQuantity { get; init; }
     public bool? IsActive { get; init; }

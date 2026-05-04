@@ -21,6 +21,12 @@ public class Recipe
 
     public BaseUnit BaseUnit { get; private set; }
 
+    public decimal? Yield { get; private set; }
+
+    public decimal? CostPerBaseUnit => Yield is null or 0
+        ? null
+        : FinalPrice / Yield.Value;
+
     public decimal FinalPrice { get; private set; }
 
     public decimal StockQuantity { get; private set; }
@@ -38,10 +44,12 @@ public class Recipe
         string name,
         string category,
         BaseUnit baseUnit,
+        decimal? yield,
         int? preparationTime = null,
         decimal finalPrice = 0)
     {
         ValidateFinalPrice(finalPrice);
+        ValidateYield(yield);
 
         return new Recipe
         {
@@ -49,6 +57,7 @@ public class Recipe
             Name = name,
             Category = category,
             BaseUnit = baseUnit,
+            Yield = yield,
             FinalPrice = finalPrice,
             StockQuantity = 0,
             IsActive = true,
@@ -60,12 +69,16 @@ public class Recipe
         string name,
         string category,
         BaseUnit baseUnit,
+        decimal? yield,
         int? preparationTime = null,
         bool isActive = true)
     {
+        ValidateYield(yield);
+
         Name = name;
         Category = category;
         BaseUnit = baseUnit;
+        Yield = yield;
         IsActive = isActive;
         PreparationTime = preparationTime;
     }
@@ -119,5 +132,11 @@ public class Recipe
     {
         if (finalPrice < 0)
             throw new DomainException(RecipeErrors.FinalPriceInvalid);
+    }
+
+    private static void ValidateYield(decimal? yield)
+    {
+        if (yield < 0)
+            throw new DomainException(RecipeErrors.YieldInvalid);
     }
 }

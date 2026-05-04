@@ -14,7 +14,11 @@ public class RecipeModel
 
     public int? PreparationTime { get; set; }
 
+    public decimal? Yield { get; set; }
+
     public decimal UnitCost { get; set; }
+
+    public decimal? CostPerBaseUnit { get; set; }
 
     public decimal FinalPrice { get; set; }
 
