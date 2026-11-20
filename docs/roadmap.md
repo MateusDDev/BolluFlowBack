@@ -17,6 +17,7 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Endereço do cliente opcional (para retirada no local) | feito |
 | Atalhos de data de entrega ("Hoje", "Amanhã") e forma de pagamento em botões em vez de select | feito |
 | Avançar status direto pela lista de pedidos | ideia |
+| Botão de venda rápida sempre visível (atalho no topo ou flutuante) | ideia |
 
 ### Dashboard
 | Item | Status |
@@ -40,6 +41,10 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 ### Geral
 | Item | Status |
 |---|---|
+| Primeiro uso: telas vazias que ensinam, card "primeiro produto" com lucro, dicas que aparecem uma vez e "?" nos conceitos | feito |
+| Mensagem de boas-vindas pelo WhatsApp | ideia |
+| Painel interno: onde os usuários param no checklist de primeiros passos | ideia |
+| Campo de custo manual no produto (para quem não usa Receitas ver a margem) | ideia |
 | Revisar acentos e textos ("Preco de venda", "conversoes", "Salvar alteracoes", "Estoque minimo") | ideia |
 | Usar toasts (sonner já está instalado) para sucesso/erro de forma consistente | ideia |
 | Tela de carregamento no lugar da tela em branco enquanto a sessão carrega | ideia |
