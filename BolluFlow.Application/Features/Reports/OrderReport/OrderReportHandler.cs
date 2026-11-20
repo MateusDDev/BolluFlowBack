@@ -88,7 +88,7 @@ public class OrderReportHandler(ApplicationDbContext db, CurrentUser user, IOpti
                                 .FontSize(14);
      
                             col.Item().AlignCenter()
-                                .Text(order.CustomerName ?? "Venda no balcão")
+                                .Text(order.CustomerName ?? "Sem cliente")
                                 .Bold()
                                 .FontSize(11);
      
