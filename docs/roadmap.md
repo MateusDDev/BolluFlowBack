@@ -9,19 +9,24 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 ### Pedidos
 | Item | Status |
 |---|---|
-| Abrir o pedido recém-criado direto na tela de detalhes (hoje o modal fecha e a pessoa precisa achar o pedido na lista) | ideia |
-| Criar pedido em uma tela só: cliente, itens, entrega e pagamento juntos (hoje são dois passos e um modal por item) | ideia |
-| Cadastrar cliente sem sair do pedido, só com nome e WhatsApp | ideia |
-| Endereço do cliente opcional (para retirada no local) | ideia |
-| Atalhos de data de entrega ("Hoje", "Amanhã") e forma de pagamento em botões em vez de select | ideia |
+| Criar pedido em uma tela só: cliente, itens, entrega e pagamento juntos (hoje são dois passos e um modal por item) | em andamento |
+| **Venda rápida**: a mesma tela com "Entregar agora" cria o pedido já entregue (baixa de estoque e receita), sem status. Não é uma entidade separada: é um pedido, para relatórios e financeiro terem uma fonte só | em andamento |
+| Cliente opcional no pedido (venda de balcão) e data de entrega opcional | em andamento |
+| Abrir o pedido recém-criado direto na tela de detalhes | em andamento |
+| Cadastrar cliente sem sair do pedido, só com nome e WhatsApp | em andamento |
+| Endereço do cliente opcional (para retirada no local) | em andamento |
+| Atalhos de data de entrega ("Hoje", "Amanhã") e forma de pagamento em botões em vez de select | em andamento |
 | Avançar status direto pela lista de pedidos | ideia |
 
 ### Dashboard
 | Item | Status |
 |---|---|
-| Virar uma tela "Hoje": entregas de hoje/amanhã, pedidos prontos, saldo do mês e alertas, conforme os módulos ligados | ideia |
-| Remover gráficos de pizza/barra, que dizem pouco para um negócio pequeno | ideia |
-| Para quem só usa Receitas: atalhos para custo dos produtos e produtos sem ficha técnica | ideia |
+| Topo "Hoje": entregas de hoje/amanhã, pedidos prontos e alertas de estoque, só quando houver algo pendente | decidido |
+| Métricas de vendas com seletor de período: faturamento e variação vs. período anterior, nº de vendas, ticket médio, lucro bruto e margem (usando o custo gravado no item do pedido), evolução dos últimos 12 meses, produtos mais vendidos | decidido |
+| Métricas vêm dos pedidos entregues (vendas); o Financeiro continua sendo o caixa (entradas, saídas, saldo). Mediana fica de fora | decidido |
+| Com poucas vendas, mostrar aviso em vez de médias/crescimento enganosos | decidido |
+| Remover gráficos de pizza/barra atuais | decidido |
+| Para quem só usa Receitas: produtos sem ficha técnica e de menor margem | decidido |
 
 ### Geral
 | Item | Status |
