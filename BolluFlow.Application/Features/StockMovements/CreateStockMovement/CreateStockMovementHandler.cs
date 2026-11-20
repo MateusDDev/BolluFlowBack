@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
@@ -49,25 +50,43 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
         {
             var itemName = $"#{request.ItemId}";
 
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
+
             if (request.ItemType == StockItemType.Ingredient)
             {
                 var ingredient = await db.Ingredients
-                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
 
                 if (ingredient is not null)
                 {
-                    ingredient.RevertStock(movement.Quantity);
+                    if (policy.IsActive)
+                        ingredient.AddStock(movement.Quantity);
+
+                    if (request.UpdateItemCost && request.UnitCost > 0)
+                    {
+                        movement.RecordCostUpdate(ingredient.UnitCost);
+                        ingredient.UpdateUnitCost(request.UnitCost);
+                    }
+
                     itemName = ingredient.Name;
                 }
             }
             else if (request.ItemType == StockItemType.Supply)
             {
                 var supply = await db.Supplies
-                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
 
                 if (supply is not null)
                 {
-                    supply.RevertStock(movement.Quantity);
+                    if (policy.IsActive)
+                        supply.AddStock(movement.Quantity);
+
+                    if (request.UpdateItemCost && request.UnitCost > 0)
+                    {
+                        movement.RecordCostUpdate(supply.UnitCost);
+                        supply.UpdateUnitCost(request.UnitCost);
+                    }
+
                     itemName = supply.Name;
                 }
             }

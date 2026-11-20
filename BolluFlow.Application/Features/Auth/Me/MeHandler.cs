@@ -4,7 +4,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -34,10 +33,7 @@ public class MeHandler(
         if (user is null)
             return ResultOf<UserModel>.Unauthorized(CommonErrors.UserNotFound);
 
-        var result = user.Adapt<UserModel>();
-        
-        result.Token = "";
-
+        var result = UserModel.From(user);
         return ResultOf<UserModel>.Success(result);
     }
 }

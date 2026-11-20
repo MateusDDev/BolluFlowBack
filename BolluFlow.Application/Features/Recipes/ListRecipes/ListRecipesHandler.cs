@@ -25,12 +25,13 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
                 BaseUnit = x.BaseUnit,
                 PreparationTime = x.PreparationTime,
                 Yield = x.Yield,
-                UnitCost = x.CalculateUnitCost(),
+                UnitCost = x.CalculateBatchCost(),
                 CostPerBaseUnit = x.CostPerBaseUnit,
                 FinalPrice = x.FinalPrice,
                 StockQuantity = x.StockQuantity,
                 MinimumStockQuantity = x.MinimumStockQuantity,
-                IsActive = x.IsActive
+                IsActive = x.IsActive,
+                TrackStock = x.TrackStock
             })
             .ToListAsync(cancellationToken);
 

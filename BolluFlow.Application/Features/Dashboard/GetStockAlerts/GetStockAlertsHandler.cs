@@ -16,6 +16,7 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
 
         var productAlerts = await db.Products
             .Where(x => x.UserId == currentUser.Id
+                        && x.TrackStock
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
                         && x.StockQuantity <= x.MinimumStockQuantity.Value * warningFactor)
@@ -31,6 +32,7 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
 
         var ingredientAlerts = await db.Ingredients
             .Where(x => x.UserId == currentUser.Id
+                        && x.TrackStock
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
                         && x.StockQuantity <= x.MinimumStockQuantity.Value * warningFactor)
@@ -46,6 +48,7 @@ public sealed class GetStockAlertsHandler(ApplicationDbContext db, CurrentUser c
 
         var supplyAlerts = await db.Supplies
             .Where(x => x.UserId == currentUser.Id
+                        && x.TrackStock
                         && x.MinimumStockQuantity.HasValue
                         && x.MinimumStockQuantity > 0
                         && x.StockQuantity <= x.MinimumStockQuantity.Value * warningFactor)

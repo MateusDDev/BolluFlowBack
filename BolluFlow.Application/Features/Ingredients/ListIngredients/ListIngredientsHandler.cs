@@ -2,7 +2,6 @@
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +16,6 @@ public class ListIngredientsHandler(ApplicationDbContext db, CurrentUser user)
             .Where(x => x.UserId == user.Id)
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<IngredientModel>>.Success(ingredients.Adapt<List<IngredientModel>>());
+        return ResultOf<List<IngredientModel>>.Success(ingredients.Select(IngredientModel.From).ToList());
     }
 }

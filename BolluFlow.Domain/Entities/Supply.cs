@@ -4,7 +4,7 @@ using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Supply
+public class Supply : IStockItem
 {
     private Supply() { }
 
@@ -15,6 +15,7 @@ public class Supply
     public decimal UnitCost { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
+    public bool TrackStock { get; private set; }
     public List<SupplyConversion> SupplyConversions { get; init; } = [];
 
     public static Supply Create(long userId, string name, BaseUnit unit, decimal unitCost, decimal stockQuantity, decimal? minimumStockQuantity)
@@ -35,7 +36,8 @@ public class Supply
             BaseUnit = unit,
             UnitCost = unitCost,
             StockQuantity = stockQuantity,
-            MinimumStockQuantity = minimumStockQuantity
+            MinimumStockQuantity = minimumStockQuantity,
+            TrackStock = stockQuantity > 0
         };
     }
 
@@ -57,19 +59,54 @@ public class Supply
         MinimumStockQuantity = minimumStockQuantity;
     }
 
-    public void ConsumeStock(decimal quantity)
+    public void UpdateUnitCost(decimal unitCost)
     {
-        if (quantity <= 0 || StockQuantity < quantity)
+        if (unitCost <= 0)
+            throw new DomainException(SupplyErrors.UnitCostInvalid);
+
+        UnitCost = unitCost;
+    }
+
+    public void SetTrackStock(bool trackStock)
+    {
+        TrackStock = trackStock;
+    }
+
+    public bool HasEnoughStock(decimal quantity, bool allowNegativeStock)
+    {
+        return !TrackStock || allowNegativeStock || StockQuantity >= quantity;
+    }
+
+    public void ConsumeStock(decimal quantity, bool allowNegativeStock = false)
+    {
+        if (quantity <= 0)
+            throw new DomainException(SupplyErrors.StockQuantityInvalid);
+
+        if (!TrackStock)
+            return;
+
+        if (!allowNegativeStock && StockQuantity < quantity)
             throw new DomainException(SupplyErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;
     }
 
+    public void AddStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(SupplyErrors.StockQuantityInvalid);
+
+        TrackStock = true;
+        StockQuantity += quantity;
+    }
 
     public void RevertStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(SupplyErrors.StockQuantityInvalid);
+
+        if (!TrackStock)
+            return;
 
         StockQuantity += quantity;
     }

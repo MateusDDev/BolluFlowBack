@@ -9,4 +9,5 @@ public record CreateRecipeCommand(
     BaseUnit BaseUnit,
     decimal? Yield,
     int? PreparationTime,
-    decimal? FinalPrice) : ICommand<ResultOf<CreateRecipeResult>>;
+    decimal? FinalPrice,
+    decimal? MinimumStockQuantity = null) : ICommand<ResultOf<CreateRecipeResult>>;

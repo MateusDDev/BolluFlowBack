@@ -5,7 +5,7 @@ using BolluFlow.Domain.Services;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Recipe
+public class Recipe : IStockItem
 {
     private Recipe() { }
 
@@ -25,7 +25,7 @@ public class Recipe
 
     public decimal? CostPerBaseUnit => Yield is null or 0
         ? null
-        : FinalPrice / Yield.Value;
+        : CalculateBatchCost() / Yield.Value;
 
     public decimal FinalPrice { get; private set; }
 
@@ -34,6 +34,8 @@ public class Recipe
     public decimal? MinimumStockQuantity { get; private set; }
 
     public bool IsActive { get; set; }
+
+    public bool TrackStock { get; private set; }
 
     public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
 
@@ -89,20 +91,45 @@ public class Recipe
         FinalPrice = finalPrice;
     }
 
+    public void SetTrackStock(bool trackStock)
+    {
+        TrackStock = trackStock;
+    }
+
+    public bool HasEnoughStock(decimal quantity, bool allowNegativeStock)
+    {
+        return !TrackStock || allowNegativeStock || StockQuantity >= quantity;
+    }
+
     public void ProduceStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(RecipeErrors.QuantityInvalid);
 
+        TrackStock = true;
         StockQuantity += quantity;
     }
 
-    public void ConsumeStock(decimal quantity)
+    public void RevertStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(RecipeErrors.QuantityInvalid);
 
-        if (StockQuantity < quantity)
+        if (!TrackStock)
+            return;
+
+        StockQuantity += quantity;
+    }
+
+    public void ConsumeStock(decimal quantity, bool allowNegativeStock = false)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        if (!TrackStock)
+            return;
+
+        if (!allowNegativeStock && StockQuantity < quantity)
             throw new DomainException(RecipeErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;
@@ -121,7 +148,7 @@ public class Recipe
         RecipeConversions.Add(RecipeConversion.Create(Id, name, quantityInBaseUnit));
     }
 
-    public decimal CalculateUnitCost()
+    public decimal CalculateBatchCost()
     {
         return RecipePricingService.CalculateIngredientCost(RecipeIngredients
             .Select(x => (UnitPrice: x.Ingredient.UnitCost, x.QuantityUsed))

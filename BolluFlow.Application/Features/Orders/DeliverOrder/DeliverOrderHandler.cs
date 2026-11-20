@@ -1,9 +1,8 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
-using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
-using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -21,7 +20,7 @@ public class DeliverOrderHandler(ApplicationDbContext db, CurrentUser user) : IR
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
@@ -29,41 +28,9 @@ public class DeliverOrderHandler(ApplicationDbContext db, CurrentUser user) : IR
             if (order.Status == OrderStatus.Delivered)
                 return Result.Success();
 
-            if (order.Status != OrderStatus.Ready)
-                return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
+            order.Deliver();
 
-            var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await db.Products
-                .Where(x => productIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id, cancellationToken);
-
-            foreach (var item in order.Items)
-            {
-                if (!products.TryGetValue(item.ProductId, out var product))
-                    return Result.NotFound(CommonErrors.ProductNotFound);
-
-                product.ConsumeStock(item.Quantity);
-            }
-
-            order.Status = OrderStatus.Delivered;
-
-            var financialEventKey = $"order_delivered:{order.Id}";
-            var existingFinancial = await db.FinancialEntries
-                .FirstOrDefaultAsync(x => x.UserId == user.Id && x.EventKey == financialEventKey, cancellationToken);
-
-            if (existingFinancial is null)
-            {
-                var orderTotal = decimal.Round(order.CalculateTotal(), 2, MidpointRounding.AwayFromZero);
-
-                db.FinancialEntries.Add(FinancialEntry.Create(
-                    user.Id,
-                    FinancialEntryType.Income,
-                    orderTotal,
-                    $"Venda - Pedido #{order.Number}",
-                    FinancialOriginType.Order,
-                    order.Id,
-                    financialEventKey));
-            }
+            await OrderFulfillmentService.RegisterIncomeAsync(db, order, cancellationToken);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

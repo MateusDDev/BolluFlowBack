@@ -23,6 +23,22 @@ public class ProductComponent
     public decimal UnitPrice { get; private set; }
     public decimal QuantityUsed { get; private set; }
 
+    public decimal CurrentUnitCost => ComponentType switch
+    {
+        ProductComponentType.Ingredient => Ingredient?.UnitCost ?? UnitPrice,
+        ProductComponentType.Supply => Supply?.UnitCost ?? UnitPrice,
+        ProductComponentType.Recipe => Recipe?.CostPerBaseUnit ?? 0m,
+        _ => UnitPrice
+    };
+
+    public IStockItem? StockItem => ComponentType switch
+    {
+        ProductComponentType.Ingredient => Ingredient,
+        ProductComponentType.Supply => Supply,
+        ProductComponentType.Recipe => Recipe,
+        _ => null
+    };
+
     public static ProductComponent Create(long productId, ProductComponentType componentType, long sourceId, string name, string baseUnit, decimal unitPrice, decimal quantityUsed)
     {
         if (quantityUsed <= 0)

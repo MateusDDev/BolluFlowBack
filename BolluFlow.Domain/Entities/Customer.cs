@@ -18,13 +18,13 @@ public class Customer
     
     public DateTime? Birthday { get; set; }
     
-    public DeliveryAddress DeliveryAddress { get; set; }
+    public DeliveryAddress? DeliveryAddress { get; set; }
 
     public static Customer Create(
         long userId,
         string name,
         string whatsapp,
-        DeliveryAddress deliveryAddress,
+        DeliveryAddress? deliveryAddress,
         string? preferences = null,
         DateTime? birthday = null)
     {
@@ -39,11 +39,14 @@ public class Customer
         };
     }
 
-    public void Update(string name, DeliveryAddress deliveryAddress, string? preferences = null, DateTime? birthday = null)
+    public void Update(string name, DeliveryAddress? deliveryAddress, string? preferences = null, DateTime? birthday = null)
     {
         Name = name;
         Preferences = preferences;
         Birthday = birthday;
+
+        if (deliveryAddress is null)
+            return;
 
         if (DeliveryAddress is null)
         {

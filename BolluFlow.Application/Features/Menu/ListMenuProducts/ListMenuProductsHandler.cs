@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -23,6 +24,9 @@ public class ListMenuProductsHandler(ApplicationDbContext db) : IRequestHandler<
         if (owner is null)
             return ResultOf<List<MenuProductModel>>.NotFound(new DomainError("MENU_NOT_FOUND", "Cardápio não encontrado"));
 
+        var policy = await StockPolicy.LoadAsync(db, owner.Id, cancellationToken);
+        var blockWhenOutOfStock = policy.IsActive && !policy.AllowNegativeStock;
+
         var products = await db.Products
             .AsNoTracking()
             .Where(x => x.UserId == owner.Id && x.IsActive && x.FinalPrice > 0)
@@ -34,7 +38,7 @@ public class ListMenuProductsHandler(ApplicationDbContext db) : IRequestHandler<
                 Description = x.Description,
                 FinalPrice = x.FinalPrice,
                 Category = x.Category,
-                IsAvailable = x.StockQuantity > 0,
+                IsAvailable = !blockWhenOutOfStock || !x.TrackStock || x.StockQuantity > 0,
                 ImageUrl = x.ImageUrl
             })
             .ToListAsync(cancellationToken);

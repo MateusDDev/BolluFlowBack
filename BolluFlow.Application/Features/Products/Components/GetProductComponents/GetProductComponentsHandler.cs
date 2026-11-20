@@ -59,20 +59,24 @@ public class GetProductComponentsHandler(ApplicationDbContext db, CurrentUser us
             decimal? costPerBaseUnit = null;
             decimal? yield = null;
             decimal stockQuantity = 0;
+            var unitPrice = x.UnitPrice;
 
             if (x.RecipeId.HasValue && recipes.TryGetValue(x.RecipeId.Value, out var recipe))
             {
                 stockQuantity = recipe.StockQuantity;
                 yield = recipe.Yield;
                 costPerBaseUnit = recipe.CostPerBaseUnit;
+                unitPrice = recipe.CostPerBaseUnit ?? 0m;
             }
             else if (x.IngredientId.HasValue && ingredients.TryGetValue(x.IngredientId.Value, out var ingredient))
             {
                 stockQuantity = ingredient.StockQuantity;
+                unitPrice = ingredient.UnitCost;
             }
             else if (x.SupplyId.HasValue && supplies.TryGetValue(x.SupplyId.Value, out var supply))
             {
                 stockQuantity = supply.StockQuantity;
+                unitPrice = supply.UnitCost;
             }
 
             return new ProductComponentModel
@@ -85,7 +89,7 @@ public class GetProductComponentsHandler(ApplicationDbContext db, CurrentUser us
                 SupplyId = x.SupplyId,
                 Name = x.Name,
                 BaseUnit = x.BaseUnit,
-                UnitPrice = x.UnitPrice,
+                UnitPrice = unitPrice,
                 QuantityUsed = x.QuantityUsed,
                 StockQuantity = stockQuantity,
                 Yield = yield,

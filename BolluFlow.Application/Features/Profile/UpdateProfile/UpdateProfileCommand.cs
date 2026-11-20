@@ -13,4 +13,7 @@ public record UpdateProfileCommandBody(
     /// {customerName}, {orderNumber}, {items}, {total}, {paymentMethod}, {deliveryDate}, {address}
     /// </summary>
     string? WhatsappMessageTemplate,
-    decimal? IndirectCostRate);
+    decimal? IndirectCostRate,
+    string? Whatsapp = null,
+    List<string>? EnabledModules = null,
+    bool? AllowNegativeStock = null);

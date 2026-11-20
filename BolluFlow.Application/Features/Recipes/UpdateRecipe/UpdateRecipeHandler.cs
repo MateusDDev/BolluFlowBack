@@ -37,6 +37,12 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
         if (command.FinalPrice.HasValue)
             recipe.SetFinalPrice(command.FinalPrice.Value);
 
+        if (command.TrackStock.HasValue)
+            recipe.SetTrackStock(command.TrackStock.Value);
+
+        if (command.MinimumStockQuantity.IsSet)
+            recipe.SetMinimumStockQuantity(command.MinimumStockQuantity.Value);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return ResultOf<RecipeModel>.Success(new RecipeModel
@@ -47,12 +53,13 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             BaseUnit = recipe.BaseUnit,
             PreparationTime = recipe.PreparationTime,
             Yield = recipe.Yield,
-            UnitCost = recipe.CalculateUnitCost(),
+            UnitCost = recipe.CalculateBatchCost(),
             CostPerBaseUnit = recipe.CostPerBaseUnit,
             FinalPrice = recipe.FinalPrice,
             StockQuantity = recipe.StockQuantity,
             MinimumStockQuantity = recipe.MinimumStockQuantity,
-            IsActive = recipe.IsActive
+            IsActive = recipe.IsActive,
+            TrackStock = recipe.TrackStock
         });
     }
 }

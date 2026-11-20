@@ -1,16 +1,18 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Recipes.Productions.RecordProduction;
 
-public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHandler<RecordRecipeProductionCommand, ResultOf<RecipeProductionModel>>
+public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<RecordRecipeProductionCommand, ResultOf<RecipeProductionModel>>
 {
     public async Task<ResultOf<RecipeProductionModel>> Handle(RecordRecipeProductionCommand request, CancellationToken cancellationToken)
     {
@@ -24,10 +26,12 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
             var recipe = await db.Recipes
                 .Include(x => x.RecipeIngredients)
                 .ThenInclude(x => x.Ingredient)
-                .FirstOrDefaultAsync(x => x.Id == request.RecipeId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.RecipeId && x.UserId == user.Id, cancellationToken);
 
             if (recipe is null)
                 return ResultOf<RecipeProductionModel>.NotFound(CommonErrors.RecipeNotFound);
+
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
 
             var insufficientIngredients = recipe.RecipeIngredients
                 .Select(x => new
@@ -35,7 +39,7 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
                     Ingredient = x.Ingredient,
                     Required = x.QuantityUsed * request.Body.Quantity
                 })
-                .Where(x => x.Ingredient.StockQuantity < x.Required)
+                .Where(x => !policy.HasEnough(x.Ingredient, x.Required))
                 .Select(x => new
                 {
                     ingredientId = x.Ingredient.Id,
@@ -62,12 +66,12 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
             foreach (var recipeIngredient in recipe.RecipeIngredients)
             {
                 var quantityToDebit = recipeIngredient.QuantityUsed * request.Body.Quantity;
-                recipeIngredient.Ingredient.ConsumeStock(quantityToDebit);
+                policy.Consume(recipeIngredient.Ingredient, quantityToDebit);
 
                 var eventKey = $"recipe_production:{production.Id}:ingredient:{recipeIngredient.IngredientId}";
                 var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
 
-                if (existingMovement is null)
+                if (policy.IsActive && existingMovement is null)
                 {
                     db.StockMovements.Add(StockMovement.Create(
                         StockItemType.Ingredient,
@@ -88,7 +92,9 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
                 });
             }
 
-            recipe.ProduceStock(request.Body.Quantity);
+            if (policy.IsActive)
+
+                recipe.ProduceStock(request.Body.Quantity);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,9 +29,12 @@ public class UpdateIngredientHandler(ApplicationDbContext db) : IRequestHandler<
                 ingredient.StockQuantity, 
                 command.MinimumStockQuantity);
 
+            if (command.TrackStock.HasValue)
+                ingredient.SetTrackStock(command.TrackStock.Value);
+
             await db.SaveChangesAsync(cancellationToken);
 
-            return ResultOf<IngredientModel>.Success(ingredient.Adapt<IngredientModel>());
+            return ResultOf<IngredientModel>.Success(IngredientModel.From(ingredient));
         }
         catch (DomainException e)
         {

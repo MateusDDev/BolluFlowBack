@@ -2,7 +2,6 @@
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,34 +13,12 @@ public class ListOrdersHandler(ApplicationDbContext db, CurrentUser user) : IReq
     {
         var orders = await db.Orders
             .Include(x => x.Customer)
-            .ThenInclude(x => x.DeliveryAddress)
+            .ThenInclude(x => x!.DeliveryAddress)
             .Include(x => x.Items)
-            .Where(x => x.Customer.UserId == user.Id)
+            .Where(x => x.UserId == user.Id)
             .ToListAsync(cancellationToken);
 
-        var response = orders.Select(order =>
-        {
-            var subtotal = order.CalculateSubtotal();
-            var discountValue = order.CalculateDiscount(subtotal);
-
-            return new OrderModel
-            {
-                Id = order.Id,
-                Number = order.Number,
-                Customer = order.Customer.Adapt<CustomerModel>(),
-                Status = order.Status,
-                Note = order.Note,
-                CreatedAt = order.CreatedAt,
-                DeliveryDate = order.DeliveryDate,
-                PaymentMethod = order.PaymentMethod,
-                Subtotal = subtotal,
-                Discount = order.Discount,
-                DiscountType = order.DiscountType,
-                DiscountValue = discountValue,
-                ShippingFee = order.ShippingFee,
-                Total = subtotal - discountValue + order.ShippingFee
-            };
-        }).ToList();
+        var response = orders.Select(OrderModel.From).ToList();
 
         return ResultOf<List<OrderModel>>.Success(response);
     }

@@ -10,4 +10,5 @@ public record UpdateIngredientCommandBody(
     string Name,
     BaseUnit Unit,
     decimal UnitCost,
-    decimal? MinimumStockQuantity);
+    decimal? MinimumStockQuantity,
+    bool? TrackStock = null);

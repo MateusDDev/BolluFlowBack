@@ -2,7 +2,6 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +12,6 @@ public class ListSuppliesHandler(ApplicationDbContext db, CurrentUser user) : IR
     public async Task<ResultOf<List<SupplyModel>>> Handle(ListSuppliesQuery request, CancellationToken cancellationToken)
     {
         var supplies = await db.Supplies.Where(x => x.UserId == user.Id).ToListAsync(cancellationToken);
-        return ResultOf<List<SupplyModel>>.Success(supplies.Adapt<List<SupplyModel>>());
+        return ResultOf<List<SupplyModel>>.Success(supplies.Select(SupplyModel.From).ToList());
     }
 }

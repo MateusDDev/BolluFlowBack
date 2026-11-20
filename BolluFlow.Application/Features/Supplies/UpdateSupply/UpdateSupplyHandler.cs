@@ -4,7 +4,6 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,8 +20,12 @@ public class UpdateSupplyHandler(ApplicationDbContext db, CurrentUser user) : IR
                 return ResultOf<SupplyModel>.NotFound(CommonErrors.SupplyNotFound);
 
             supply.Update(request.Body.Name, request.Body.Unit, request.Body.UnitCost, supply.StockQuantity, request.Body.MinimumStockQuantity);
+
+            if (request.Body.TrackStock.HasValue)
+                supply.SetTrackStock(request.Body.TrackStock.Value);
+
             await db.SaveChangesAsync(cancellationToken);
-            return ResultOf<SupplyModel>.Success(supply.Adapt<SupplyModel>());
+            return ResultOf<SupplyModel>.Success(SupplyModel.From(supply));
         }
         catch (DomainException e)
         {

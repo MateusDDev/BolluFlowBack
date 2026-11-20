@@ -12,7 +12,7 @@ public class ListOrderItemsHandler(ApplicationDbContext db, CurrentUser user)
     public async Task<ResultOf<List<ListOrderItemsResult>>> Handle(ListOrderItemsQuery request, CancellationToken cancellationToken)
     {
         var orderItems = await db.OrderItems
-            .Where(x => x.Order.Customer.UserId == user.Id && x.OrderId == request.OrderId)
+            .Where(x => x.Order.UserId == user.Id && x.OrderId == request.OrderId)
             .Select(x => new ListOrderItemsResult
             {
                 Id = x.Id,

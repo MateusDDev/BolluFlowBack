@@ -4,7 +4,7 @@ using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Ingredient
+public class Ingredient : IStockItem
 {
     private Ingredient() { }
 
@@ -15,6 +15,7 @@ public class Ingredient
     public decimal UnitCost { get; private set; }
     public decimal StockQuantity { get; private set; }
     public decimal? MinimumStockQuantity { get; private set; }
+    public bool TrackStock { get; private set; }
     public List<RecipeIngredient> RecipeIngredients { get; init; } = [];
     public List<IngredientConversion> IngredientConversions { get; init; } = [];
 
@@ -42,7 +43,8 @@ public class Ingredient
             BaseUnit = unit,
             UnitCost = unitPrice,
             StockQuantity = stockQuantity,
-            MinimumStockQuantity = minimumStockQuantity
+            MinimumStockQuantity = minimumStockQuantity,
+            TrackStock = stockQuantity > 0
         };
     }
 
@@ -59,7 +61,7 @@ public class Ingredient
         if (unitPrice <= 0)
             throw new DomainException(IngredientErrors.UnitPriceInvalid);
 
-        if (stockQuantity <= 0)
+        if (stockQuantity < 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
         Name = name;
@@ -69,21 +71,54 @@ public class Ingredient
         MinimumStockQuantity = minimumStockQuantity;
     }
 
-    public void ConsumeStock(decimal quantity)
+    public void UpdateUnitCost(decimal unitCost)
+    {
+        if (unitCost <= 0)
+            throw new DomainException(IngredientErrors.UnitPriceInvalid);
+
+        UnitCost = unitCost;
+    }
+
+    public void SetTrackStock(bool trackStock)
+    {
+        TrackStock = trackStock;
+    }
+
+    public bool HasEnoughStock(decimal quantity, bool allowNegativeStock)
+    {
+        return !TrackStock || allowNegativeStock || StockQuantity >= quantity;
+    }
+
+    public void ConsumeStock(decimal quantity, bool allowNegativeStock = false)
     {
         if (quantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
 
-        if (StockQuantity < quantity)
+        if (!TrackStock)
+            return;
+
+        if (!allowNegativeStock && StockQuantity < quantity)
             throw new DomainException(IngredientErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;
+    }
+
+    public void AddStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(IngredientErrors.QuantityInvalid);
+
+        TrackStock = true;
+        StockQuantity += quantity;
     }
 
     public void RevertStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(IngredientErrors.QuantityInvalid);
+
+        if (!TrackStock)
+            return;
 
         StockQuantity += quantity;
     }

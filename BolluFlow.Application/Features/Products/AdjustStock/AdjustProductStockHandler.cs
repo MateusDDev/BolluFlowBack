@@ -33,6 +33,8 @@ public class AdjustProductStockHandler(ApplicationDbContext db, CurrentUser user
             if (product is null)
                 return ResultOf<ProductStockAdjustmentModel>.NotFound(CommonErrors.ProductNotFound);
 
+            product.SetTrackStock(true);
+
             if (direction == "add")
                 product.AddStock(request.Body.Quantity);
             else

@@ -3,7 +3,7 @@ using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Product
+public class Product : IStockItem
 {
     private Product() { }
 
@@ -21,6 +21,7 @@ public class Product
     public decimal? DiscountPercentage { get; private set; }
     public string? ImageUrl { get; private set; }
     public bool IsActive { get; private set; }
+    public bool TrackStock { get; private set; }
 
     public List<ProductComponent> Components { get; private set; } = [];
 
@@ -52,7 +53,8 @@ public class Product
             FinalPrice = salePrice ?? 0,
             DiscountPercentage = null,
             ImageUrl = null,
-            IsActive = true
+            IsActive = true,
+            TrackStock = stockQuantity > 0
         };
     }
 
@@ -76,9 +78,6 @@ public class Product
         if (discountPercentage is < 0 or > 100)
             throw new DomainException(ProductErrors.InvalidDiscount);
 
-        if (discountPercentage.HasValue)
-            finalPrice -= finalPrice * (discountPercentage.Value / 100);
-
         IndirectCostPercentage = indirectCostPercentage;
         MarkupPercentage = markupPercentage;
         FinalPrice = finalPrice;
@@ -90,9 +89,25 @@ public class Product
         ImageUrl = imageUrl;
     }
 
-    public void ConsumeStock(decimal quantity)
+    public void SetTrackStock(bool trackStock)
     {
-        if (quantity <= 0 || StockQuantity < quantity)
+        TrackStock = trackStock;
+    }
+
+    public bool HasEnoughStock(decimal quantity, bool allowNegativeStock)
+    {
+        return !TrackStock || allowNegativeStock || StockQuantity >= quantity;
+    }
+
+    public void ConsumeStock(decimal quantity, bool allowNegativeStock = false)
+    {
+        if (quantity <= 0)
+            throw new DomainException(ProductErrors.StockQuantityInvalid);
+
+        if (!TrackStock)
+            return;
+
+        if (!allowNegativeStock && StockQuantity < quantity)
             throw new DomainException(ProductErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;
@@ -102,6 +117,18 @@ public class Product
     {
         if (quantity <= 0)
             throw new DomainException(ProductErrors.StockQuantityInvalid);
+
+        TrackStock = true;
+        StockQuantity += quantity;
+    }
+
+    public void RevertStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(ProductErrors.StockQuantityInvalid);
+
+        if (!TrackStock)
+            return;
 
         StockQuantity += quantity;
     }

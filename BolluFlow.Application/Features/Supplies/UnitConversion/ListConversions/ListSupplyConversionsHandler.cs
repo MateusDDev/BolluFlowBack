@@ -1,7 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +14,6 @@ public class ListSupplyConversionsHandler(ApplicationDbContext db) : IRequestHan
             .Where(x => x.SupplyId == request.SupplyId)
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<SupplyConversionModel>>.Success(supplyConversions.Adapt<List<SupplyConversionModel>>());
+        return ResultOf<List<SupplyConversionModel>>.Success(supplyConversions.Select(SupplyConversionModel.From).ToList());
     }
 }

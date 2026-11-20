@@ -27,4 +27,5 @@ public class RecipeModel
     public decimal? MinimumStockQuantity { get; set; }
 
     public bool IsActive { get; set; }
+    public bool TrackStock { get; set; }
 }

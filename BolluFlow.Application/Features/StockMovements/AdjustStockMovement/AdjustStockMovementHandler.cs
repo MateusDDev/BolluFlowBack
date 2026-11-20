@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
@@ -16,45 +17,46 @@ public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser use
     public async Task<ResultOf<StockAdjustmentModel>> Handle(AdjustStockMovementCommand request, CancellationToken cancellationToken)
     {
         if (request.Quantity <= 0)
-            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_QUANTITY_INVALID", "quantity must be greater than zero"));
+            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_QUANTITY_INVALID", "A quantidade deve ser maior que zero."));
 
         if (request.UnitCost < 0)
-            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_UNIT_COST_INVALID", "unitCost must be greater than or equal to zero"));
+            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_UNIT_COST_INVALID", "O custo não pode ser negativo."));
 
         if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Trim().Length < 3)
-            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_ADJUSTMENT_REASON_INVALID", "reason must have at least 3 characters"));
+            return ResultOf<StockAdjustmentModel>.BadRequest(new("STOCK_ADJUSTMENT_REASON_INVALID", "Informe o motivo do ajuste (mínimo de 3 caracteres)."));
 
-        await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
+        var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
+
+        if (!policy.IsActive)
+            return ResultOf<StockAdjustmentModel>.Unprocessable(new("STOCK_MODULE_DISABLED", "Ative o módulo Estoque para ajustar quantidades."));
 
         try
         {
-            string itemName;
-
             if (request.ItemType == StockItemType.Supply)
             {
-                var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
                 if (supply is null)
-                    return ResultOf<StockAdjustmentModel>.NotFound(new("SUPPLY_NOT_FOUND", "Supply not found"));
+                    return ResultOf<StockAdjustmentModel>.NotFound(new("SUPPLY_NOT_FOUND", "Insumo não encontrado."));
 
-                itemName = supply.Name;
+                supply.SetTrackStock(true);
 
                 if (request.Direction == AdjustmentDirection.Add)
-                    supply.RevertStock(request.Quantity);
+                    supply.AddStock(request.Quantity);
                 else
-                    supply.ConsumeStock(request.Quantity);
+                    policy.Consume(supply, request.Quantity);
             }
             else
             {
-                var ingredient = await db.Ingredients.FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                var ingredient = await db.Ingredients.FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
                 if (ingredient is null)
-                    return ResultOf<StockAdjustmentModel>.NotFound(new("INGREDIENT_NOT_FOUND", "Ingredient not found"));
+                    return ResultOf<StockAdjustmentModel>.NotFound(new("INGREDIENT_NOT_FOUND", "Ingrediente não encontrado."));
 
-                itemName = ingredient.Name;
+                ingredient.SetTrackStock(true);
 
                 if (request.Direction == AdjustmentDirection.Add)
-                    ingredient.RevertStock(request.Quantity);
+                    ingredient.AddStock(request.Quantity);
                 else
-                    ingredient.ConsumeStock(request.Quantity);
+                    policy.Consume(ingredient, request.Quantity);
             }
 
             var movement = StockMovement.Create(
@@ -67,23 +69,7 @@ public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser use
                 null);
 
             db.StockMovements.Add(movement);
-
-            var isAdd = request.Direction == AdjustmentDirection.Add;
-            var entry = FinancialEntry.Create(
-                user.Id,
-                isAdd ? FinancialEntryType.Expense : FinancialEntryType.Income,
-                movement.TotalValue,
-                isAdd
-                    ? $"Ajuste de estoque (adição) - {itemName}"
-                    : $"Ajuste de estoque (remoção) - {itemName}",
-                FinancialOriginType.StockAdjustment,
-                request.ItemId,
-                null);
-
-            db.FinancialEntries.Add(entry);
-
             await db.SaveChangesAsync(cancellationToken);
-            await tx.CommitAsync(cancellationToken);
 
             return ResultOf<StockAdjustmentModel>.Success(new StockAdjustmentModel
             {
@@ -101,7 +87,6 @@ public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser use
         }
         catch (DomainException e)
         {
-            await tx.RollbackAsync(cancellationToken);
             return ResultOf<StockAdjustmentModel>.BadRequest(e.Error);
         }
     }

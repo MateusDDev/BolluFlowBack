@@ -3,7 +3,6 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 
 namespace BolluFlow.Application.Features.Customers.CreateCustomer;
@@ -18,7 +17,7 @@ public class CreateCustomerHandler(ApplicationDbContext db, CurrentUser user) : 
             user.Id,
             request.Name,
             request.Whatsapp,
-            DeliveryAddress.Create(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood),
+            deliveryAddress is null ? null : DeliveryAddress.Create(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood),
             request.Preferences,
             request.Birthday);
         
@@ -26,7 +25,7 @@ public class CreateCustomerHandler(ApplicationDbContext db, CurrentUser user) : 
         
         await db.SaveChangesAsync(cancellationToken);
         
-        var result = customer.Adapt<CustomerModel>();
+        var result = CustomerModel.From(customer);
         
         return ResultOf<CustomerModel>.Success(result);
     }

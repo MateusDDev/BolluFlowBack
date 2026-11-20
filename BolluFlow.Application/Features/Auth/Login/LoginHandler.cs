@@ -1,9 +1,9 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Infrastructure.Helpers;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -20,33 +20,18 @@ public class LoginHandler(
         LoginCommand request,
         CancellationToken cancellationToken)
     {
+        var email = AuthCookie.NormalizeEmail(request.Email);
+
         var user = await db.Users
-            .FirstOrDefaultAsync(x => x.Email == request.Email && x.IsActive, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Email.ToLower() == email && x.IsActive, cancellationToken);
 
         if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return ResultOf<UserModel>.Unauthorized(CommonErrors.UserNotFound);
 
         var token = jwtHelper.GenerateToken(user);
-        
-        var isDevelopment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
-        
-        httpContextAccessor.HttpContext?.Response.Cookies.Append(
-            "access_token",
-            token,
-            new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = !isDevelopment,
-                SameSite = isDevelopment
-                    ? SameSiteMode.Lax
-                    : SameSiteMode.None,
-                Expires = DateTimeOffset.UtcNow.AddHours(4)
-            });
 
-        var result = user.Adapt<UserModel>();
-        
-        result.Token = token;
-        
-        return ResultOf<UserModel>.Success(result);
+        AuthCookie.Append(httpContextAccessor.HttpContext, token);
+
+        return ResultOf<UserModel>.Success(UserModel.From(user, token));
     }
 }

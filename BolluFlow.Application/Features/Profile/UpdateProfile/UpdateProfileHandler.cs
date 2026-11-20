@@ -53,20 +53,32 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
             }
         }
 
+        if (body.EnabledModules is not null)
+        {
+            if (!AppModuleNames.TryParse(body.EnabledModules, out var modules))
+                return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_MODULES_INVALID", "enabledModules contém um módulo inválido"));
+
+            user.SetEnabledModules(modules);
+        }
+
+        if (body.AllowNegativeStock.HasValue)
+            user.SetAllowNegativeStock(body.AllowNegativeStock.Value);
+
+        if (body.Whatsapp is not null)
+            user.SetWhatsapp(body.Whatsapp);
+
+        var whatsappMessageTemplate = body.WhatsappMessageTemplate is null
+            ? user.WhatsappMessageTemplate
+            : string.IsNullOrWhiteSpace(body.WhatsappMessageTemplate) ? null : body.WhatsappMessageTemplate;
+
         user.UpdateProfile(
             trimmedName,
-            body.WhatsappMessageTemplate,
+            whatsappMessageTemplate,
             body.IndirectCostRate);
 
         await db.SaveChangesAsync(cancellationToken);
 
-        var model = new ProfileModel
-        {
-            Name = user.Name,
-            Slug = user.Slug,
-            WhatsappMessageTemplate = user.WhatsappMessageTemplate,
-            IndirectCostRate = user.IndirectCostRate
-        };
+        var model = ProfileModel.From(user);
 
         return ResultOf<ProfileModel>.Success(model);
     }

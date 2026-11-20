@@ -63,7 +63,7 @@ public class GetFinancialBalanceHandler(ApplicationDbContext db, CurrentUser use
 
         var pendingOrdersTotal = await db.Orders
             .AsNoTracking()
-            .Where(x => x.Customer.UserId == user.Id && x.Status != OrderStatus.Canceled && x.Status != OrderStatus.Delivered)
+            .Where(x => x.UserId == user.Id && x.Status != OrderStatus.Canceled && x.Status != OrderStatus.Delivered)
             .Select(x => new
             {
                 Subtotal = x.Items.Sum(i => i.Quantity * i.UnitPrice),

@@ -20,13 +20,7 @@ public class GetProfileHandler(ApplicationDbContext db, CurrentUser currentUser)
         if (user is null)
             return ResultOf<ProfileModel>.NotFound(CommonErrors.UserNotFound);
 
-        var model = new ProfileModel
-        {
-            Name = user.Name,
-            Slug = user.Slug,
-            WhatsappMessageTemplate = user.WhatsappMessageTemplate,
-            IndirectCostRate = user.IndirectCostRate
-        };
+        var model = ProfileModel.From(user);
 
         return ResultOf<ProfileModel>.Success(model);
     }

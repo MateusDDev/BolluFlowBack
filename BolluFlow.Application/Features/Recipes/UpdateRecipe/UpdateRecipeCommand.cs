@@ -13,4 +13,6 @@ public record UpdateRecipeCommandBody(
     decimal? Yield,
     int? PreparationTime,
     bool IsActive,
-    decimal? FinalPrice);
+    decimal? FinalPrice,
+    bool? TrackStock = null,
+    OptionalField<decimal?> MinimumStockQuantity = default);

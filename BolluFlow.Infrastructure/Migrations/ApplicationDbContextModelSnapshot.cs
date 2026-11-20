@@ -193,6 +193,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
                         .HasColumnName("unit_cost");
@@ -254,9 +258,13 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<long>("CustomerId")
+                    b.Property<long?>("CustomerId")
                         .HasColumnType("bigint")
                         .HasColumnName("customer_id");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
 
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("timestamp with time zone")
@@ -293,11 +301,27 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("status");
 
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_tb_order");
 
+                    b.HasIndex("UserId", "DeliveredAt")
+                        .HasDatabaseName("ix_tb_order_user_id_delivered_at");
+
                     b.HasIndex("CustomerId", "Status", "CreatedAt")
                         .HasDatabaseName("ix_tb_order_customer_id_status_created_at");
+
+                    b.HasIndex("UserId", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_tb_order_user_id_status_created_at");
 
                     b.ToTable("tb_order", (string)null);
                 });
@@ -322,6 +346,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
+
+                    b.Property<bool>("StockDebited")
+                        .HasColumnType("boolean")
+                        .HasColumnName("stock_debited");
 
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
@@ -404,6 +432,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<decimal>("StockQuantity")
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
+
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -568,6 +600,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasDefaultValue(0m)
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
@@ -709,6 +745,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("notes");
 
+                    b.Property<decimal?>("PreviousUnitCost")
+                        .HasColumnType("numeric")
+                        .HasColumnName("previous_unit_cost");
+
                     b.Property<decimal>("Quantity")
                         .HasPrecision(14, 4)
                         .HasColumnType("numeric(14,4)")
@@ -771,6 +811,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
                         .HasColumnName("unit_cost");
@@ -831,6 +875,10 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("AllowNegativeStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_negative_stock");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -839,6 +887,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("email");
+
+                    b.Property<int>("EnabledModules")
+                        .HasColumnType("integer")
+                        .HasColumnName("enabled_modules");
 
                     b.Property<decimal?>("IndirectCostRate")
                         .HasColumnType("numeric(5,2)")
@@ -852,6 +904,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
+
+                    b.Property<DateTime?>("OnboardingCompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("onboarding_completed_at");
 
                     b.Property<string>("Password")
                         .IsRequired()
@@ -966,11 +1022,19 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasOne("BolluFlow.Domain.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_tb_order_tb_customer_customer_id");
 
+                    b.HasOne("BolluFlow.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_order_users_user_id");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.OrderItem", b =>
@@ -1098,8 +1162,7 @@ namespace BolluFlow.Infrastructure.Migrations
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>
                 {
-                    b.Navigation("DeliveryAddress")
-                        .IsRequired();
+                    b.Navigation("DeliveryAddress");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>

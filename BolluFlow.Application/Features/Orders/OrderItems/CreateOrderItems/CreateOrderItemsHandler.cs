@@ -4,54 +4,41 @@ using BolluFlow.Application.Models;
 using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Errors;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Orders.OrderItems.CreateOrderItems;
 
-public class CreateOrderItemsHandler(ApplicationDbContext db) : IRequestHandler<CreateOrderItemsCommand, ResultOf<List<OrderItemModel>>>
+public class CreateOrderItemsHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<CreateOrderItemsCommand, ResultOf<List<OrderItemModel>>>
 {
     public async Task<ResultOf<List<OrderItemModel>>> Handle(CreateOrderItemsCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            var order = await db.Orders.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+            var order = await db.Orders
+                .Include(x => x.Items)
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.UserId == user.Id, cancellationToken);
+
             if (order is null)
                 return ResultOf<List<OrderItemModel>>.NotFound(CommonErrors.OrderNotFound);
 
-            var orderItemsIds = order.Items.Select(x => x.ProductId).ToHashSet();
-            if (request.Items.Any(x => orderItemsIds.Contains(x.ProductId)))
+            var orderProductIds = order.Items.Select(x => x.ProductId).ToHashSet();
+            if (request.Items.Any(x => orderProductIds.Contains(x.ProductId)))
                 return ResultOf<List<OrderItemModel>>.Conflict(new DomainError("ITEM_ALREADY_ADDED", "Item já adicionado ao pedido"));
 
-            var productIds = request.Items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await db.Products.AsNoTracking().Where(x => productIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id, cancellationToken);
-
-            var components = await db.ProductComponents
-                .AsNoTracking()
-                .Include(x => x.Recipe)
-                .ThenInclude(x => x!.RecipeIngredients)
-                .ThenInclude(x => x.Ingredient)
-                .Where(x => productIds.Contains(x.ProductId))
-                .ToListAsync(cancellationToken);
-
-            var componentCostsByProduct = components
-                .GroupBy(x => x.ProductId)
-                .ToDictionary(
-                    x => x.Key,
-                    x => x.Sum(ProductComponentCostService.CalculateComponentCost));
+            var pricing = await OrderPricingService.LoadAsync(db, user.Id, request.Items.Select(x => x.ProductId), cancellationToken);
 
             foreach (var item in request.Items)
             {
-                if (!products.TryGetValue(item.ProductId, out var product))
+                if (!pricing.TryGetValue(item.ProductId, out var productPricing))
                     return ResultOf<List<OrderItemModel>>.NotFound(CommonErrors.ProductNotFound);
 
-                if (!product.IsActive)
+                if (!productPricing.Product.IsActive)
                     return ResultOf<List<OrderItemModel>>.Unprocessable(ProductErrors.ProductInactive);
 
-                var unitCost = componentCostsByProduct.GetValueOrDefault(item.ProductId, 0m);
-                order.AddItem(product.Id, item.Quantity, product.FinalPrice, unitCost);
+                order.AddItem(item.ProductId, item.Quantity, productPricing.Product.FinalPrice, productPricing.UnitCost);
             }
 
             await db.SaveChangesAsync(cancellationToken);
