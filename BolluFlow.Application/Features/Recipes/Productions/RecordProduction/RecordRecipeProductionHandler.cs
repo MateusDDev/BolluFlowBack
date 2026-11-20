@@ -1,6 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
@@ -30,10 +31,7 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser 
             if (recipe is null)
                 return ResultOf<RecipeProductionModel>.NotFound(CommonErrors.RecipeNotFound);
 
-            var allowNegativeStock = await db.Users
-                .Where(x => x.Id == user.Id)
-                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
-                .FirstOrDefaultAsync(cancellationToken);
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
 
             var insufficientIngredients = recipe.RecipeIngredients
                 .Select(x => new
@@ -41,7 +39,7 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser 
                     Ingredient = x.Ingredient,
                     Required = x.QuantityUsed * request.Body.Quantity
                 })
-                .Where(x => !x.Ingredient.HasEnoughStock(x.Required, allowNegativeStock))
+                .Where(x => !policy.HasEnough(x.Ingredient, x.Required))
                 .Select(x => new
                 {
                     ingredientId = x.Ingredient.Id,
@@ -68,12 +66,12 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser 
             foreach (var recipeIngredient in recipe.RecipeIngredients)
             {
                 var quantityToDebit = recipeIngredient.QuantityUsed * request.Body.Quantity;
-                recipeIngredient.Ingredient.ConsumeStock(quantityToDebit, allowNegativeStock);
+                policy.Consume(recipeIngredient.Ingredient, quantityToDebit);
 
                 var eventKey = $"recipe_production:{production.Id}:ingredient:{recipeIngredient.IngredientId}";
                 var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);
 
-                if (existingMovement is null)
+                if (policy.IsActive && existingMovement is null)
                 {
                     db.StockMovements.Add(StockMovement.Create(
                         StockItemType.Ingredient,
@@ -94,7 +92,9 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser 
                 });
             }
 
-            recipe.ProduceStock(request.Body.Quantity);
+            if (policy.IsActive)
+
+                recipe.ProduceStock(request.Body.Quantity);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

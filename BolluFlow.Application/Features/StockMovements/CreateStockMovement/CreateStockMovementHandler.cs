@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
@@ -49,10 +50,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
         {
             var itemName = $"#{request.ItemId}";
 
-            var hasStockModule = await db.Users
-                .Where(x => x.Id == user.Id)
-                .Select(x => (x.EnabledModules & AppModule.Stock) == AppModule.Stock)
-                .FirstOrDefaultAsync(cancellationToken);
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
 
             if (request.ItemType == StockItemType.Ingredient)
             {
@@ -61,7 +59,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
 
                 if (ingredient is not null)
                 {
-                    if (hasStockModule)
+                    if (policy.IsActive)
                         ingredient.AddStock(movement.Quantity);
 
                     itemName = ingredient.Name;
@@ -74,7 +72,7 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
 
                 if (supply is not null)
                 {
-                    if (hasStockModule)
+                    if (policy.IsActive)
                         supply.AddStock(movement.Quantity);
 
                     itemName = supply.Name;

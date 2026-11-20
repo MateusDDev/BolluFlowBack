@@ -5,7 +5,7 @@ using BolluFlow.Domain.Services;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Recipe
+public class Recipe : IStockItem
 {
     private Recipe() { }
 
@@ -107,6 +107,17 @@ public class Recipe
             throw new DomainException(RecipeErrors.QuantityInvalid);
 
         TrackStock = true;
+        StockQuantity += quantity;
+    }
+
+    public void RevertStock(decimal quantity)
+    {
+        if (quantity <= 0)
+            throw new DomainException(RecipeErrors.QuantityInvalid);
+
+        if (!TrackStock)
+            return;
+
         StockQuantity += quantity;
     }
 

@@ -3,7 +3,7 @@ using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Product
+public class Product : IStockItem
 {
     private Product() { }
 

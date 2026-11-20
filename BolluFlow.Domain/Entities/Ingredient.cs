@@ -4,7 +4,7 @@ using BolluFlow.Domain.Errors;
 
 namespace BolluFlow.Domain.Entities;
 
-public class Ingredient
+public class Ingredient : IStockItem
 {
     private Ingredient() { }
 

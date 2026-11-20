@@ -1,4 +1,5 @@
 using BolluFlow.Application.Abstractions;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
@@ -29,6 +30,8 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
 
         await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
 
+        var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
+
         try
         {
             var movementId = TryGetStockMovementId(entry.EventKey);
@@ -48,7 +51,7 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
                         if (ingredient is null)
                             return Result.BadRequest(new DomainError("INGREDIENT_NOT_FOUND", "Ingrediente relacionado à movimentação não encontrado."));
 
-                        ingredient.ConsumeStock(movement.Quantity);
+                        policy.Consume(ingredient, movement.Quantity);
                     }
                     else
                     {
@@ -56,7 +59,7 @@ public class DeleteFinancialEntryHandler(ApplicationDbContext db, CurrentUser us
                         if (supply is null)
                             return Result.BadRequest(new DomainError("SUPPLY_NOT_FOUND", "Insumo relacionado à movimentação não encontrado."));
 
-                        supply.ConsumeStock(movement.Quantity);
+                        policy.Consume(supply, movement.Quantity);
                     }
 
                     db.StockMovements.Remove(movement);

@@ -1,9 +1,9 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
-using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -14,6 +14,9 @@ namespace BolluFlow.Application.Features.Products.Productions.RecordProduction;
 public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser user)
     : IRequestHandler<RecordProductProductionCommand, ResultOf<ProductProductionModel>>
 {
+    private static readonly DomainError InvalidComponent =
+        new("PRODUCT_COMPONENT_INVALID", "Componente do produto inválido para produção");
+
     public async Task<ResultOf<ProductProductionModel>> Handle(RecordProductProductionCommand request, CancellationToken cancellationToken)
     {
         if (request.Body.Quantity <= 0)
@@ -35,34 +38,26 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
             if (product is null)
                 return ResultOf<ProductProductionModel>.NotFound(CommonErrors.ProductNotFound);
 
-            var allowNegativeStock = await db.Users
-                .Where(x => x.Id == user.Id)
-                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
-                .FirstOrDefaultAsync(cancellationToken);
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
 
-            var requiredByComponent = product.Components
+            var requirements = product.Components
                 .Select(component => new
                 {
                     Component = component,
+                    Item = component.StockItem,
                     Required = component.QuantityUsed * request.Body.Quantity
                 })
                 .ToList();
 
-            var insufficientComponents = requiredByComponent
-                .Select(x => new
-                {
-                    x.Component,
-                    x.Required,
-                    Availability = GetAvailability(x.Component)
-                })
-                .Where(x => x.Availability is null || !HasEnoughStock(x.Component, x.Required, allowNegativeStock))
+            var insufficientComponents = requirements
+                .Where(x => x.Item is null || !policy.HasEnough(x.Item, x.Required))
                 .Select(x => new
                 {
                     componentType = x.Component.ComponentType.ToString().ToLowerInvariant(),
-                    componentId = x.Availability?.Id ?? x.Component.RecipeId ?? x.Component.IngredientId ?? x.Component.SupplyId ?? 0,
-                    componentName = x.Availability?.Name ?? x.Component.Name,
+                    componentId = x.Item?.Id ?? 0,
+                    componentName = x.Item?.Name ?? x.Component.Name,
                     required = x.Required,
-                    available = x.Availability?.Available ?? 0
+                    available = x.Item?.StockQuantity ?? 0
                 })
                 .ToList();
 
@@ -79,54 +74,26 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
 
             var debits = new List<ProductProductionDebitModel>();
 
-            foreach (var componentData in requiredByComponent)
+            foreach (var requirement in requirements)
             {
-                var component = componentData.Component;
-                var quantityToDebit = componentData.Required;
+                var item = requirement.Item ?? throw new DomainException(InvalidComponent);
 
-                if (component.ComponentType == ProductComponentType.Ingredient && component.Ingredient is not null)
+                policy.Consume(item, requirement.Required);
+
+                if (policy.IsActive)
                 {
-                    component.Ingredient.ConsumeStock(quantityToDebit, allowNegativeStock);
                     debits.Add(new ProductProductionDebitModel
                     {
-                        ComponentType = "ingredient",
-                        ComponentId = component.Ingredient.Id,
-                        ComponentName = component.Ingredient.Name,
-                        QuantityDebited = quantityToDebit
+                        ComponentType = requirement.Component.ComponentType.ToString().ToLowerInvariant(),
+                        ComponentId = item.Id,
+                        ComponentName = item.Name,
+                        QuantityDebited = requirement.Required
                     });
-                    continue;
                 }
-
-                if (component.ComponentType == ProductComponentType.Supply && component.Supply is not null)
-                {
-                    component.Supply.ConsumeStock(quantityToDebit, allowNegativeStock);
-                    debits.Add(new ProductProductionDebitModel
-                    {
-                        ComponentType = "supply",
-                        ComponentId = component.Supply.Id,
-                        ComponentName = component.Supply.Name,
-                        QuantityDebited = quantityToDebit
-                    });
-                    continue;
-                }
-
-                if (component.ComponentType == ProductComponentType.Recipe && component.Recipe is not null)
-                {
-                    component.Recipe.ConsumeStock(quantityToDebit, allowNegativeStock);
-                    debits.Add(new ProductProductionDebitModel
-                    {
-                        ComponentType = "recipe",
-                        ComponentId = component.Recipe.Id,
-                        ComponentName = component.Recipe.Name,
-                        QuantityDebited = quantityToDebit
-                    });
-                    continue;
-                }
-
-                throw new DomainException(new DomainError("PRODUCT_COMPONENT_INVALID", "Componente do produto inválido para produção"));
             }
 
-            product.AddStock(request.Body.Quantity);
+            if (policy.IsActive)
+                product.AddStock(request.Body.Quantity);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
@@ -146,33 +113,5 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
             await tx.RollbackAsync(cancellationToken);
             return ResultOf<ProductProductionModel>.Unprocessable(e.Error);
         }
-    }
-
-    private static bool HasEnoughStock(ProductComponent component, decimal required, bool allowNegativeStock)
-    {
-        return component.ComponentType switch
-        {
-            ProductComponentType.Ingredient when component.Ingredient is not null =>
-                component.Ingredient.HasEnoughStock(required, allowNegativeStock),
-            ProductComponentType.Supply when component.Supply is not null =>
-                component.Supply.HasEnoughStock(required, allowNegativeStock),
-            ProductComponentType.Recipe when component.Recipe is not null =>
-                component.Recipe.HasEnoughStock(required, allowNegativeStock),
-            _ => false
-        };
-    }
-
-    private static (long Id, string Name, decimal Available)? GetAvailability(ProductComponent component)
-    {
-        return component.ComponentType switch
-        {
-            ProductComponentType.Ingredient when component.Ingredient is not null =>
-                (component.Ingredient.Id, component.Ingredient.Name, component.Ingredient.StockQuantity),
-            ProductComponentType.Supply when component.Supply is not null =>
-                (component.Supply.Id, component.Supply.Name, component.Supply.StockQuantity),
-            ProductComponentType.Recipe when component.Recipe is not null =>
-                (component.Recipe.Id, component.Recipe.Name, component.Recipe.StockQuantity),
-            _ => null
-        };
     }
 }
