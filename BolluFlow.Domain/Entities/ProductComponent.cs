@@ -23,6 +23,14 @@ public class ProductComponent
     public decimal UnitPrice { get; private set; }
     public decimal QuantityUsed { get; private set; }
 
+    public decimal CurrentUnitCost => ComponentType switch
+    {
+        ProductComponentType.Ingredient => Ingredient?.UnitCost ?? UnitPrice,
+        ProductComponentType.Supply => Supply?.UnitCost ?? UnitPrice,
+        ProductComponentType.Recipe => Recipe?.CostPerBaseUnit ?? 0m,
+        _ => UnitPrice
+    };
+
     public IStockItem? StockItem => ComponentType switch
     {
         ProductComponentType.Ingredient => Ingredient,

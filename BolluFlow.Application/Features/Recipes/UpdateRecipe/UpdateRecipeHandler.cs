@@ -50,7 +50,7 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
             BaseUnit = recipe.BaseUnit,
             PreparationTime = recipe.PreparationTime,
             Yield = recipe.Yield,
-            UnitCost = recipe.CalculateUnitCost(),
+            UnitCost = recipe.CalculateBatchCost(),
             CostPerBaseUnit = recipe.CostPerBaseUnit,
             FinalPrice = recipe.FinalPrice,
             StockQuantity = recipe.StockQuantity,

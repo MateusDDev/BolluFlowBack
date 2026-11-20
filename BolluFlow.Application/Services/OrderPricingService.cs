@@ -23,6 +23,8 @@ public static class OrderPricingService
 
         var components = await db.ProductComponents
             .AsNoTracking()
+            .Include(x => x.Ingredient)
+            .Include(x => x.Supply)
             .Include(x => x.Recipe)
             .ThenInclude(x => x!.RecipeIngredients)
             .ThenInclude(x => x.Ingredient)

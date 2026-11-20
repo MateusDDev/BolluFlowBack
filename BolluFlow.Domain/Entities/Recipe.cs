@@ -25,7 +25,7 @@ public class Recipe : IStockItem
 
     public decimal? CostPerBaseUnit => Yield is null or 0
         ? null
-        : FinalPrice / Yield.Value;
+        : CalculateBatchCost() / Yield.Value;
 
     public decimal FinalPrice { get; private set; }
 
@@ -148,7 +148,7 @@ public class Recipe : IStockItem
         RecipeConversions.Add(RecipeConversion.Create(Id, name, quantityInBaseUnit));
     }
 
-    public decimal CalculateUnitCost()
+    public decimal CalculateBatchCost()
     {
         return RecipePricingService.CalculateIngredientCost(RecipeIngredients
             .Select(x => (UnitPrice: x.Ingredient.UnitCost, x.QuantityUsed))
