@@ -14,4 +14,5 @@ public record UpdateRecipeCommandBody(
     int? PreparationTime,
     bool IsActive,
     decimal? FinalPrice,
-    bool? TrackStock = null);
+    bool? TrackStock = null,
+    OptionalField<decimal?> MinimumStockQuantity = default);

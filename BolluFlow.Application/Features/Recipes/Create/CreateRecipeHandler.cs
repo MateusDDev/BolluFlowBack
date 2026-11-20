@@ -28,6 +28,8 @@ public class CreateRecipeHandler(ApplicationDbContext db, CurrentUser user) : IR
                 preparationTime: request.PreparationTime,
                 finalPrice: request.FinalPrice ?? 0);
 
+            recipe.SetMinimumStockQuantity(request.MinimumStockQuantity);
+
             db.Recipes.Add(recipe);
 
             await db.SaveChangesAsync(cancellationToken);

@@ -40,6 +40,9 @@ public class UpdateRecipeHandler(ApplicationDbContext db) : IRequestHandler<Upda
         if (command.TrackStock.HasValue)
             recipe.SetTrackStock(command.TrackStock.Value);
 
+        if (command.MinimumStockQuantity.IsSet)
+            recipe.SetMinimumStockQuantity(command.MinimumStockQuantity.Value);
+
         await db.SaveChangesAsync(cancellationToken);
 
         return ResultOf<RecipeModel>.Success(new RecipeModel
