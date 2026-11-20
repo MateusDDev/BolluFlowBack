@@ -31,9 +31,11 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 ### Estoque, conversões e cadastros (UX)
 | Item | Status |
 |---|---|
-| Revisar a experiência das telas de ingredientes, insumos e receitas: estoque, compra e ajuste estão funcionais mas confusos | ideia |
-| Simplificar as unidades de conversão (como criar, onde aparecem, o seletor "Unidade / referência" nas tabelas) | ideia |
-| Revisar os formulários de cadastro (produto, ingrediente, insumo, receita, cliente): campos, ordem, textos de ajuda | ideia |
+| Telas de ingredientes e insumos: cadastro com preço do pacote ("R$ 7,49 por 395 g"), quantidades em kg/L, "Registrar compra" (atualiza o custo do item e lança a despesa) e "Contar estoque" (o sistema calcula a diferença) | feito |
+| Conversões viram "Embalagens" (lata, caixa) e aparecem como unidade na compra, na contagem e na quantidade usada na receita | feito |
+| Cadastro de receita: rendimento com unidade (g, kg, ml, L, un), custo calculado na hora pelos ingredientes (sem "preço final" digitado), estoque mínimo salvo de verdade e ida direta para a aba de ingredientes | feito |
+| Revisar os formulários de produto e cliente: campos, ordem, textos de ajuda | ideia |
+| Custos sempre atuais: produto e receita usam o custo vigente dos ingredientes; a venda guarda o custo do momento | feito |
 
 ### Geral
 | Item | Status |
@@ -58,7 +60,7 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Item | Status |
 |---|---|
 | Fábrica de query keys por feature (hoje são strings soltas como `['products']`, `['finance']`) | ideia |
-| Componentes genéricos de item de estoque (ingredientes, insumos e receitas repetem célula de estoque, seletor de unidade, modal de conversões e de compra) | ideia |
+| Componentes genéricos de item de estoque (ingredientes, insumos e receitas repetem célula de estoque, seletor de unidade, modal de conversões e de compra) | feito para ingredientes e insumos (`features/stockItems`); receitas ainda à parte |
 | Formulários com `react-hook-form` + `zod` (zod já está instalado) no lugar de `useState` por campo | ideia |
 | Quebrar componentes grandes (`OrderDetails` ~620 linhas, `OrderStatusActions` ~400) | ideia |
 | Erro de lint já existente: `setState` dentro de efeito no `app/(private)/layout.tsx` (estado da sidebar) | ideia |
