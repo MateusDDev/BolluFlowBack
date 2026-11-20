@@ -15,6 +15,7 @@ public class StockMovement
     public decimal TotalValue { get; private set; }
     public string? Notes { get; private set; }
     public string? EventKey { get; private set; }
+    public decimal? PreviousUnitCost { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
@@ -42,5 +43,11 @@ public class StockMovement
             CreatedAt = now,
             UpdatedAt = now
         };
+    }
+
+    public void RecordCostUpdate(decimal previousUnitCost)
+    {
+        PreviousUnitCost = previousUnitCost;
+        UpdatedAt = DateTime.UtcNow;
     }
 }

@@ -63,7 +63,10 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
                         ingredient.AddStock(movement.Quantity);
 
                     if (request.UpdateItemCost && request.UnitCost > 0)
+                    {
+                        movement.RecordCostUpdate(ingredient.UnitCost);
                         ingredient.UpdateUnitCost(request.UnitCost);
+                    }
 
                     itemName = ingredient.Name;
                 }
@@ -79,7 +82,10 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
                         supply.AddStock(movement.Quantity);
 
                     if (request.UpdateItemCost && request.UnitCost > 0)
+                    {
+                        movement.RecordCostUpdate(supply.UnitCost);
                         supply.UpdateUnitCost(request.UnitCost);
+                    }
 
                     itemName = supply.Name;
                 }

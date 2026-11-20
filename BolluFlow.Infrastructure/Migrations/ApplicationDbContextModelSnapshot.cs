@@ -745,6 +745,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("notes");
 
+                    b.Property<decimal?>("PreviousUnitCost")
+                        .HasColumnType("numeric")
+                        .HasColumnName("previous_unit_cost");
+
                     b.Property<decimal>("Quantity")
                         .HasPrecision(14, 4)
                         .HasColumnType("numeric(14,4)")
