@@ -1,7 +1,7 @@
-using BolluFlow.Application.Features.Dashboard.GetInventoryValueByType;
-using BolluFlow.Application.Features.Dashboard.GetOrdersByStatus;
-using BolluFlow.Application.Features.Dashboard.GetRecentOrders;
+using BolluFlow.Application.Features.Dashboard.GetProductMargins;
+using BolluFlow.Application.Features.Dashboard.GetSalesSummary;
 using BolluFlow.Application.Features.Dashboard.GetStockAlerts;
+using BolluFlow.Application.Features.Dashboard.GetToday;
 using BolluFlow.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -15,34 +15,35 @@ namespace BolluFlow.Controllers;
 public class DashboardController(IMediator mediator) : ControllerBase
 {
     [HttpGet("stock-alerts")]
-    [ProducesResponseType(typeof(List<GetStockAlertsResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<GetStockAlertsResult>>> GetStockAlerts([FromQuery] int? limit, CancellationToken ct)
     {
         var result = await mediator.Send(new GetStockAlertsQuery(limit), ct);
         return result.ToActionResult();
     }
 
-    [HttpGet("orders-by-status")]
-    [ProducesResponseType(typeof(List<GetOrdersByStatusResult>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<GetOrdersByStatusResult>>> GetOrdersByStatus(CancellationToken ct)
+    [HttpGet("sales")]
+    public async Task<ActionResult<GetSalesSummaryResult>> GetSalesSummary(
+        [FromQuery] DateTime from,
+        [FromQuery] DateTime to,
+        [FromQuery] int utcOffsetMinutes,
+        [FromQuery] DateTime? previousFrom,
+        CancellationToken ct)
     {
-        var result = await mediator.Send(new GetOrdersByStatusQuery(), ct);
+        var result = await mediator.Send(new GetSalesSummaryQuery(from, to, utcOffsetMinutes, previousFrom), ct);
         return result.ToActionResult();
     }
 
-    [HttpGet("inventory-value-by-type")]
-    [ProducesResponseType(typeof(List<GetInventoryValueByTypeResult>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<GetInventoryValueByTypeResult>>> GetInventoryValueByType(CancellationToken ct)
+    [HttpGet("today")]
+    public async Task<ActionResult<GetTodayResult>> GetToday([FromQuery] DateTime dayStart, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetInventoryValueByTypeQuery(), ct);
+        var result = await mediator.Send(new GetTodayQuery(dayStart), ct);
         return result.ToActionResult();
     }
 
-    [HttpGet("recent-orders")]
-    [ProducesResponseType(typeof(List<GetRecentOrdersResult>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<GetRecentOrdersResult>>> GetRecentOrders([FromQuery] int? limit, CancellationToken ct)
+    [HttpGet("product-margins")]
+    public async Task<ActionResult<List<GetProductMarginsResult>>> GetProductMargins(CancellationToken ct)
     {
-        var result = await mediator.Send(new GetRecentOrdersQuery(limit), ct);
+        var result = await mediator.Send(new GetProductMarginsQuery(), ct);
         return result.ToActionResult();
     }
 }

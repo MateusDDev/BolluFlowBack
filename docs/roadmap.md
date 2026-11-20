@@ -21,12 +21,12 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 ### Dashboard
 | Item | Status |
 |---|---|
-| Topo "Hoje": entregas de hoje/amanhã, pedidos prontos e alertas de estoque, só quando houver algo pendente | decidido |
-| Métricas de vendas com seletor de período: faturamento e variação vs. período anterior, nº de vendas, ticket médio, lucro bruto e margem (usando o custo gravado no item do pedido), evolução dos últimos 12 meses, produtos mais vendidos | decidido |
-| Métricas vêm dos pedidos entregues (vendas); o Financeiro continua sendo o caixa (entradas, saídas, saldo). Mediana fica de fora | decidido |
-| Com poucas vendas, mostrar aviso em vez de médias/crescimento enganosos | decidido |
-| Remover gráficos de pizza/barra atuais | decidido |
-| Para quem só usa Receitas: produtos sem ficha técnica e de menor margem | decidido |
+| Topo "Hoje": entregas de hoje/amanhã, pedidos prontos e alertas de estoque, só quando houver algo pendente | feito |
+| Métricas de vendas com seletor de período: faturamento e variação vs. período anterior, nº de vendas, ticket médio, lucro bruto e margem (usando o custo gravado no item do pedido), evolução dos últimos 12 meses, produtos mais vendidos | feito |
+| Métricas vêm dos pedidos entregues (vendas); o Financeiro continua sendo o caixa (entradas, saídas, saldo). Mediana fica de fora | feito |
+| Com poucas vendas, mostrar aviso em vez de médias/crescimento enganosos | feito |
+| Remover gráficos de pizza/barra atuais | feito |
+| Para quem só usa Receitas: produtos sem ficha técnica e de menor margem | feito |
 
 ### Estoque, conversões e cadastros (UX)
 | Item | Status |
@@ -62,6 +62,7 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Formulários com `react-hook-form` + `zod` (zod já está instalado) no lugar de `useState` por campo | ideia |
 | Quebrar componentes grandes (`OrderDetails` ~620 linhas, `OrderStatusActions` ~400) | ideia |
 | Erro de lint já existente: `setState` dentro de efeito no `app/(private)/layout.tsx` (estado da sidebar) | ideia |
+| Remover `src/app/dashboard/page.tsx` (página de exemplo do template shadcn, acessível em `/dashboard`) | ideia |
 
 ## 2. Funcionalidades futuras (candidatas a plano pago)
 
