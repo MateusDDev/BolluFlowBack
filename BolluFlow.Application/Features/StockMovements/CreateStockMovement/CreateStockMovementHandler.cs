@@ -62,6 +62,9 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
                     if (policy.IsActive)
                         ingredient.AddStock(movement.Quantity);
 
+                    if (request.UpdateItemCost && request.UnitCost > 0)
+                        ingredient.UpdateUnitCost(request.UnitCost);
+
                     itemName = ingredient.Name;
                 }
             }
@@ -74,6 +77,9 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
                 {
                     if (policy.IsActive)
                         supply.AddStock(movement.Quantity);
+
+                    if (request.UpdateItemCost && request.UnitCost > 0)
+                        supply.UpdateUnitCost(request.UnitCost);
 
                     itemName = supply.Name;
                 }

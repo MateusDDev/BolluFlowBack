@@ -71,6 +71,14 @@ public class Ingredient : IStockItem
         MinimumStockQuantity = minimumStockQuantity;
     }
 
+    public void UpdateUnitCost(decimal unitCost)
+    {
+        if (unitCost <= 0)
+            throw new DomainException(IngredientErrors.UnitPriceInvalid);
+
+        UnitCost = unitCost;
+    }
+
     public void SetTrackStock(bool trackStock)
     {
         TrackStock = trackStock;

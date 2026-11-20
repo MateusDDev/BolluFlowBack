@@ -11,5 +11,6 @@ public record CreateStockMovementCommand(
     decimal Quantity,
     decimal UnitCost,
     string? Notes,
-    string? EventKey
+    string? EventKey,
+    bool UpdateItemCost = false
 ) : ICommand<ResultOf<StockMovementModel>>;

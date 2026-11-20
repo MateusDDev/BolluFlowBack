@@ -59,6 +59,14 @@ public class Supply : IStockItem
         MinimumStockQuantity = minimumStockQuantity;
     }
 
+    public void UpdateUnitCost(decimal unitCost)
+    {
+        if (unitCost <= 0)
+            throw new DomainException(SupplyErrors.UnitCostInvalid);
+
+        UnitCost = unitCost;
+    }
+
     public void SetTrackStock(bool trackStock)
     {
         TrackStock = trackStock;
