@@ -258,9 +258,13 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
-                    b.Property<long>("CustomerId")
+                    b.Property<long?>("CustomerId")
                         .HasColumnType("bigint")
                         .HasColumnName("customer_id");
+
+                    b.Property<DateTime?>("DeliveredAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("delivered_at");
 
                     b.Property<DateTime?>("DeliveryDate")
                         .HasColumnType("timestamp with time zone")
@@ -273,6 +277,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<string>("DiscountType")
                         .HasColumnType("text")
                         .HasColumnName("discount_type");
+
+                    b.Property<bool>("IsQuickSale")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_quick_sale");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
@@ -297,11 +305,21 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("status");
 
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_tb_order");
 
+                    b.HasIndex("UserId", "DeliveredAt")
+                        .HasDatabaseName("ix_tb_order_user_id_delivered_at");
+
                     b.HasIndex("CustomerId", "Status", "CreatedAt")
                         .HasDatabaseName("ix_tb_order_customer_id_status_created_at");
+
+                    b.HasIndex("UserId", "Status", "CreatedAt")
+                        .HasDatabaseName("ix_tb_order_user_id_status_created_at");
 
                     b.ToTable("tb_order", (string)null);
                 });
@@ -994,11 +1012,19 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.HasOne("BolluFlow.Domain.Entities.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
+                        .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_tb_order_tb_customer_customer_id");
 
+                    b.HasOne("BolluFlow.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_order_users_user_id");
+
                     b.Navigation("Customer");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.OrderItem", b =>
@@ -1126,8 +1152,7 @@ namespace BolluFlow.Infrastructure.Migrations
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>
                 {
-                    b.Navigation("DeliveryAddress")
-                        .IsRequired();
+                    b.Navigation("DeliveryAddress");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Ingredient", b =>

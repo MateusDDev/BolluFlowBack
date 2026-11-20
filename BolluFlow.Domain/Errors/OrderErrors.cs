@@ -33,4 +33,7 @@ public class OrderErrors
 
     public static readonly DomainError NegativeTotalNotAllowed =
         new("ORDER_NEGATIVE_TOTAL", "O total do pedido não pode ser negativo");
+
+    public static readonly DomainError QuickSaleWithoutItems =
+        new("ORDER_QUICK_SALE_WITHOUT_ITEMS", "Adicione ao menos um produto para registrar a venda");
 }

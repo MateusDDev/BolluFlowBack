@@ -17,7 +17,7 @@ public class CreateCustomerHandler(ApplicationDbContext db, CurrentUser user) : 
             user.Id,
             request.Name,
             request.Whatsapp,
-            DeliveryAddress.Create(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood),
+            deliveryAddress is null ? null : DeliveryAddress.Create(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood),
             request.Preferences,
             request.Birthday);
         

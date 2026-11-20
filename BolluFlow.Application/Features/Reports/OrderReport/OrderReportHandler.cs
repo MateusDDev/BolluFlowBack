@@ -3,6 +3,7 @@ using BolluFlow.Application.Configuration;
 using BolluFlow.Application.Features.Reports;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ using System.Globalization;
 
 namespace BolluFlow.Application.Features.Reports.OrderReport;
 
-public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> frontOptions) : IRequestHandler<OrderReportQuery, ResultOf<byte[]>>
+public class OrderReportHandler(ApplicationDbContext db, CurrentUser user, IOptions<FrontOptions> frontOptions) : IRequestHandler<OrderReportQuery, ResultOf<byte[]>>
 {
     private readonly string _frontUrl = frontOptions.Value.Url;
     
@@ -22,16 +23,17 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
         CancellationToken cancellationToken)
     {
         var order = await db.Orders
+            .Where(x => x.Id == request.OrderId && x.UserId == user.Id)
             .Select(x => new OrderReportResult
             {
                 Id = x.Id,
                 Number = x.Number,
                 DeliveryDate = x.DeliveryDate,
-                CustomerName = x.Customer.Name,
-                CustomerWhatsapp = x.Customer.Whatsapp,
-                CustomerStreet = x.Customer.DeliveryAddress.Street,
-                CustomerNumber = x.Customer.DeliveryAddress.Number,
-                CustomerNeighborhood = x.Customer.DeliveryAddress.Neighborhood,
+                CustomerName = x.Customer!.Name,
+                CustomerWhatsapp = x.Customer!.Whatsapp,
+                CustomerStreet = x.Customer!.DeliveryAddress!.Street,
+                CustomerNumber = (int?)x.Customer!.DeliveryAddress!.Number,
+                CustomerNeighborhood = x.Customer!.DeliveryAddress!.Neighborhood,
                 TotalValue = x.Items.Sum(i => i.Quantity * i.UnitPrice)
                     - ((x.Discount == null || x.DiscountType == null)
                         ? 0
@@ -47,7 +49,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                 }).ToList(),
                 Note = x.Note
             })
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return order is null 
             ? ResultOf<byte[]>.BadRequest(CommonErrors.OrderNotFound) 
@@ -86,14 +88,17 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                                 .FontSize(14);
      
                             col.Item().AlignCenter()
-                                .Text(order.CustomerName)
+                                .Text(order.CustomerName ?? "Venda no balcão")
                                 .Bold()
                                 .FontSize(11);
      
-                            col.Item().AlignCenter()
-                                .Text(order.CustomerWhatsapp)
-                                .FontSize(9)
-                                .FontColor(Colors.Grey.Darken1);
+                            if (order.CustomerWhatsapp is not null)
+                            {
+                                col.Item().AlignCenter()
+                                    .Text(order.CustomerWhatsapp)
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
+                            }
      
                             if (order.DeliveryDate.HasValue)
                             {
@@ -110,6 +115,7 @@ public class OrderReportHandler(ApplicationDbContext db, IOptions<FrontOptions> 
                             .LineColor(Colors.Grey.Lighten1);
      
                         // ── ENDEREÇO ───────────────────────────────
+                        if (order.CustomerStreet is not null)
                         main.Item().PaddingBottom(6).Column(address =>
                         {
                             address.Spacing(1);

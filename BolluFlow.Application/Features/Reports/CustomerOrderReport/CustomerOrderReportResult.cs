@@ -7,7 +7,7 @@ public sealed class CustomerOrderReportResult
     public long Id { get; init; }
     public int Number { get; init; }
     public string StoreName { get; init; } = null!;
-    public string CustomerName { get; init; } = null!;
+    public string? CustomerName { get; init; }
     public DateTime? DeliveryDate { get; init; }
     public decimal Subtotal { get; init; }
     public decimal? Discount { get; init; }

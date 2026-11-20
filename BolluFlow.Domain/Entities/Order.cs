@@ -12,9 +12,17 @@ public class Order
     
     public int Number { get; private set; }
 
-    public long CustomerId { get; private set; }
+    public long UserId { get; private set; }
 
-    public Customer Customer { get; private set; } = null!;
+    public User User { get; private set; } = null!;
+
+    public long? CustomerId { get; private set; }
+
+    public Customer? Customer { get; private set; }
+
+    public bool IsQuickSale { get; private set; }
+
+    public DateTime? DeliveredAt { get; private set; }
 
     public OrderStatus Status { get; set; }
 
@@ -43,7 +51,8 @@ public class Order
     }
 
     public static Order Create(
-        long customerId,
+        long userId,
+        long? customerId,
         int number,
         string? note = null,
         DateTime? deliveryDate = null,
@@ -56,6 +65,7 @@ public class Order
 
         return new Order
         {
+            UserId = userId,
             CustomerId = customerId,
             Number = number,
             Status = OrderStatus.Pending,
@@ -89,6 +99,24 @@ public class Order
         Discount = discount;
         DiscountType = discountType;
         ShippingFee = shippingFee;
+    }
+
+    public void MarkDelivered()
+    {
+        Status = OrderStatus.Delivered;
+        DeliveredAt ??= DateTime.UtcNow;
+    }
+
+    public void CompleteAsQuickSale()
+    {
+        if (Status != OrderStatus.Pending)
+            throw new DomainException(OrderErrors.OrderIsNotOpen);
+
+        if (_items.Count == 0)
+            throw new DomainException(OrderErrors.QuickSaleWithoutItems);
+
+        IsQuickSale = true;
+        MarkDelivered();
     }
 
     public decimal CalculateSubtotal() =>

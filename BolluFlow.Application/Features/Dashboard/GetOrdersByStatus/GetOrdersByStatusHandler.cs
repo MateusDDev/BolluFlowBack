@@ -14,7 +14,7 @@ public sealed class GetOrdersByStatusHandler(ApplicationDbContext db, CurrentUse
     {
         var grouped = await db.Orders
             .AsNoTracking()
-            .Where(x => x.Customer.UserId == currentUser.Id)
+            .Where(x => x.UserId == currentUser.Id)
             .GroupBy(x => x.Status)
             .Select(x => new { Status = x.Key, Total = x.Count() })
             .ToListAsync(cancellationToken);

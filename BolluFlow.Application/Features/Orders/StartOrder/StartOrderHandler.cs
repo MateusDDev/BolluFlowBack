@@ -1,5 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
@@ -20,7 +21,7 @@ public class StartOrderHandler(ApplicationDbContext db, CurrentUser user) : IReq
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.Customer.UserId == user.Id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
@@ -31,43 +32,15 @@ public class StartOrderHandler(ApplicationDbContext db, CurrentUser user) : IReq
             if (order.Items.Count == 0)
                 return Result.Unprocessable(new DomainError("ORDER_WITHOUT_ITEMS", "Pedido sem itens não pode ser iniciado"));
 
-            var allowNegativeStock = await db.Users
-                .Where(x => x.Id == user.Id)
-                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await db.Products
-                .Where(x => productIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id, cancellationToken);
-
-            var insufficientProducts = order.Items
-                .Select(item => new
-                {
-                    Item = item,
-                    Product = products.GetValueOrDefault(item.ProductId)
-                })
-                .Where(x => x.Product is null || !x.Product.HasEnoughStock(x.Item.Quantity, allowNegativeStock))
-                .Select(x => new
-                {
-                    productId = x.Item.ProductId,
-                    productName = x.Product?.Name ?? "Produto não encontrado",
-                    required = x.Item.Quantity,
-                    available = x.Product?.StockQuantity ?? 0
-                })
-                .ToList();
+            var allowNegativeStock = await OrderFulfillmentService.AllowNegativeStockAsync(db, user.Id, cancellationToken);
+            var products = await OrderFulfillmentService.LoadProductsAsync(db, order, cancellationToken);
+            var insufficientProducts = OrderFulfillmentService.FindInsufficientStock(order, products, allowNegativeStock);
 
             if (insufficientProducts.Count > 0)
-            {
-                return Result.Unprocessable(
-                    new DomainError("INSUFFICIENT_STOCK", "Estoque insuficiente para iniciar a produção do pedido"),
-                    new { insufficientProducts });
-            }
+                return Result.Unprocessable(OrderFulfillmentService.InsufficientStockError, new { insufficientProducts });
 
             order.Status = OrderStatus.InProduction;
-
-            foreach (var item in order.Items)
-                products[item.ProductId].ConsumeStock(item.Quantity, allowNegativeStock);
+            OrderFulfillmentService.ConsumeStock(order, products, allowNegativeStock);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

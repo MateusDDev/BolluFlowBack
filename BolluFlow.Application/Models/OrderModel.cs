@@ -33,6 +33,10 @@ public class OrderModel
 
     public decimal Total { get; set; }
 
+    public bool IsQuickSale { get; set; }
+
+    public DateTime? DeliveredAt { get; set; }
+
     public static OrderModel From(Order order)
     {
         var subtotal = order.CalculateSubtotal();
@@ -53,7 +57,9 @@ public class OrderModel
             DiscountType = order.DiscountType,
             DiscountValue = discountValue,
             ShippingFee = order.ShippingFee,
-            Total = subtotal - discountValue + order.ShippingFee
+            Total = subtotal - discountValue + order.ShippingFee,
+            IsQuickSale = order.IsQuickSale,
+            DeliveredAt = order.DeliveredAt
         };
     }
 }

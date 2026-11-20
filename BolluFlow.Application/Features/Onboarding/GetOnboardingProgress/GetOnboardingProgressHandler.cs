@@ -16,7 +16,7 @@ public class GetOnboardingProgressHandler(ApplicationDbContext db, CurrentUser c
         var hasProduct = await db.Products.AnyAsync(x => x.UserId == userId, cancellationToken);
         var hasPricedProduct = await db.Products.AnyAsync(x => x.UserId == userId && x.FinalPrice > 0, cancellationToken);
         var hasCustomer = await db.Customers.AnyAsync(x => x.UserId == userId, cancellationToken);
-        var hasOrder = await db.Orders.AnyAsync(x => x.Customer.UserId == userId, cancellationToken);
+        var hasOrder = await db.Orders.AnyAsync(x => x.UserId == userId, cancellationToken);
         var hasMenuLink = await db.Users.AnyAsync(x => x.Id == userId && x.Slug != null, cancellationToken);
         var hasRecipe = await db.Recipes.AnyAsync(x => x.UserId == userId, cancellationToken);
         var hasProductComponent = await db.ProductComponents.AnyAsync(x => x.Product.UserId == userId, cancellationToken);

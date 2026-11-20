@@ -14,7 +14,7 @@ public class GetOrderDetailsHandler(ApplicationDbContext db)
     {
         var order = await db.Orders
             .Include(x => x.Customer)
-            .ThenInclude(x => x.DeliveryAddress)
+            .ThenInclude(x => x!.DeliveryAddress)
             .Include(x => x.Items)
             .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 

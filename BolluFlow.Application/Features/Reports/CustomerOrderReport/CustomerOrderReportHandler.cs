@@ -1,6 +1,7 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,19 +11,20 @@ using System.Globalization;
 
 namespace BolluFlow.Application.Features.Reports.CustomerOrderReport;
 
-public class CustomerOrderReportHandler(ApplicationDbContext db) : IRequestHandler<CustomerOrderReportQuery, ResultOf<byte[]>>
+public class CustomerOrderReportHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<CustomerOrderReportQuery, ResultOf<byte[]>>
 {
     public async Task<ResultOf<byte[]>> Handle(
         CustomerOrderReportQuery request,
         CancellationToken cancellationToken)
     {
         var order = await db.Orders
+            .Where(x => x.Id == request.OrderId && x.UserId == user.Id)
             .Select(x => new CustomerOrderReportResult
             {
                 Id = x.Id,
                 Number = x.Number,
-                StoreName = x.Customer.User.Name,
-                CustomerName = x.Customer.Name,
+                StoreName = x.User.Name,
+                CustomerName = x.Customer!.Name,
                 DeliveryDate = x.DeliveryDate,
                 Subtotal = x.Items.Sum(i => i.Quantity * i.UnitPrice),
                 Discount = x.Discount,
@@ -49,7 +51,7 @@ public class CustomerOrderReportHandler(ApplicationDbContext db) : IRequestHandl
                     UnitPrice = i.UnitPrice
                 }).ToList()
             })
-            .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+            .FirstOrDefaultAsync(cancellationToken);
 
         return order is null
             ? ResultOf<byte[]>.BadRequest(CommonErrors.OrderNotFound)
@@ -94,7 +96,7 @@ public class CustomerOrderReportHandler(ApplicationDbContext db) : IRequestHandl
                                 .FontSize(14);
 
                             col.Item().AlignCenter()
-                                .Text(order.CustomerName)
+                                .Text(order.CustomerName ?? "Cliente")
                                 .Bold()
                                 .FontSize(11);
 

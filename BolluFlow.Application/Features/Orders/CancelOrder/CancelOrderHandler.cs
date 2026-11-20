@@ -19,7 +19,7 @@ public class CancelOrderHandler(ApplicationDbContext db, CurrentUser user) : IRe
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.Customer.UserId == user.Id, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);

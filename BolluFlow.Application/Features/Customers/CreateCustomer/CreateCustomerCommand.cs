@@ -8,6 +8,6 @@ public record CreateCustomerCommand(
     string Whatsapp,
     string? Preferences,
     DateTime? Birthday,
-    CreateCustomerDeliveryAddressModel DeliveryAddress) : ICommand<ResultOf<CustomerModel>>;
+    CreateCustomerDeliveryAddressModel? DeliveryAddress = null) : ICommand<ResultOf<CustomerModel>>;
     
 public record CreateCustomerDeliveryAddressModel(string Street, int Number, string Neighborhood);

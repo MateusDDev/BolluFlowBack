@@ -15,12 +15,12 @@ public sealed class GetRecentOrdersHandler(ApplicationDbContext db, CurrentUser 
 
         var orders = await db.Orders
             .AsNoTracking()
-            .Where(x => x.Customer.UserId == currentUser.Id)
+            .Where(x => x.UserId == currentUser.Id)
             .OrderByDescending(x => x.CreatedAt)
             .Select(x => new GetRecentOrdersResult(
                 x.Id,
                 x.Number,
-                x.Customer.Name,
+                x.Customer != null ? x.Customer.Name : null,
                 x.Status.ToString(),
                 x.CreatedAt,
                 x.Items.Sum(i => i.Quantity),

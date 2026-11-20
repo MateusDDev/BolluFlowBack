@@ -74,33 +74,21 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
         }
 
         var lastOrderNumber = await db.Orders
-            .Where(x => x.Customer.UserId == owner.Id)
+            .Where(x => x.UserId == owner.Id)
             .MaxAsync(x => (int?)x.Number, cancellationToken) ?? 0;
 
         var order = Order.Create(
+            owner.Id,
             customer.Id,
             lastOrderNumber + 1,
             string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim());
 
-        var componentCosts = await db.ProductComponents
-            .AsNoTracking()
-            .Include(x => x.Recipe)
-            .ThenInclude(x => x!.RecipeIngredients)
-            .ThenInclude(x => x.Ingredient)
-            .Where(x => requestedProductIds.Contains(x.ProductId))
-            .ToListAsync(cancellationToken);
-
-        var componentCostsByProduct = componentCosts
-            .GroupBy(x => x.ProductId)
-            .ToDictionary(
-                x => x.Key,
-                x => x.Sum(ProductComponentCostService.CalculateComponentCost));
+        var pricing = await OrderPricingService.LoadAsync(db, owner.Id, requestedProductIds, cancellationToken);
 
         foreach (var item in items)
         {
             var product = products[item.ProductId];
-            var unitCost = componentCostsByProduct.GetValueOrDefault(item.ProductId, 0m);
-            order.AddItem(product.Id, item.Quantity, product.FinalPrice, unitCost);
+            order.AddItem(product.Id, item.Quantity, product.FinalPrice, pricing[item.ProductId].UnitCost);
         }
 
         db.Orders.Add(order);

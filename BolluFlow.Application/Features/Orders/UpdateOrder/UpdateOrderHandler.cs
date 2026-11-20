@@ -18,7 +18,7 @@ public class UpdateOrderHandler(ApplicationDbContext db) : IRequestHandler<Updat
 
             var order = await db.Orders
                 .Include(x => x.Customer)
-                .ThenInclude(x => x.DeliveryAddress)
+                .ThenInclude(x => x!.DeliveryAddress)
                 .Include(x => x.Items)
                 .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
 
@@ -41,7 +41,7 @@ public class UpdateOrderHandler(ApplicationDbContext db) : IRequestHandler<Updat
             if (command.CustomerId.HasValue && command.CustomerId != originalCustomerId)
             {
                 await db.Entry(order).Reference(x => x.Customer).LoadAsync(cancellationToken);
-                await db.Entry(order.Customer).Reference(x => x.DeliveryAddress).LoadAsync(cancellationToken);
+                await db.Entry(order.Customer!).Reference(x => x.DeliveryAddress).LoadAsync(cancellationToken);
             }
 
             return ResultOf<OrderModel>.Success(OrderModel.From(order));

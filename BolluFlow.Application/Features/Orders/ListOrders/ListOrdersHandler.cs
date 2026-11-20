@@ -13,9 +13,9 @@ public class ListOrdersHandler(ApplicationDbContext db, CurrentUser user) : IReq
     {
         var orders = await db.Orders
             .Include(x => x.Customer)
-            .ThenInclude(x => x.DeliveryAddress)
+            .ThenInclude(x => x!.DeliveryAddress)
             .Include(x => x.Items)
-            .Where(x => x.Customer.UserId == user.Id)
+            .Where(x => x.UserId == user.Id)
             .ToListAsync(cancellationToken);
 
         var response = orders.Select(OrderModel.From).ToList();
