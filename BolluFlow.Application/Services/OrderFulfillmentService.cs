@@ -13,14 +13,6 @@ public static class OrderFulfillmentService
     public static readonly DomainError InsufficientStockError =
         new("INSUFFICIENT_STOCK", "Estoque insuficiente para os produtos do pedido");
 
-    public static Task<bool> AllowNegativeStockAsync(ApplicationDbContext db, long userId, CancellationToken cancellationToken)
-    {
-        return db.Users
-            .Where(x => x.Id == userId)
-            .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
-            .FirstOrDefaultAsync(cancellationToken);
-    }
-
     public static Task<Dictionary<long, Product>> LoadProductsAsync(ApplicationDbContext db, Order order, CancellationToken cancellationToken)
     {
         var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
@@ -33,11 +25,11 @@ public static class OrderFulfillmentService
     public static List<InsufficientProductStock> FindInsufficientStock(
         Order order,
         Dictionary<long, Product> products,
-        bool allowNegativeStock)
+        StockPolicy policy)
     {
         return order.Items
             .Select(item => new { Item = item, Product = products.GetValueOrDefault(item.ProductId) })
-            .Where(x => x.Product is null || !x.Product.HasEnoughStock(x.Item.Quantity, allowNegativeStock))
+            .Where(x => x.Product is null || !policy.HasEnough(x.Product, x.Item.Quantity))
             .Select(x => new InsufficientProductStock(
                 x.Item.ProductId,
                 x.Product?.Name ?? "Produto não encontrado",
@@ -46,15 +38,40 @@ public static class OrderFulfillmentService
             .ToList();
     }
 
-    public static void ConsumeStock(Order order, Dictionary<long, Product> products, bool allowNegativeStock)
+    public static void ConsumeStock(Order order, Dictionary<long, Product> products, StockPolicy policy)
     {
         foreach (var item in order.Items)
-            products[item.ProductId].ConsumeStock(item.Quantity, allowNegativeStock);
+        {
+            if (policy.Consume(products[item.ProductId], item.Quantity))
+                item.MarkStockDebited();
+        }
+    }
+
+    public static void RevertStock(Order order, Dictionary<long, Product> products)
+    {
+        foreach (var item in order.Items.Where(x => x.StockDebited))
+        {
+            if (products.TryGetValue(item.ProductId, out var product))
+                product.RevertStock(item.Quantity);
+
+            item.ClearStockDebited();
+        }
+    }
+
+    public static async Task RemoveIncomeAsync(ApplicationDbContext db, Order order, CancellationToken cancellationToken)
+    {
+        var eventKey = IncomeEventKey(order);
+
+        var entries = await db.FinancialEntries
+            .Where(x => x.UserId == order.UserId && x.EventKey == eventKey)
+            .ToListAsync(cancellationToken);
+
+        db.FinancialEntries.RemoveRange(entries);
     }
 
     public static async Task RegisterIncomeAsync(ApplicationDbContext db, Order order, CancellationToken cancellationToken)
     {
-        var eventKey = $"order_delivered:{order.Id}";
+        var eventKey = IncomeEventKey(order);
 
         var exists = await db.FinancialEntries
             .AnyAsync(x => x.UserId == order.UserId && x.EventKey == eventKey, cancellationToken);
@@ -62,8 +79,8 @@ public static class OrderFulfillmentService
         if (exists)
             return;
 
-        var description = order.IsQuickSale
-            ? $"Venda rápida #{order.Number}"
+        var description = order.IsDirectSale
+            ? $"Venda direta #{order.Number}"
             : $"Venda - Pedido #{order.Number}";
 
         db.FinancialEntries.Add(FinancialEntry.Create(
@@ -75,4 +92,6 @@ public static class OrderFulfillmentService
             order.Id,
             eventKey));
     }
+
+    private static string IncomeEventKey(Order order) => $"order_delivered:{order.Id}";
 }

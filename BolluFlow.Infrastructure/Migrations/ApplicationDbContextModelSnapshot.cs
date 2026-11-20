@@ -278,10 +278,6 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("discount_type");
 
-                    b.Property<bool>("IsQuickSale")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_quick_sale");
-
                     b.Property<string>("Note")
                         .HasColumnType("text")
                         .HasColumnName("note");
@@ -304,6 +300,12 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("status");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("type");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -344,6 +346,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
+
+                    b.Property<bool>("StockDebited")
+                        .HasColumnType("boolean")
+                        .HasColumnName("stock_debited");
 
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")

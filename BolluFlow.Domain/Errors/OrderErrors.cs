@@ -34,6 +34,21 @@ public class OrderErrors
     public static readonly DomainError NegativeTotalNotAllowed =
         new("ORDER_NEGATIVE_TOTAL", "O total do pedido não pode ser negativo");
 
-    public static readonly DomainError QuickSaleWithoutItems =
-        new("ORDER_QUICK_SALE_WITHOUT_ITEMS", "Adicione ao menos um produto para registrar a venda");
+    public static readonly DomainError DirectSaleWithoutItems =
+        new("ORDER_DIRECT_SALE_WITHOUT_ITEMS", "Adicione ao menos um produto para registrar a venda");
+
+    public static readonly DomainError OrderWithoutItems =
+        new("ORDER_WITHOUT_ITEMS", "Pedido sem itens não pode ser iniciado");
+
+    public static readonly DomainError InvalidCancelTransition =
+        new("ORDER_NOT_POSSIBLE_TO_CANCEL", "Não é possível cancelar pedidos já entregues ou já cancelados");
+
+    public static readonly DomainError InvalidReopenTransition =
+        new("ORDER_NOT_CANCELED", "Apenas pedidos cancelados podem ser reabertos");
+
+    public static readonly DomainError DirectSaleHasNoWorkflow =
+        new("ORDER_DIRECT_SALE_HAS_NO_WORKFLOW", "Venda direta não passa por produção nem entrega. Para desfazer, exclua a venda");
+
+    public static readonly DomainError OnlyDirectSaleCanBeDeleted =
+        new("ORDER_ONLY_DIRECT_SALE_CAN_BE_DELETED", "Só vendas diretas podem ser excluídas. Encomendas devem ser canceladas");
 }

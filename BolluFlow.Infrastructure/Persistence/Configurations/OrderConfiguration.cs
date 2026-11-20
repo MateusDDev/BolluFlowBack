@@ -17,6 +17,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.HasIndex(x => new { x.UserId, x.DeliveredAt });
         
         builder.Property(x => x.Status).HasConversion<string>();
+        builder.Property(x => x.Type).HasConversion<string>().HasMaxLength(20);
         builder.Property(x => x.PaymentMethod).HasConversion<string>();
         builder.Property(x => x.DiscountType).HasConversion<string>();
         builder.Property(x => x.ShippingFee).HasDefaultValue(0);

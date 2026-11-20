@@ -28,7 +28,7 @@ public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
             return ResultOf<OrderModel>.BadRequest(new DomainError("ORDER_ITEM_QUANTITY_INVALID", "A quantidade de cada produto precisa ser maior que zero"));
 
         if (request.DeliverNow && items.Count == 0)
-            return ResultOf<OrderModel>.BadRequest(OrderErrors.QuickSaleWithoutItems);
+            return ResultOf<OrderModel>.BadRequest(OrderErrors.DirectSaleWithoutItems);
 
         await using var tx = await db.Database.BeginTransactionAsync(cancellationToken);
 
@@ -74,15 +74,15 @@ public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
 
             if (request.DeliverNow)
             {
-                var allowNegativeStock = await OrderFulfillmentService.AllowNegativeStockAsync(db, user.Id, cancellationToken);
+                var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
                 var products = await OrderFulfillmentService.LoadProductsAsync(db, order, cancellationToken);
-                var insufficientProducts = OrderFulfillmentService.FindInsufficientStock(order, products, allowNegativeStock);
+                var insufficientProducts = OrderFulfillmentService.FindInsufficientStock(order, products, policy);
 
                 if (insufficientProducts.Count > 0)
                     return ResultOf<OrderModel>.Unprocessable(OrderFulfillmentService.InsufficientStockError, new { insufficientProducts });
 
-                OrderFulfillmentService.ConsumeStock(order, products, allowNegativeStock);
-                order.CompleteAsQuickSale();
+                OrderFulfillmentService.ConsumeStock(order, products, policy);
+                order.CompleteAsDirectSale();
             }
 
             db.Orders.Add(order);

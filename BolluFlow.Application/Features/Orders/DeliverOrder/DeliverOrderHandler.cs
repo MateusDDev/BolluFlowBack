@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
-using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -29,10 +28,7 @@ public class DeliverOrderHandler(ApplicationDbContext db, CurrentUser user) : IR
             if (order.Status == OrderStatus.Delivered)
                 return Result.Success();
 
-            if (order.Status != OrderStatus.Ready)
-                return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
-
-            order.MarkDelivered();
+            order.Deliver();
 
             await OrderFulfillmentService.RegisterIncomeAsync(db, order, cancellationToken);
 

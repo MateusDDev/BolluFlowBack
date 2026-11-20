@@ -1,5 +1,6 @@
 ﻿using BolluFlow.Application.Features.Orders.CancelOrder;
 using BolluFlow.Application.Features.Orders.CreateOrder;
+using BolluFlow.Application.Features.Orders.DeleteOrder;
 using BolluFlow.Application.Features.Orders.DeliverOrder;
 using BolluFlow.Application.Features.Orders.FinishOrder;
 using BolluFlow.Application.Features.Orders.GetOrderDetails;
@@ -38,6 +39,14 @@ public class OrdersController(IMediator mediator) : ControllerBase
         
         var result = await mediator.Send(command, ct);
         
+        return result.ToActionResult();
+    }
+
+    [HttpDelete("{orderId:long}")]
+    public async Task<ActionResult> DeleteOrder([FromRoute] long orderId, CancellationToken ct)
+    {
+        var result = await mediator.Send(new DeleteOrderCommand(orderId), ct);
+
         return result.ToActionResult();
     }
 

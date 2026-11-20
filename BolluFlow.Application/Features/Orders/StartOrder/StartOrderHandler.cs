@@ -2,8 +2,6 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
-using BolluFlow.Domain.Enums;
-using BolluFlow.Domain.Errors;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -26,21 +24,16 @@ public class StartOrderHandler(ApplicationDbContext db, CurrentUser user) : IReq
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
 
-            if (order.Status != OrderStatus.Pending)
-                return Result.Unprocessable(OrderErrors.InvalidStartTransition);
+            order.StartProduction();
 
-            if (order.Items.Count == 0)
-                return Result.Unprocessable(new DomainError("ORDER_WITHOUT_ITEMS", "Pedido sem itens não pode ser iniciado"));
-
-            var allowNegativeStock = await OrderFulfillmentService.AllowNegativeStockAsync(db, user.Id, cancellationToken);
+            var policy = await StockPolicy.LoadAsync(db, user.Id, cancellationToken);
             var products = await OrderFulfillmentService.LoadProductsAsync(db, order, cancellationToken);
-            var insufficientProducts = OrderFulfillmentService.FindInsufficientStock(order, products, allowNegativeStock);
+            var insufficientProducts = OrderFulfillmentService.FindInsufficientStock(order, products, policy);
 
             if (insufficientProducts.Count > 0)
                 return Result.Unprocessable(OrderFulfillmentService.InsufficientStockError, new { insufficientProducts });
 
-            order.Status = OrderStatus.InProduction;
-            OrderFulfillmentService.ConsumeStock(order, products, allowNegativeStock);
+            OrderFulfillmentService.ConsumeStock(order, products, policy);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);
@@ -50,7 +43,7 @@ public class StartOrderHandler(ApplicationDbContext db, CurrentUser user) : IReq
         catch (DomainException e)
         {
             await tx.RollbackAsync(cancellationToken);
-            return Result.BadRequest(e.Error);
+            return Result.Unprocessable(e.Error);
         }
     }
 }

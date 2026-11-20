@@ -1,7 +1,7 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
+using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
-using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
@@ -24,31 +24,15 @@ public class CancelOrderHandler(ApplicationDbContext db, CurrentUser user) : IRe
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
 
-            if (order.Status is OrderStatus.Canceled or OrderStatus.Delivered)
+            var shouldRevertStock = request.RevertStock && order.CanRevertStockOnCancel;
+
+            order.Cancel();
+
+            if (shouldRevertStock)
             {
-                return Result.BadRequest(new DomainError("ORDER_NOT_POSSIBLE_TO_CANCEL",
-                    "Não é possível cancelar pedidos já entregues ou já cancelados"));
+                var products = await OrderFulfillmentService.LoadProductsAsync(db, order, cancellationToken);
+                OrderFulfillmentService.RevertStock(order, products);
             }
-
-            var shouldRevertStock = request.RevertStock && order.Status is OrderStatus.InProduction or OrderStatus.Ready;
-
-            if (shouldRevertStock && order.Items.Count > 0)
-            {
-                var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
-                var products = await db.Products
-                    .Where(x => productIds.Contains(x.Id))
-                    .ToDictionaryAsync(x => x.Id, cancellationToken);
-
-                foreach (var item in order.Items)
-                {
-                    if (!products.TryGetValue(item.ProductId, out var product))
-                        return Result.NotFound(CommonErrors.ProductNotFound);
-
-                    product.RevertStock(item.Quantity);
-                }
-            }
-
-            order.Status = OrderStatus.Canceled;
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

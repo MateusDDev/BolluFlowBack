@@ -23,6 +23,12 @@ public class OrderItem
     
     public decimal UnitCost { get; private set; }
 
+    public bool StockDebited { get; private set; }
+
+    public void MarkStockDebited() => StockDebited = true;
+
+    public void ClearStockDebited() => StockDebited = false;
+
     private void UpdateQuantity(int quantity)
     {
         if (quantity < 0)
