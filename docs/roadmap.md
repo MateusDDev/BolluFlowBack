@@ -9,13 +9,13 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 ### Pedidos
 | Item | Status |
 |---|---|
-| Criar pedido em uma tela só: cliente, itens, entrega e pagamento juntos (hoje são dois passos e um modal por item) | em andamento |
-| **Venda rápida**: a mesma tela com "Entregar agora" cria o pedido já entregue (baixa de estoque e receita), sem status. Não é uma entidade separada: é um pedido, para relatórios e financeiro terem uma fonte só | em andamento |
-| Cliente opcional no pedido (venda de balcão) e data de entrega opcional | em andamento |
-| Abrir o pedido recém-criado direto na tela de detalhes | em andamento |
-| Cadastrar cliente sem sair do pedido, só com nome e WhatsApp | em andamento |
-| Endereço do cliente opcional (para retirada no local) | em andamento |
-| Atalhos de data de entrega ("Hoje", "Amanhã") e forma de pagamento em botões em vez de select | em andamento |
+| Criar pedido em uma tela só: cliente, itens, entrega e pagamento juntos (hoje são dois passos e um modal por item) | feito |
+| **Venda rápida**: a mesma tela com "Entregar agora" cria o pedido já entregue (baixa de estoque e receita), sem status. Não é uma entidade separada: é um pedido, para relatórios e financeiro terem uma fonte só | feito |
+| Cliente opcional no pedido (venda de balcão) e data de entrega opcional | feito |
+| Abrir o pedido recém-criado direto na tela de detalhes | feito |
+| Cadastrar cliente sem sair do pedido, só com nome e WhatsApp | feito |
+| Endereço do cliente opcional (para retirada no local) | feito |
+| Atalhos de data de entrega ("Hoje", "Amanhã") e forma de pagamento em botões em vez de select | feito |
 | Avançar status direto pela lista de pedidos | ideia |
 
 ### Dashboard
