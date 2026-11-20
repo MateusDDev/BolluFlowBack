@@ -28,6 +28,13 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Remover gráficos de pizza/barra atuais | decidido |
 | Para quem só usa Receitas: produtos sem ficha técnica e de menor margem | decidido |
 
+### Estoque, conversões e cadastros (UX)
+| Item | Status |
+|---|---|
+| Revisar a experiência das telas de ingredientes, insumos e receitas: estoque, compra e ajuste estão funcionais mas confusos | ideia |
+| Simplificar as unidades de conversão (como criar, onde aparecem, o seletor "Unidade / referência" nas tabelas) | ideia |
+| Revisar os formulários de cadastro (produto, ingrediente, insumo, receita, cliente): campos, ordem, textos de ajuda | ideia |
+
 ### Geral
 | Item | Status |
 |---|---|
