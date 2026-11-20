@@ -45,6 +45,8 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Mensagem de boas-vindas pelo WhatsApp | ideia |
 | Painel interno: onde os usuários param no checklist de primeiros passos | ideia |
 | Campo de custo manual no produto (para quem não usa Receitas ver a margem) | ideia |
+| Deixar claro nos formulários quais campos são obrigatórios e quais são opcionais (padrão único: marcar os opcionais com "(opcional)" e validar os obrigatórios com mensagem no campo) | ideia |
+| Mostrar a margem resultante ao lado do markup na precificação ("markup 100% = margem 50%") | ideia |
 | Revisar acentos e textos ("Preco de venda", "conversoes", "Salvar alteracoes", "Estoque minimo") | ideia |
 | Usar toasts (sonner já está instalado) para sucesso/erro de forma consistente | ideia |
 | Tela de carregamento no lugar da tela em branco enquanto a sessão carrega | ideia |
