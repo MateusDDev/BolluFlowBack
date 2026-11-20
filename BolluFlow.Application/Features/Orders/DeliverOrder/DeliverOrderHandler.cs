@@ -21,7 +21,7 @@ public class DeliverOrderHandler(ApplicationDbContext db, CurrentUser user) : IR
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.Customer.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
@@ -31,19 +31,6 @@ public class DeliverOrderHandler(ApplicationDbContext db, CurrentUser user) : IR
 
             if (order.Status != OrderStatus.Ready)
                 return Result.Unprocessable(OrderErrors.InvalidDeliverTransition);
-
-            var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
-            var products = await db.Products
-                .Where(x => productIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id, cancellationToken);
-
-            foreach (var item in order.Items)
-            {
-                if (!products.TryGetValue(item.ProductId, out var product))
-                    return Result.NotFound(CommonErrors.ProductNotFound);
-
-                product.ConsumeStock(item.Quantity);
-            }
 
             order.Status = OrderStatus.Delivered;
 
