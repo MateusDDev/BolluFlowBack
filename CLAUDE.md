@@ -57,7 +57,9 @@ Dependências: Api → Application → Infrastructure → Domain. **Os handlers 
 - Operações que tocam vários agregados abrem transação explícita (`db.Database.BeginTransactionAsync`).
 - Idempotência por `EventKey` em `StockMovement` e `FinancialEntry` (ex.: `order_delivered:{orderId}`, `stock_purchase:{movementId}`, `recipe_production:{productionId}:ingredient:{id}`).
 - Enums serializados como string (`JsonStringEnumConverter`).
-- Multi-tenant por `UserId` (o "usuário" é a empresa). `Order` não tem `UserId` — o dono vem de `Order.Customer.UserId`. Vários handlers ainda buscam por Id sem filtrar pelo usuário atual (ex.: StartOrder, CancelOrder, UpdateRecipe); ao mexer neles, adicione o filtro.
+- **Estoque:** toda decisão de "estoque está ativo / pode ficar negativo" passa por `StockPolicy` (`Application/Services/StockPolicy.cs`). Com o módulo desligado o estoque fica **congelado** (nada entra, nada sai). Itens de estoque implementam `IStockItem`. Itens de pedido marcam `StockDebited` para estornos devolverem só o que saiu.
+- **Pedido:** `OrderType` (`CustomOrder` = encomenda com status; `DirectSale` = venda direta, nasce entregue, não tem fluxo e pode ser excluída). Transições de status ficam em métodos da entidade `Order` (`StartProduction`, `FinishProduction`, `Deliver`, `Cancel`, `Reopen`, `CompleteAsDirectSale`); handlers não alteram `Status` direto.
+- Multi-tenant por `UserId` (o "usuário" é a empresa); `Order` tem `UserId` próprio e cliente opcional. Alguns handlers ainda buscam por Id sem filtrar pelo usuário atual (ex.: UpdateRecipe, GetOrderDetails); ao mexer neles, adicione o filtro.
 
 ## Módulos e como se ligam
 
@@ -75,7 +77,10 @@ Dependências: Api → Application → Infrastructure → Domain. **Os handlers 
 | Menu (público, `/cardapio/{slug}`) | — | Users, Products, Customers, Orders |
 | Dashboard / Reports | — (só leitura) | Orders, estoque de tudo |
 
-Fluxo de pedido: `Pending → (start) InProduction → (finish) Ready → (deliver) Delivered`; `cancel` (opcional `revertStock`) e `reopen` (Canceled → Pending).
-- `StartOrder` valida e **debita** `Product.StockQuantity`.
-- `DeliverOrder` **debita de novo** o estoque do produto e cria a receita (`FinancialEntry` Income).
-- Produzir Produto debita componentes e soma estoque do produto; produzir Receita debita ingredientes e soma estoque da receita.
+Encomenda (`CustomOrder`): `Pending → (start) InProduction → (finish) Ready → (deliver) Delivered`; `cancel` (opcional `revertStock`) e `reopen` (Canceled → Pending).
+- `start` valida e debita o estoque dos produtos controlados (via `StockPolicy`).
+- `deliver` grava `DeliveredAt` e cria a receita (`FinancialEntry` Income, `EventKey order_delivered:{id}`).
+
+Venda direta (`DirectSale`): `POST /orders` com `deliverNow: true` faz tudo de uma vez (baixa + receita). `DELETE /orders/{id}` só vale para ela e desfaz baixa e receita.
+
+Produzir Produto debita componentes e soma estoque do produto; produzir Receita debita ingredientes e soma estoque da receita (ambos só com o módulo Estoque ligado).

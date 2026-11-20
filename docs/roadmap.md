@@ -44,6 +44,17 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Filtrar por usuário logado nos handlers que ainda buscam só por Id (filtro global do EF por `UserId`) | ideia |
 | Remover o token do `localStorage` e usar só o cookie HttpOnly | ideia |
 | Testes automatizados do ciclo de vida do pedido e da produção | ideia |
+| `StockLevel` como value object (owned type do EF) no lugar do bloco de estoque repetido em Product/Ingredient/Supply/Recipe | ideia |
+| Modelar venda e entrega separadas (Venda + Entrega opcional) — **gatilho:** só quando a encomenda ganhar dados próprios (sinal/entrada, endereço por pedido, agenda de produção) | ideia |
+
+### Arquitetura do front
+| Item | Status |
+|---|---|
+| Fábrica de query keys por feature (hoje são strings soltas como `['products']`, `['finance']`) | ideia |
+| Componentes genéricos de item de estoque (ingredientes, insumos e receitas repetem célula de estoque, seletor de unidade, modal de conversões e de compra) | ideia |
+| Formulários com `react-hook-form` + `zod` (zod já está instalado) no lugar de `useState` por campo | ideia |
+| Quebrar componentes grandes (`OrderDetails` ~620 linhas, `OrderStatusActions` ~400) | ideia |
+| Erro de lint já existente: `setState` dentro de efeito no `app/(private)/layout.tsx` (estado da sidebar) | ideia |
 
 ## 2. Funcionalidades futuras (candidatas a plano pago)
 
