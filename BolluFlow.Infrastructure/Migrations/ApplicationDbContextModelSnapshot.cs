@@ -193,6 +193,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
                         .HasColumnName("unit_cost");
@@ -405,6 +409,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
                         .HasColumnName("user_id");
@@ -567,6 +575,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric(14,4)")
                         .HasDefaultValue(0m)
                         .HasColumnName("stock_quantity");
+
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
 
                     b.Property<long>("UserId")
                         .HasColumnType("bigint")
@@ -771,6 +783,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("stock_quantity");
 
+                    b.Property<bool>("TrackStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("track_stock");
+
                     b.Property<decimal>("UnitCost")
                         .HasColumnType("numeric")
                         .HasColumnName("unit_cost");
@@ -831,6 +847,10 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<bool>("AllowNegativeStock")
+                        .HasColumnType("boolean")
+                        .HasColumnName("allow_negative_stock");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
@@ -839,6 +859,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("email");
+
+                    b.Property<int>("EnabledModules")
+                        .HasColumnType("integer")
+                        .HasColumnName("enabled_modules");
 
                     b.Property<decimal?>("IndirectCostRate")
                         .HasColumnType("numeric(5,2)")
@@ -852,6 +876,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
+
+                    b.Property<DateTime?>("OnboardingCompletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("onboarding_completed_at");
 
                     b.Property<string>("Password")
                         .IsRequired()

@@ -2,7 +2,6 @@
 using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +17,6 @@ public class GetIngredientDetailsHandler(ApplicationDbContext db) : IRequestHand
         if (ingredient is null)
             return ResultOf<IngredientModel>.NotFound(CommonErrors.IngredientNotFound);
 
-        return ResultOf<IngredientModel>.Success(ingredient.Adapt<IngredientModel>());
+        return ResultOf<IngredientModel>.Success(IngredientModel.From(ingredient));
     }
 }

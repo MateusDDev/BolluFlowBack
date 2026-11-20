@@ -2,13 +2,14 @@ using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Orders.CancelOrder;
 
-public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<CancelOrderCommand, Result>
+public class CancelOrderHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<CancelOrderCommand, Result>
 {
     public async Task<Result> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
@@ -18,7 +19,7 @@ public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<Cance
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.Customer.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
@@ -43,7 +44,7 @@ public class CancelOrderHandler(ApplicationDbContext db) : IRequestHandler<Cance
                     if (!products.TryGetValue(item.ProductId, out var product))
                         return Result.NotFound(CommonErrors.ProductNotFound);
 
-                    product.AddStock(item.Quantity);
+                    product.RevertStock(item.Quantity);
                 }
             }
 

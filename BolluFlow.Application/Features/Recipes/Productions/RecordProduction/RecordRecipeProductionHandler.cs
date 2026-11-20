@@ -4,13 +4,14 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Domain.Enums;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Recipes.Productions.RecordProduction;
 
-public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHandler<RecordRecipeProductionCommand, ResultOf<RecipeProductionModel>>
+public class RecordRecipeProductionHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<RecordRecipeProductionCommand, ResultOf<RecipeProductionModel>>
 {
     public async Task<ResultOf<RecipeProductionModel>> Handle(RecordRecipeProductionCommand request, CancellationToken cancellationToken)
     {
@@ -24,10 +25,15 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
             var recipe = await db.Recipes
                 .Include(x => x.RecipeIngredients)
                 .ThenInclude(x => x.Ingredient)
-                .FirstOrDefaultAsync(x => x.Id == request.RecipeId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.RecipeId && x.UserId == user.Id, cancellationToken);
 
             if (recipe is null)
                 return ResultOf<RecipeProductionModel>.NotFound(CommonErrors.RecipeNotFound);
+
+            var allowNegativeStock = await db.Users
+                .Where(x => x.Id == user.Id)
+                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var insufficientIngredients = recipe.RecipeIngredients
                 .Select(x => new
@@ -35,7 +41,7 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
                     Ingredient = x.Ingredient,
                     Required = x.QuantityUsed * request.Body.Quantity
                 })
-                .Where(x => x.Ingredient.StockQuantity < x.Required)
+                .Where(x => !x.Ingredient.HasEnoughStock(x.Required, allowNegativeStock))
                 .Select(x => new
                 {
                     ingredientId = x.Ingredient.Id,
@@ -62,7 +68,7 @@ public class RecordRecipeProductionHandler(ApplicationDbContext db) : IRequestHa
             foreach (var recipeIngredient in recipe.RecipeIngredients)
             {
                 var quantityToDebit = recipeIngredient.QuantityUsed * request.Body.Quantity;
-                recipeIngredient.Ingredient.ConsumeStock(quantityToDebit);
+                recipeIngredient.Ingredient.ConsumeStock(quantityToDebit, allowNegativeStock);
 
                 var eventKey = $"recipe_production:{production.Id}:ingredient:{recipeIngredient.IngredientId}";
                 var existingMovement = await db.StockMovements.FirstOrDefaultAsync(x => x.EventKey == eventKey, cancellationToken);

@@ -1,7 +1,6 @@
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +14,6 @@ public class ListRecipeConversionsHandler(ApplicationDbContext db) : IRequestHan
             .Where(x => x.RecipeId == request.RecipeId)
             .ToListAsync(cancellationToken);
 
-        return ResultOf<List<RecipeConversionModel>>.Success(conversions.Adapt<List<RecipeConversionModel>>());
+        return ResultOf<List<RecipeConversionModel>>.Success(conversions.Select(RecipeConversionModel.From).ToList());
     }
 }

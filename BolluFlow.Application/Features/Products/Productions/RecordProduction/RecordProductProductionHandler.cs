@@ -35,6 +35,11 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
             if (product is null)
                 return ResultOf<ProductProductionModel>.NotFound(CommonErrors.ProductNotFound);
 
+            var allowNegativeStock = await db.Users
+                .Where(x => x.Id == user.Id)
+                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
+                .FirstOrDefaultAsync(cancellationToken);
+
             var requiredByComponent = product.Components
                 .Select(component => new
                 {
@@ -50,7 +55,7 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
                     x.Required,
                     Availability = GetAvailability(x.Component)
                 })
-                .Where(x => x.Availability is null || x.Availability.Value.Available < x.Required)
+                .Where(x => x.Availability is null || !HasEnoughStock(x.Component, x.Required, allowNegativeStock))
                 .Select(x => new
                 {
                     componentType = x.Component.ComponentType.ToString().ToLowerInvariant(),
@@ -81,7 +86,7 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
 
                 if (component.ComponentType == ProductComponentType.Ingredient && component.Ingredient is not null)
                 {
-                    component.Ingredient.ConsumeStock(quantityToDebit);
+                    component.Ingredient.ConsumeStock(quantityToDebit, allowNegativeStock);
                     debits.Add(new ProductProductionDebitModel
                     {
                         ComponentType = "ingredient",
@@ -94,7 +99,7 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
 
                 if (component.ComponentType == ProductComponentType.Supply && component.Supply is not null)
                 {
-                    component.Supply.ConsumeStock(quantityToDebit);
+                    component.Supply.ConsumeStock(quantityToDebit, allowNegativeStock);
                     debits.Add(new ProductProductionDebitModel
                     {
                         ComponentType = "supply",
@@ -107,7 +112,7 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
 
                 if (component.ComponentType == ProductComponentType.Recipe && component.Recipe is not null)
                 {
-                    component.Recipe.ConsumeStock(quantityToDebit);
+                    component.Recipe.ConsumeStock(quantityToDebit, allowNegativeStock);
                     debits.Add(new ProductProductionDebitModel
                     {
                         ComponentType = "recipe",
@@ -141,6 +146,20 @@ public class RecordProductProductionHandler(ApplicationDbContext db, CurrentUser
             await tx.RollbackAsync(cancellationToken);
             return ResultOf<ProductProductionModel>.Unprocessable(e.Error);
         }
+    }
+
+    private static bool HasEnoughStock(ProductComponent component, decimal required, bool allowNegativeStock)
+    {
+        return component.ComponentType switch
+        {
+            ProductComponentType.Ingredient when component.Ingredient is not null =>
+                component.Ingredient.HasEnoughStock(required, allowNegativeStock),
+            ProductComponentType.Supply when component.Supply is not null =>
+                component.Supply.HasEnoughStock(required, allowNegativeStock),
+            ProductComponentType.Recipe when component.Recipe is not null =>
+                component.Recipe.HasEnoughStock(required, allowNegativeStock),
+            _ => false
+        };
     }
 
     private static (long Id, string Name, decimal Available)? GetAvailability(ProductComponent component)

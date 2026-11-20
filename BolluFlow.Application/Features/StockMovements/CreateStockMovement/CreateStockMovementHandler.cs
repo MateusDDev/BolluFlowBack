@@ -49,25 +49,34 @@ public class CreateStockMovementHandler(ApplicationDbContext db, CurrentUser use
         {
             var itemName = $"#{request.ItemId}";
 
+            var hasStockModule = await db.Users
+                .Where(x => x.Id == user.Id)
+                .Select(x => (x.EnabledModules & AppModule.Stock) == AppModule.Stock)
+                .FirstOrDefaultAsync(cancellationToken);
+
             if (request.ItemType == StockItemType.Ingredient)
             {
                 var ingredient = await db.Ingredients
-                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
 
                 if (ingredient is not null)
                 {
-                    ingredient.RevertStock(movement.Quantity);
+                    if (hasStockModule)
+                        ingredient.AddStock(movement.Quantity);
+
                     itemName = ingredient.Name;
                 }
             }
             else if (request.ItemType == StockItemType.Supply)
             {
                 var supply = await db.Supplies
-                    .FirstOrDefaultAsync(x => x.Id == request.ItemId, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == request.ItemId && x.UserId == user.Id, cancellationToken);
 
                 if (supply is not null)
                 {
-                    supply.RevertStock(movement.Quantity);
+                    if (hasStockModule)
+                        supply.AddStock(movement.Quantity);
+
                     itemName = supply.Name;
                 }
             }

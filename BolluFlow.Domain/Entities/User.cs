@@ -1,4 +1,6 @@
-﻿namespace BolluFlow.Domain.Entities;
+﻿using BolluFlow.Domain.Enums;
+
+namespace BolluFlow.Domain.Entities;
 
 public class User
 {
@@ -15,6 +17,11 @@ public class User
     public string? WhatsappMessageTemplate { get; private set; }
     public decimal? IndirectCostRate { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public AppModule EnabledModules { get; private set; } = AppModule.None;
+    public bool AllowNegativeStock { get; private set; }
+    public DateTime? OnboardingCompletedAt { get; private set; }
+
+    public bool HasModule(AppModule module) => EnabledModules.HasFlag(module);
 
     public static User Create(
         string name,
@@ -49,5 +56,26 @@ public class User
     public void SetSlug(string? slug)
     {
         Slug = slug;
+    }
+
+    public void SetWhatsapp(string? whatsapp)
+    {
+        Whatsapp = string.IsNullOrWhiteSpace(whatsapp) ? null : whatsapp.Trim();
+    }
+
+    public void SetEnabledModules(AppModule modules)
+    {
+        EnabledModules = modules & AppModule.All;
+    }
+
+    public void SetAllowNegativeStock(bool allowNegativeStock)
+    {
+        AllowNegativeStock = allowNegativeStock;
+    }
+
+    public void CompleteOnboarding(AppModule modules)
+    {
+        SetEnabledModules(modules);
+        OnboardingCompletedAt ??= DateTime.UtcNow;
     }
 }

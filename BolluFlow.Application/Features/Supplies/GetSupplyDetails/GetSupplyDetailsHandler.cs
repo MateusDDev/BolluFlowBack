@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +15,6 @@ public class GetSupplyDetailsHandler(ApplicationDbContext db, CurrentUser user) 
         var supply = await db.Supplies.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == user.Id, cancellationToken);
         return supply is null
             ? ResultOf<SupplyModel>.NotFound(CommonErrors.SupplyNotFound)
-            : ResultOf<SupplyModel>.Success(supply.Adapt<SupplyModel>());
+            : ResultOf<SupplyModel>.Success(SupplyModel.From(supply));
     }
 }

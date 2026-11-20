@@ -5,7 +5,6 @@ using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,7 +40,7 @@ public class CreateOrderHandler(ApplicationDbContext db, CurrentUser user)
             
             await db.SaveChangesAsync(cancellationToken);
 
-            return ResultOf<OrderModel>.Success(order.Adapt<OrderModel>());
+            return ResultOf<OrderModel>.Success(OrderModel.From(order));
         }
         catch (DomainException e)
         {

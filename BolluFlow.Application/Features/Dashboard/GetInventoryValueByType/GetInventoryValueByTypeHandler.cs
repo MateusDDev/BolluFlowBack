@@ -14,17 +14,17 @@ public sealed class GetInventoryValueByTypeHandler(ApplicationDbContext db, Curr
         // Regra oficial do dashboard: Products usam FinalPrice como fonte de verdade.
         var products = await db.Products
             .AsNoTracking()
-            .Where(x => x.UserId == currentUser.Id)
+            .Where(x => x.UserId == currentUser.Id && x.TrackStock)
             .SumAsync(x => x.StockQuantity * x.FinalPrice, cancellationToken);
 
         var ingredients = await db.Ingredients
             .AsNoTracking()
-            .Where(x => x.UserId == currentUser.Id)
+            .Where(x => x.UserId == currentUser.Id && x.TrackStock)
             .SumAsync(x => x.StockQuantity * x.UnitCost, cancellationToken);
 
         var supplies = await db.Supplies
             .AsNoTracking()
-            .Where(x => x.UserId == currentUser.Id)
+            .Where(x => x.UserId == currentUser.Id && x.TrackStock)
             .SumAsync(x => x.StockQuantity * x.UnitCost, cancellationToken);
 
         return ResultOf<List<GetInventoryValueByTypeResult>>.Success(

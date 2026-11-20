@@ -2,7 +2,6 @@
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +17,7 @@ public class ListCustomersHandler(ApplicationDbContext db, CurrentUser user) :
             .Where(x => x.UserId == user.Id)
             .ToListAsync(cancellationToken);
 
-        var response = customers.Adapt<List<CustomerModel>>();
+        var response = customers.Select(CustomerModel.From).ToList();
         
         return ResultOf<List<CustomerModel>>.Success(response);
     }

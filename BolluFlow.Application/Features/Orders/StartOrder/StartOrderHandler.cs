@@ -3,13 +3,14 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Enums;
 using BolluFlow.Domain.Errors;
+using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace BolluFlow.Application.Features.Orders.StartOrder;
 
-public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartOrderCommand, Result>
+public class StartOrderHandler(ApplicationDbContext db, CurrentUser user) : IRequestHandler<StartOrderCommand, Result>
 {
     public async Task<Result> Handle(StartOrderCommand request, CancellationToken cancellationToken)
     {
@@ -19,7 +20,7 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
         {
             var order = await db.Orders
                 .Include(x => x.Items)
-                .FirstOrDefaultAsync(x => x.Id == request.OrderId, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == request.OrderId && x.Customer.UserId == user.Id, cancellationToken);
 
             if (order is null)
                 return Result.NotFound(CommonErrors.OrderNotFound);
@@ -29,6 +30,11 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
 
             if (order.Items.Count == 0)
                 return Result.Unprocessable(new DomainError("ORDER_WITHOUT_ITEMS", "Pedido sem itens não pode ser iniciado"));
+
+            var allowNegativeStock = await db.Users
+                .Where(x => x.Id == user.Id)
+                .Select(x => x.AllowNegativeStock || (x.EnabledModules & AppModule.Stock) == AppModule.None)
+                .FirstOrDefaultAsync(cancellationToken);
 
             var productIds = order.Items.Select(x => x.ProductId).Distinct().ToList();
             var products = await db.Products
@@ -41,7 +47,7 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
                     Item = item,
                     Product = products.GetValueOrDefault(item.ProductId)
                 })
-                .Where(x => x.Product is null || x.Product.StockQuantity < x.Item.Quantity)
+                .Where(x => x.Product is null || !x.Product.HasEnoughStock(x.Item.Quantity, allowNegativeStock))
                 .Select(x => new
                 {
                     productId = x.Item.ProductId,
@@ -61,10 +67,7 @@ public class StartOrderHandler(ApplicationDbContext db) : IRequestHandler<StartO
             order.Status = OrderStatus.InProduction;
 
             foreach (var item in order.Items)
-            {
-                var product = products[item.ProductId];
-                product.ConsumeStock(item.Quantity);
-            }
+                products[item.ProductId].ConsumeStock(item.Quantity, allowNegativeStock);
 
             await db.SaveChangesAsync(cancellationToken);
             await tx.CommitAsync(cancellationToken);

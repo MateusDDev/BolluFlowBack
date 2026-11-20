@@ -1,7 +1,6 @@
 ﻿using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,7 +14,7 @@ public class ListConversionsHandler(ApplicationDbContext db) : IRequestHandler<L
             .Where(x => x.IngredientId == request.IngredientId)
             .ToListAsync(cancellationToken);
         
-        var result = ingredientConversions.Adapt<List<IngredientConversionModel>>();
+        var result = ingredientConversions.Select(IngredientConversionModel.From).ToList();
 
         return ResultOf<List<IngredientConversionModel>>.Success(result);
     }

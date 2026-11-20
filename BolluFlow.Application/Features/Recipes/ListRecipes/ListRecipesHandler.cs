@@ -30,7 +30,8 @@ public class ListRecipesHandler(ApplicationDbContext db, CurrentUser user) : IRe
                 FinalPrice = x.FinalPrice,
                 StockQuantity = x.StockQuantity,
                 MinimumStockQuantity = x.MinimumStockQuantity,
-                IsActive = x.IsActive
+                IsActive = x.IsActive,
+                TrackStock = x.TrackStock
             })
             .ToListAsync(cancellationToken);
 

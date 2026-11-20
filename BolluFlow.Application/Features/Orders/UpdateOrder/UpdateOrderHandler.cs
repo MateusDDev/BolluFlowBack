@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,26 +44,7 @@ public class UpdateOrderHandler(ApplicationDbContext db) : IRequestHandler<Updat
                 await db.Entry(order.Customer).Reference(x => x.DeliveryAddress).LoadAsync(cancellationToken);
             }
 
-            var subtotal = order.CalculateSubtotal();
-            var discountValue = order.CalculateDiscount(subtotal);
-
-            return ResultOf<OrderModel>.Success(new OrderModel
-            {
-                Id = order.Id,
-                Number = order.Number,
-                Customer = order.Customer.Adapt<CustomerModel>(),
-                Status = order.Status,
-                Note = order.Note,
-                CreatedAt = order.CreatedAt,
-                DeliveryDate = order.DeliveryDate,
-                PaymentMethod = order.PaymentMethod,
-                Discount = order.Discount,
-                DiscountType = order.DiscountType,
-                ShippingFee = order.ShippingFee,
-                Subtotal = subtotal,
-                DiscountValue = discountValue,
-                Total = subtotal - discountValue + order.ShippingFee
-            });
+            return ResultOf<OrderModel>.Success(OrderModel.From(order));
         }
         catch (DomainException e)
         {

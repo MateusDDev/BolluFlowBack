@@ -13,6 +13,7 @@ public class UpdateProductCommandBody
     public decimal? SalePrice { get; init; }
     public decimal? MinimumStockQuantity { get; init; }
     public bool? IsActive { get; init; }
+    public bool? TrackStock { get; init; }
 
     public OptionalField<string?> ImageUrl { get; init; }
 }

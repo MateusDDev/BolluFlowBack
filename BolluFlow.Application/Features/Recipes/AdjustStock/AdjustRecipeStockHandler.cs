@@ -28,6 +28,8 @@ public class AdjustRecipeStockHandler(ApplicationDbContext db) : IRequestHandler
             if (recipe is null)
                 return ResultOf<RecipeStockAdjustmentModel>.NotFound(CommonErrors.RecipeNotFound);
 
+            recipe.SetTrackStock(true);
+
             if (direction == "add")
                 recipe.ProduceStock(request.Body.Quantity);
             else

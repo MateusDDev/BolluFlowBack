@@ -4,7 +4,6 @@ using BolluFlow.Application.Models;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +28,9 @@ public class UpdateProductHandler(ApplicationDbContext db, CurrentUser user) : I
                 request.Body.MinimumStockQuantity ?? product.MinimumStockQuantity,
                 request.Body.IsActive);
 
+            if (request.Body.TrackStock.HasValue)
+                product.SetTrackStock(request.Body.TrackStock.Value);
+
             if (request.Body.ImageUrl.IsSet)
             {
                 product.UpdateImage(string.IsNullOrWhiteSpace(request.Body.ImageUrl.Value) 
@@ -37,7 +39,7 @@ public class UpdateProductHandler(ApplicationDbContext db, CurrentUser user) : I
             }
 
             await db.SaveChangesAsync(cancellationToken);
-            return ResultOf<ProductModel>.Success(product.Adapt<ProductModel>());
+            return ResultOf<ProductModel>.Success(ProductModel.From(product));
         }
         catch (DomainException e)
         {

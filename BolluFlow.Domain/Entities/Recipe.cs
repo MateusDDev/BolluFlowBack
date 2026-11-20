@@ -35,6 +35,8 @@ public class Recipe
 
     public bool IsActive { get; set; }
 
+    public bool TrackStock { get; private set; }
+
     public List<RecipeIngredient> RecipeIngredients { get; set; } = [];
 
     public List<RecipeConversion> RecipeConversions { get; set; } = [];
@@ -89,20 +91,34 @@ public class Recipe
         FinalPrice = finalPrice;
     }
 
+    public void SetTrackStock(bool trackStock)
+    {
+        TrackStock = trackStock;
+    }
+
+    public bool HasEnoughStock(decimal quantity, bool allowNegativeStock)
+    {
+        return !TrackStock || allowNegativeStock || StockQuantity >= quantity;
+    }
+
     public void ProduceStock(decimal quantity)
     {
         if (quantity <= 0)
             throw new DomainException(RecipeErrors.QuantityInvalid);
 
+        TrackStock = true;
         StockQuantity += quantity;
     }
 
-    public void ConsumeStock(decimal quantity)
+    public void ConsumeStock(decimal quantity, bool allowNegativeStock = false)
     {
         if (quantity <= 0)
             throw new DomainException(RecipeErrors.QuantityInvalid);
 
-        if (StockQuantity < quantity)
+        if (!TrackStock)
+            return;
+
+        if (!allowNegativeStock && StockQuantity < quantity)
             throw new DomainException(RecipeErrors.StockInsufficient(Name));
 
         StockQuantity -= quantity;

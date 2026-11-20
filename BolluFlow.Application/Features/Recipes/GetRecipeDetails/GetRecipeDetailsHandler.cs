@@ -32,7 +32,8 @@ public class GetRecipeDetailsHandler(ApplicationDbContext db) : IRequestHandler<
             FinalPrice = recipe.FinalPrice,
             StockQuantity = recipe.StockQuantity,
             MinimumStockQuantity = recipe.MinimumStockQuantity,
-            IsActive = recipe.IsActive
+            IsActive = recipe.IsActive,
+            TrackStock = recipe.TrackStock
         });
     }
 }

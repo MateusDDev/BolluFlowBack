@@ -38,8 +38,10 @@ public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser use
 
                 itemName = supply.Name;
 
+                supply.SetTrackStock(true);
+
                 if (request.Direction == AdjustmentDirection.Add)
-                    supply.RevertStock(request.Quantity);
+                    supply.AddStock(request.Quantity);
                 else
                     supply.ConsumeStock(request.Quantity);
             }
@@ -51,8 +53,10 @@ public class AdjustStockMovementHandler(ApplicationDbContext db, CurrentUser use
 
                 itemName = ingredient.Name;
 
+                ingredient.SetTrackStock(true);
+
                 if (request.Direction == AdjustmentDirection.Add)
-                    ingredient.RevertStock(request.Quantity);
+                    ingredient.AddStock(request.Quantity);
                 else
                     ingredient.ConsumeStock(request.Quantity);
             }

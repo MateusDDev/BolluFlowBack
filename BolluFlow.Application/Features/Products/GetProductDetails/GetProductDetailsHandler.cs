@@ -3,7 +3,6 @@ using BolluFlow.Application.Errors;
 using BolluFlow.Application.Models;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
-using Mapster;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +15,6 @@ public class GetProductDetailsHandler(ApplicationDbContext db, CurrentUser user)
         var product = await db.Products.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserId == user.Id, cancellationToken);
         return product is null
             ? ResultOf<ProductModel>.NotFound(CommonErrors.ProductNotFound)
-            : ResultOf<ProductModel>.Success(product.Adapt<ProductModel>());
+            : ResultOf<ProductModel>.Success(ProductModel.From(product));
     }
 }
