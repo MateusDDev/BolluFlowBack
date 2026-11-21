@@ -16,4 +16,9 @@ public record UpdateProfileCommandBody(
     decimal? IndirectCostRate,
     string? Whatsapp = null,
     List<string>? EnabledModules = null,
-    bool? AllowNegativeStock = null);
+    bool? AllowNegativeStock = null,
+    OptionalField<int?> DeliveryTimeMinutes = default,
+    OptionalField<string?> PixKey = default,
+    OptionalField<UpdateProfileStoreAddress?> StoreAddress = default);
+
+public record UpdateProfileStoreAddress(string? Street, int? Number, string? Neighborhood, string? Complement);

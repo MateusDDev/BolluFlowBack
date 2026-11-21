@@ -12,4 +12,4 @@ public record UpdateCustomerCommandBody(
     DateTime? Birthday,
     UpdateCustomerCommandDeliveryAddress? DeliveryAddress);
     
-public record UpdateCustomerCommandDeliveryAddress(string Street, int Number, string Neighborhood);
+public record UpdateCustomerCommandDeliveryAddress(string Street, int Number, string Neighborhood, string? Complement = null);

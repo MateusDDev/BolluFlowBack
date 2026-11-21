@@ -71,6 +71,10 @@ namespace BolluFlow.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("Complement")
+                        .HasColumnType("text")
+                        .HasColumnName("complement");
+
                     b.Property<long>("CustomerId")
                         .HasColumnType("bigint")
                         .HasColumnName("customer_id");
@@ -245,6 +249,55 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.ToTable("tb_ingredient_conversion", (string)null);
                 });
 
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Notification", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("varchar(300)")
+                        .HasColumnName("message");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("read_at");
+
+                    b.Property<long?>("ReferenceId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("reference_id");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("varchar(120)")
+                        .HasColumnName("title");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(60)")
+                        .HasColumnName("type");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tb_notification");
+
+                    b.HasIndex("UserId", "ReadAt", "CreatedAt")
+                        .HasDatabaseName("ix_tb_notification_user_id_read_at_created_at");
+
+                    b.ToTable("tb_notification", (string)null);
+                });
+
             modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
                 {
                     b.Property<long>("Id")
@@ -253,6 +306,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal?>("ChangeFor")
+                        .HasColumnType("numeric(10,2)")
+                        .HasColumnName("change_for");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -277,6 +334,10 @@ namespace BolluFlow.Infrastructure.Migrations
                     b.Property<string>("DiscountType")
                         .HasColumnType("text")
                         .HasColumnName("discount_type");
+
+                    b.Property<bool>("IsPickup")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_pickup");
 
                     b.Property<string>("Note")
                         .HasColumnType("text")
@@ -883,6 +944,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<int?>("DeliveryTimeMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("delivery_time_minutes");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text")
@@ -913,6 +978,10 @@ namespace BolluFlow.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password");
+
+                    b.Property<string>("PixKey")
+                        .HasColumnType("varchar(140)")
+                        .HasColumnName("pix_key");
 
                     b.Property<string>("ProfileImageUrl")
                         .HasColumnType("text")
@@ -1015,6 +1084,16 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasConstraintName("fk_tb_ingredient_conversion_tb_ingredient_ingredient_id");
 
                     b.Navigation("Ingredient");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.Notification", b =>
+                {
+                    b.HasOne("BolluFlow.Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tb_notification_users_user_id");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Order", b =>
@@ -1158,6 +1237,44 @@ namespace BolluFlow.Infrastructure.Migrations
                         .HasConstraintName("fk_tb_supply_conversion_tb_supply_supply_id");
 
                     b.Navigation("Supply");
+                });
+
+            modelBuilder.Entity("BolluFlow.Domain.Entities.User", b =>
+                {
+                    b.OwnsOne("BolluFlow.Domain.ValueObjects.StoreAddress", "StoreAddress", b1 =>
+                        {
+                            b1.Property<long>("UserId")
+                                .HasColumnType("bigint")
+                                .HasColumnName("id");
+
+                            b1.Property<string>("Complement")
+                                .HasColumnType("varchar(200)")
+                                .HasColumnName("store_complement");
+
+                            b1.Property<string>("Neighborhood")
+                                .IsRequired()
+                                .HasColumnType("varchar(120)")
+                                .HasColumnName("store_neighborhood");
+
+                            b1.Property<int>("Number")
+                                .HasColumnType("integer")
+                                .HasColumnName("store_number");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasColumnType("varchar(200)")
+                                .HasColumnName("store_street");
+
+                            b1.HasKey("UserId");
+
+                            b1.ToTable("tb_user");
+
+                            b1.WithOwner()
+                                .HasForeignKey("UserId")
+                                .HasConstraintName("fk_tb_user_tb_user_id");
+                        });
+
+                    b.Navigation("StoreAddress");
                 });
 
             modelBuilder.Entity("BolluFlow.Domain.Entities.Customer", b =>

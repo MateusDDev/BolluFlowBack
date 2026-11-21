@@ -11,6 +11,8 @@ public sealed class OrderReportResult
     public string? CustomerStreet { get; init; }
     public int? CustomerNumber { get; init; }
     public string? CustomerNeighborhood { get; init; }
+    public string? CustomerComplement { get; init; }
+    public bool IsPickup { get; init; }
     public DateTime? DeliveryDate { get; init; }
     public decimal TotalValue { get; init; }
     public PaymentMethod? PaymentMethod { get; init; }

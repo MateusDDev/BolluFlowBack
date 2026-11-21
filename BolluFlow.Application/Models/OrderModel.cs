@@ -31,6 +31,10 @@ public class OrderModel
 
     public decimal ShippingFee { get; set; }
 
+    public decimal? ChangeFor { get; set; }
+
+    public bool IsPickup { get; set; }
+
     public decimal Total { get; set; }
 
     public OrderType Type { get; set; }
@@ -57,6 +61,8 @@ public class OrderModel
             DiscountType = order.DiscountType,
             DiscountValue = discountValue,
             ShippingFee = order.ShippingFee,
+            ChangeFor = order.ChangeFor,
+            IsPickup = order.IsPickup,
             Total = subtotal - discountValue + order.ShippingFee,
             Type = order.Type,
             DeliveredAt = order.DeliveredAt

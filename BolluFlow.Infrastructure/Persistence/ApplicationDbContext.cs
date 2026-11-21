@@ -42,6 +42,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<StockMovement> StockMovements { get; set; }
     public DbSet<FinancialEntry> FinancialEntries { get; set; }
     public DbSet<UserStockUnitPreference> UserStockUnitPreferences { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

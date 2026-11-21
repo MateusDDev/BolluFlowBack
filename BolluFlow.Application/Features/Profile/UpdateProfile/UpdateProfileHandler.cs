@@ -5,6 +5,7 @@ using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Infrastructure.Auth;
 using BolluFlow.Infrastructure.Persistence;
+using BolluFlow.Domain.ValueObjects;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,6 +24,23 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
 
         if (body.IndirectCostRate is < 0 or > 100)
             return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_INDIRECT_COST_RATE_INVALID", "indirectCostRate deve estar entre 0 e 100"));
+
+        if (body.DeliveryTimeMinutes.Value is < 1 or > 1440)
+            return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_DELIVERY_TIME_INVALID", "O tempo de entrega deve estar entre 1 minuto e 24 horas"));
+
+        if (body.PixKey.Value?.Trim().Length > 140)
+            return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_PIX_KEY_INVALID", "A chave Pix deve ter no máximo 140 caracteres"));
+
+        var storeAddressBody = body.StoreAddress.Value;
+
+        if (storeAddressBody is not null)
+        {
+            if (string.IsNullOrWhiteSpace(storeAddressBody.Street) || string.IsNullOrWhiteSpace(storeAddressBody.Neighborhood))
+                return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_STORE_ADDRESS_INVALID", "Informe rua e bairro do endereço da doceria"));
+
+            if (storeAddressBody.Number is null or <= 0)
+                return ResultOf<ProfileModel>.BadRequest(new DomainError("PROFILE_STORE_ADDRESS_NUMBER_INVALID", "Informe o número do endereço da doceria"));
+        }
 
         var user = await db.Users
             .FirstOrDefaultAsync(x => x.Id == currentUser.Id, cancellationToken);
@@ -63,6 +81,23 @@ public class UpdateProfileHandler(ApplicationDbContext db, CurrentUser currentUs
 
         if (body.AllowNegativeStock.HasValue)
             user.SetAllowNegativeStock(body.AllowNegativeStock.Value);
+
+        if (body.DeliveryTimeMinutes.IsSet)
+            user.SetDeliveryTimeMinutes(body.DeliveryTimeMinutes.Value);
+
+        if (body.StoreAddress.IsSet)
+        {
+            user.SetStoreAddress(storeAddressBody is null
+                ? null
+                : new StoreAddress(
+                    storeAddressBody.Street!.Trim(),
+                    storeAddressBody.Number!.Value,
+                    storeAddressBody.Neighborhood!.Trim(),
+                    string.IsNullOrWhiteSpace(storeAddressBody.Complement) ? null : storeAddressBody.Complement.Trim()));
+        }
+
+        if (body.PixKey.IsSet)
+            user.SetPixKey(body.PixKey.Value);
 
         if (body.Whatsapp is not null)
             user.SetWhatsapp(body.Whatsapp);

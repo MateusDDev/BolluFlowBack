@@ -34,6 +34,8 @@ public class OrderReportHandler(ApplicationDbContext db, CurrentUser user, IOpti
                 CustomerStreet = x.Customer!.DeliveryAddress!.Street,
                 CustomerNumber = (int?)x.Customer!.DeliveryAddress!.Number,
                 CustomerNeighborhood = x.Customer!.DeliveryAddress!.Neighborhood,
+                CustomerComplement = x.Customer!.DeliveryAddress!.Complement,
+                IsPickup = x.IsPickup,
                 TotalValue = x.Items.Sum(i => i.Quantity * i.UnitPrice)
                     - ((x.Discount == null || x.DiscountType == null)
                         ? 0
@@ -115,7 +117,12 @@ public class OrderReportHandler(ApplicationDbContext db, CurrentUser user, IOpti
                             .LineColor(Colors.Grey.Lighten1);
      
                         // ── ENDEREÇO ───────────────────────────────
-                        if (order.CustomerStreet is not null)
+                        if (order.IsPickup)
+                        main.Item().PaddingBottom(6)
+                            .Text("Retirada na doceria")
+                            .FontSize(9)
+                            .Bold();
+                        else if (order.CustomerStreet is not null)
                         main.Item().PaddingBottom(6).Column(address =>
                         {
                             address.Spacing(1);
@@ -128,6 +135,12 @@ public class OrderReportHandler(ApplicationDbContext db, CurrentUser user, IOpti
                                 .Text(order.CustomerNeighborhood)
                                 .FontSize(9)
                                 .FontColor(Colors.Grey.Darken1);
+
+                            if (order.CustomerComplement is not null)
+                                address.Item()
+                                    .Text(order.CustomerComplement)
+                                    .FontSize(9)
+                                    .FontColor(Colors.Grey.Darken1);
                         });
      
                         // ── SEPARADOR ──────────────────────────────

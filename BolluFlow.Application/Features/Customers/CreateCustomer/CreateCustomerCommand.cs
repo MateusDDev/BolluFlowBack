@@ -10,4 +10,4 @@ public record CreateCustomerCommand(
     DateTime? Birthday,
     CreateCustomerDeliveryAddressModel? DeliveryAddress = null) : ICommand<ResultOf<CustomerModel>>;
     
-public record CreateCustomerDeliveryAddressModel(string Street, int Number, string Neighborhood);
+public record CreateCustomerDeliveryAddressModel(string Street, int Number, string Neighborhood, string? Complement = null);

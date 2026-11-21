@@ -21,6 +21,8 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.Property(x => x.PaymentMethod).HasConversion<string>();
         builder.Property(x => x.DiscountType).HasConversion<string>();
         builder.Property(x => x.ShippingFee).HasDefaultValue(0);
+
+        builder.Property(x => x.ChangeFor).HasColumnType("numeric(10,2)");
         
         builder
             .HasOne<Customer>(x => x.Customer)
