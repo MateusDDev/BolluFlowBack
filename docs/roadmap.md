@@ -72,6 +72,7 @@ Hoje o pedido do cardápio entra no sistema, mas a empresa não é avisada, não
 | Mais de uma foto por produto (até 5, a primeira é a capa; `ProductImage` no lugar de `ImageUrl`, carrossel no cardápio) | ideia |
 | Sininho de notificações no topo do painel: todo pedido do cardápio gera uma notificação (não depende do cliente enviar o WhatsApp), com contador de não lidas, lista com link para o pedido e "marcar todas como lidas". Atualiza a cada 30 s com a aba visível. Base para outros tipos de aviso no futuro (estoque baixo, encomenda de amanhã) | feito |
 | Notificação no celular/computador com o sistema fechado (Web Push com chaves VAPID no próprio back, sem serviço terceiro). Só envia se a pessoa não estiver usando o painel (a consulta do sininho serve de sinal de presença). No iPhone exige adicionar à tela inicial (PWA) | decidido (depois) |
+| Sininho em tempo real com SignalR no lugar do polling de 30 s (notificação chega na hora). Manter polling espaçado (2 a 5 min) como reserva se a conexão cair. Conferir suporte a WebSocket na hospedagem; com mais de uma instância da API, precisa de backplane (Redis) | ideia (melhoria futura) |
 | WhatsApp automático para a doceria pela API oficial (Meta cobra por mensagem) | ideia (plano pago) |
 | Limpar notificações antigas (ex.: lidas há mais de 90 dias) | ideia |
 | Carrinho salvo no navegador | ideia |
