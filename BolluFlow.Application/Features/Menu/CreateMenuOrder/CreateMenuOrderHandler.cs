@@ -1,8 +1,10 @@
+using System.Globalization;
 using BolluFlow.Application.Abstractions;
 using BolluFlow.Application.Models;
 using BolluFlow.Application.Services;
 using BolluFlow.Domain.Abstractions;
 using BolluFlow.Domain.Entities;
+using BolluFlow.Domain.Enums;
 using BolluFlow.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -49,28 +51,33 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
                 x => x.UserId == owner.Id && x.Whatsapp == customerWhatsapp,
                 cancellationToken);
 
+        if (request.IsPickup && owner.StoreAddress is null)
+            return ResultOf<MenuOrderCreatedModel>.BadRequest(new DomainError("MENU_PICKUP_UNAVAILABLE", "Esta loja não aceita retirada no local"));
+
+        var deliveryAddress = request.IsPickup
+            ? null
+            : DeliveryAddress.Create(
+                request.CustomerStreet!.Trim(),
+                request.CustomerNumber!.Value,
+                request.CustomerNeighborhood!.Trim(),
+                request.CustomerComplement);
+
+        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
+
         if (customer is null)
         {
             customer = Customer.Create(
                 owner.Id,
                 request.CustomerName!.Trim(),
                 customerWhatsapp,
-                DeliveryAddress.Create(
-                    request.CustomerStreet!.Trim(),
-                    request.CustomerNumber!.Value,
-                    request.CustomerNeighborhood!.Trim()));
+                deliveryAddress);
 
             db.Customers.Add(customer);
             await db.SaveChangesAsync(cancellationToken);
         }
         else
         {
-            customer.Update(
-                request.CustomerName!.Trim(),
-                DeliveryAddress.Create(
-                    request.CustomerStreet!.Trim(),
-                    request.CustomerNumber!.Value,
-                    request.CustomerNeighborhood!.Trim()));
+            customer.Update(request.CustomerName!.Trim(), deliveryAddress, customer.Preferences, customer.Birthday);
         }
 
         var lastOrderNumber = await db.Orders
@@ -81,7 +88,11 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
             owner.Id,
             customer.Id,
             lastOrderNumber + 1,
-            string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim());
+            string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
+            paymentMethod: request.PaymentMethod);
+
+        if (request.IsPickup)
+            order.MarkAsPickup();
 
         var pricing = await OrderPricingService.LoadAsync(db, owner.Id, requestedProductIds, cancellationToken);
 
@@ -91,8 +102,22 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
             order.AddItem(product.Id, item.Quantity, product.FinalPrice, pricing[item.ProductId].UnitCost);
         }
 
+        try
+        {
+            order.SetChangeFor(request.ChangeFor);
+        }
+        catch (DomainException ex)
+        {
+            return ResultOf<MenuOrderCreatedModel>.BadRequest(ex.Error);
+        }
+
         db.Orders.Add(order);
         await db.SaveChangesAsync(cancellationToken);
+
+        db.Notifications.Add(BuildNotification(order, customer.Name));
+        await db.SaveChangesAsync(cancellationToken);
+
+        await transaction.CommitAsync(cancellationToken);
 
         return ResultOf<MenuOrderCreatedModel>.Created(new MenuOrderCreatedModel
         {
@@ -102,6 +127,22 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
         });
     }
 
+    private static Notification BuildNotification(Order order, string customerName)
+    {
+        var total = order.CalculateTotal().ToString("C", BrazilianCulture);
+        var fulfillment = order.IsPickup ? "Retirada" : "Entrega";
+        var shortName = customerName.Length > 80 ? customerName[..80] : customerName;
+
+        return Notification.Create(
+            order.UserId,
+            NotificationType.MenuOrderCreated,
+            $"Novo pedido #{order.Number} pelo cardápio",
+            $"{shortName} · {total} · {fulfillment}",
+            order.Id);
+    }
+
+    private static readonly CultureInfo BrazilianCulture = CultureInfo.GetCultureInfo("pt-BR");
+
     private static DomainError? Validate(CreateMenuOrderCommand request)
     {
         if (string.IsNullOrWhiteSpace(request.CustomerName) || request.CustomerName.Trim().Length < 2)
@@ -110,14 +151,17 @@ public class CreateMenuOrderHandler(ApplicationDbContext db) : IRequestHandler<C
         if (string.IsNullOrWhiteSpace(request.CustomerWhatsapp))
             return new DomainError("MENU_ORDER_CUSTOMER_WHATSAPP_REQUIRED", "customerWhatsapp é obrigatório");
 
-        if (string.IsNullOrWhiteSpace(request.CustomerStreet))
-            return new DomainError("MENU_ORDER_CUSTOMER_STREET_REQUIRED", "customerStreet é obrigatório");
+        if (!request.IsPickup)
+        {
+            if (string.IsNullOrWhiteSpace(request.CustomerStreet))
+                return new DomainError("MENU_ORDER_CUSTOMER_STREET_REQUIRED", "customerStreet é obrigatório");
 
-        if (!request.CustomerNumber.HasValue)
-            return new DomainError("MENU_ORDER_CUSTOMER_NUMBER_REQUIRED", "customerNumber é obrigatório");
+            if (!request.CustomerNumber.HasValue)
+                return new DomainError("MENU_ORDER_CUSTOMER_NUMBER_REQUIRED", "customerNumber é obrigatório");
 
-        if (string.IsNullOrWhiteSpace(request.CustomerNeighborhood))
-            return new DomainError("MENU_ORDER_CUSTOMER_NEIGHBORHOOD_REQUIRED", "customerNeighborhood é obrigatório");
+            if (string.IsNullOrWhiteSpace(request.CustomerNeighborhood))
+                return new DomainError("MENU_ORDER_CUSTOMER_NEIGHBORHOOD_REQUIRED", "customerNeighborhood é obrigatório");
+        }
 
         if (request.Items is null || request.Items.Count == 0)
             return new DomainError("MENU_ORDER_ITEMS_REQUIRED", "items deve conter ao menos um item");

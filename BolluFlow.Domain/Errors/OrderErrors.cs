@@ -25,6 +25,12 @@ public class OrderErrors
     public static readonly DomainError DiscountTypeRequired =
         new("ORDER_DISCOUNT_TYPE_REQUIRED", "Tipo de desconto é obrigatório quando desconto é informado");
 
+    public static readonly DomainError ChangeForRequiresCash =
+        new("ORDER_CHANGE_FOR_REQUIRES_CASH", "Troco só vale para pagamento em dinheiro");
+
+    public static readonly DomainError ChangeForBelowTotal =
+        new("ORDER_CHANGE_FOR_BELOW_TOTAL", "O valor para troco deve ser maior ou igual ao total do pedido");
+
     public static readonly DomainError InvalidShippingFee =
         new("ORDER_INVALID_SHIPPING_FEE", "Frete deve ser maior ou igual a zero");
 

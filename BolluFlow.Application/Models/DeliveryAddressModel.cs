@@ -12,6 +12,8 @@ public class DeliveryAddressModel
 
     public string Neighborhood { get; set; } = null!;
 
+    public string? Complement { get; set; }
+
     public static DeliveryAddressModel From(DeliveryAddress address)
     {
         return new DeliveryAddressModel
@@ -19,7 +21,8 @@ public class DeliveryAddressModel
             Id = address.Id,
             Street = address.Street,
             Number = address.Number,
-            Neighborhood = address.Neighborhood
+            Neighborhood = address.Neighborhood,
+            Complement = address.Complement
         };
     }
 }

@@ -11,16 +11,21 @@ public class GetMenuHandler(ApplicationDbContext db) : IRequestHandler<GetMenuQu
 {
     public async Task<ResultOf<MenuStoreModel>> Handle(GetMenuQuery request, CancellationToken cancellationToken)
     {
-        var menu = await db.Users
+        var owner = await db.Users
             .AsNoTracking()
-            .Where(x => x.IsActive && x.Slug == request.Slug)
-            .Select(x => new MenuStoreModel
+            .FirstOrDefaultAsync(x => x.IsActive && x.Slug == request.Slug, cancellationToken);
+
+        var menu = owner is null
+            ? null
+            : new MenuStoreModel
             {
-                Name = x.Name,
-                Slug = x.Slug!,
-                Whatsapp = x.Whatsapp
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+                Name = owner.Name,
+                Slug = owner.Slug!,
+                Whatsapp = owner.Whatsapp,
+                DeliveryTimeMinutes = owner.DeliveryTimeMinutes,
+                PixKey = owner.PixKey,
+                StoreAddress = StoreAddressModel.From(owner.StoreAddress)
+            };
 
         return menu is null
             ? ResultOf<MenuStoreModel>.NotFound(new DomainError("MENU_NOT_FOUND", "Cardápio não encontrado"))

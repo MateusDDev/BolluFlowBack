@@ -53,7 +53,11 @@ public class MenuController(IMediator mediator) : ControllerBase
                 body.CustomerStreet,
                 body.CustomerNumber,
                 body.CustomerNeighborhood,
+                body.CustomerComplement,
+                body.IsPickup,
                 body.Note,
+                body.PaymentMethod,
+                body.ChangeFor,
                 body.Items),
             ct);
 

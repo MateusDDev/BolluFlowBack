@@ -27,7 +27,7 @@ public class UpdateCustomerHandler(ApplicationDbContext db, CurrentUser user) : 
 
         var address = command.DeliveryAddress is null
             ? customer.DeliveryAddress
-            : DeliveryAddress.Create(command.DeliveryAddress.Street, command.DeliveryAddress.Number, command.DeliveryAddress.Neighborhood);
+            : DeliveryAddress.Create(command.DeliveryAddress.Street, command.DeliveryAddress.Number, command.DeliveryAddress.Neighborhood, command.DeliveryAddress.Complement);
 
         customer.Update(
             string.IsNullOrWhiteSpace(command.Name) ? customer.Name : command.Name.Trim(),

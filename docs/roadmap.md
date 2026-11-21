@@ -54,6 +54,34 @@ Status: `ideia` → `decidido` → `em andamento` → `feito`.
 | Alertas de estoque do dashboard incluírem receitas | ideia |
 | Mensagens em inglês no `AdjustStockMovementHandler` | ideia |
 
+### Cardápio digital
+Hoje o pedido do cardápio entra no sistema, mas a empresa não é avisada, não sabe como o cliente vai pagar e o endereço é sempre obrigatório.
+
+| Item | Status |
+|---|---|
+| Tela final com botão "Enviar pedido no WhatsApp" para a empresa, com o pedido já escrito (nº, itens, total, pagamento e troco, endereço, observação). Sem redirecionar sozinho | feito |
+| Escolher a forma de pagamento no checkout (Dinheiro, Pix, Crédito, Débito), gravada no pedido | feito |
+| Tempo de entrega do delivery (em minutos ou horas, da saída da doceria até o cliente) nas configurações do cardápio, mostrado no cardápio. Só informativo | feito |
+| Dinheiro: "troco para quanto?" (opcional, gravado no pedido e mostrado nos detalhes); Pix: chave Pix da empresa nas configurações, mostrada com botão de copiar no checkout e na tela final | feito |
+| Retirada ou entrega: o cliente escolhe "Retirar na doceria" e aí o endereço deixa de ser obrigatório. Na retirada o cardápio mostra o endereço da doceria, e o pedido fica marcado como retirada (detalhes, WhatsApp e PDF). A opção só aparece se a doceria tiver endereço | feito |
+| Endereço da doceria nas configurações (rua, número, bairro, ponto de referência) | feito |
+| Ponto de referência no endereço do cliente (cardápio e cadastro de cliente) | feito |
+| Marcar retirada também no pedido criado pelo painel | ideia |
+| Data desejada para a encomenda | decidido |
+| Prévia do link ao compartilhar (nome, foto e descrição via `generateMetadata`) | decidido |
+| Mais de uma foto por produto (até 5, a primeira é a capa; `ProductImage` no lugar de `ImageUrl`, carrossel no cardápio) | ideia |
+| Sininho de notificações no topo do painel: todo pedido do cardápio gera uma notificação (não depende do cliente enviar o WhatsApp), com contador de não lidas, lista com link para o pedido e "marcar todas como lidas". Atualiza a cada 30 s com a aba visível. Base para outros tipos de aviso no futuro (estoque baixo, encomenda de amanhã) | feito |
+| Notificação no celular/computador com o sistema fechado (Web Push com chaves VAPID no próprio back, sem serviço terceiro). Só envia se a pessoa não estiver usando o painel (a consulta do sininho serve de sinal de presença). No iPhone exige adicionar à tela inicial (PWA) | decidido (depois) |
+| WhatsApp automático para a doceria pela API oficial (Meta cobra por mensagem) | ideia (plano pago) |
+| Limpar notificações antigas (ex.: lidas há mais de 90 dias) | ideia |
+| Carrinho salvo no navegador | ideia |
+| Perfil da loja no topo: logo, capa, descrição, horário e "Loja fechada / não aceitando pedidos" | ideia |
+| Categorias em abas fixas e busca | ideia |
+| Taxa de entrega e pedido mínimo | ideia |
+| Escolher no perfil quais formas de pagamento o cardápio aceita | ideia |
+| Copiar link e gerar QR code do cardápio no painel | ideia |
+| Página pública de acompanhamento do pedido | ideia |
+
 ### Segurança e base técnica
 | Item | Status |
 |---|---|

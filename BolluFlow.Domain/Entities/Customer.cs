@@ -54,6 +54,6 @@ public class Customer
             return;
         }
 
-        DeliveryAddress.Update(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood);
+        DeliveryAddress.Update(deliveryAddress.Street, deliveryAddress.Number, deliveryAddress.Neighborhood, deliveryAddress.Complement);
     }
 }

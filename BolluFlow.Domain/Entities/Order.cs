@@ -34,6 +34,10 @@ public class Order
     
     public PaymentMethod? PaymentMethod { get; set; }
 
+    public decimal? ChangeFor { get; private set; }
+
+    public bool IsPickup { get; private set; }
+
     public decimal? Discount { get; private set; }
 
     public DiscountType? DiscountType { get; private set; }
@@ -99,6 +103,9 @@ public class Order
         CustomerId = customerId ?? CustomerId;
         Note = note;
         PaymentMethod = paymentMethod;
+
+        if (paymentMethod != Enums.PaymentMethod.Cash)
+            ChangeFor = null;
         Discount = discount;
         DiscountType = discountType;
         ShippingFee = shippingFee;
@@ -183,6 +190,28 @@ public class Order
     {
         if (IsDirectSale)
             throw new DomainException(OrderErrors.DirectSaleHasNoWorkflow);
+    }
+
+    public void MarkAsPickup()
+    {
+        IsPickup = true;
+    }
+
+    public void SetChangeFor(decimal? changeFor)
+    {
+        if (changeFor is null)
+        {
+            ChangeFor = null;
+            return;
+        }
+
+        if (PaymentMethod != Enums.PaymentMethod.Cash)
+            throw new DomainException(OrderErrors.ChangeForRequiresCash);
+
+        if (changeFor < CalculateTotal())
+            throw new DomainException(OrderErrors.ChangeForBelowTotal);
+
+        ChangeFor = changeFor;
     }
 
     public decimal CalculateSubtotal() =>
